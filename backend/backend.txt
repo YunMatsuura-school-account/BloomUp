@@ -1,0 +1,8 @@
+# Backend
+
+- Stack: Node.js + Express
+- Purpose: Handle API endpoints, authentication, and database communication
+
+# Notes:
+- I (Vaibhav) will add Node, Express, JWT, and Nodemon
+- Developers will track all installed packages and updates here.

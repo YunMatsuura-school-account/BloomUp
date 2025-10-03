@@ -1,0 +1,7 @@
+# Frontend
+
+- Stack: React + Vite
+- Purpose: Build the user interface for BloomUP
+
+# Notes:
+- Developers will track all installed packages and updates here.
