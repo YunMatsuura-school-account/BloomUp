@@ -18,5 +18,12 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
+<<<<<<< HEAD
+=======
+  },
+  "executionPolicy": {
+    "scope": "CurrentUser",
+    "policy": "RemoteSigned"
+>>>>>>> origin/tejaswani-developer
   }
 }
