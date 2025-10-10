@@ -1,0 +1,23 @@
+# Backend
+
+- Stack: Node.js + Express
+- Purpose: Handle API endpoints, authentication, and database communication
+
+# Notes:
+- I (Vaibhav) will add Node, Express, JWT, and Nodemon
+- Developers will track all installed packages and updates here.
+
+1. ## Current Setup (Vaibhav):
+- Initialized Node project (`npm init -y`)
+- Installed packages:
+    - express
+    - jsonwebtoken (JWT)
+    - dotenv (for environment variables)
+- Installed dev dependencies:
+    - nodemon (for development)
+
+
+
+in frontend
+
+    npm install react react-dom react-router-dom
