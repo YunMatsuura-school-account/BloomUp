@@ -3,34 +3,26 @@ const authRoutes = require("./routes/authRoutes");
 const postRoutes = require("./routes/postRoutes");
 const express = require("express");
 const app = express();
-<<<<<<< HEAD
-=======
 const cors = require("cors");
 
 const budgetRoutes = require("./routes/budgetRoutes");
->>>>>>> origin/tejaswani-developer
 
 require("dotenv").config();
 
 app.use(express.json());
-<<<<<<< HEAD
 
-=======
 app.use(cors());
->>>>>>> origin/tejaswani-developer
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
 
-<<<<<<< HEAD
-=======
 // New budget route
 app.use("/api/budget", budgetRoutes);
 
->>>>>>> origin/tejaswani-developer
 const PORT = process.env.PORT || 8888; // Form env file
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 // const posts = [
 //   {
 //     username: "Vaibhav",
