@@ -1,6 +1,7 @@
 console.log("Server is running");
 const authRoutes = require("./routes/authRoutes");
 const postRoutes = require("./routes/postRoutes");
+const childProfileRoutes = require("./routes/childProfileRoutes");
 const express = require("express");
 const app = express();
 const cors = require("cors");
@@ -15,6 +16,8 @@ app.use(cors());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/child", childProfileRoutes);
+app.get("/api/child/test", (_req, res) => res.send("ok"));
 
 // New budget route
 app.use("/api/budget", budgetRoutes);
