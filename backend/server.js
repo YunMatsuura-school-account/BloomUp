@@ -16,8 +16,7 @@ app.use(cors());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
-app.use("/api/child", childProfileRoutes);
-app.get("/api/child/test", (_req, res) => res.send("ok"));
+app.use("/api/users/:userId/children", childProfileRoutes);
 
 // New budget route
 app.use("/api/budget", budgetRoutes);

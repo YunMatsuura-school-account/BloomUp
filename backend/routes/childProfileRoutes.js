@@ -1,20 +1,23 @@
 const express = require("express");
-const router = express.Router();
+const router = express.Router({ mergeParams: true }); // use UserId(parents)
 const controller = require("../controllers/childProfileController");
 
+//+++ /users/:userId/children +++
 // get all
-router.get("/", controller.getAllChildren);
-
-// get
-router.get("/:id", controller.getChildById);
+router.get("/", controller.getAllChildrenByUser); // get all children for the user
 
 // post
-router.post("/", controller.createChild);
+router.post("/", controller.createChildForUser);
 
-// put
-router.put("/:id", controller.updateChild);
 
-// delete
-router.delete("/:id", controller.deleteChild);
+// +++ /users/:userId/children/:childId +++
+// get one user's child
+router.get("/:childId", controller.getChildByIdForUser);
+
+// Update one user's child
+router.put("/:childId", controller.updateChildForUser);
+
+// delete one user's child
+router.delete("/:childId", controller.deleteChildForUser);
 
 module.exports = router;

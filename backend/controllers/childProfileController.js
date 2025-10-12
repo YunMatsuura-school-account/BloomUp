@@ -1,26 +1,26 @@
 const childModel = require("../models/ChildProfile");
 
 // Get All
-async function getAllChildren(req, res) {
-    try {
-      const profiles = await childModel.getAllChildren();
-      res.status(200).json(profiles);
-    } catch (err) {
-      console.error("Error fetching child profiles:", err);
-      res.status(500).json({ message: "Failed to fetch child profiles" });
-    }
+async function getAllChildrenByUser(req, res) {
+  try {
+    const { userId } = req.params;
+    const profiles = await childModel.getAllChildrenByUser(userId);
+    res.status(200).json(profiles);
+  } catch (err) {
+    console.error("Error fetching child profiles:", err);
+    res.status(500).json({ message: "Failed to fetch child profiles" });
+  }
 }
 
 // /api/child/:id
-async function getChildById(req, res) {
+async function getChildByIdForUser(req, res) {
   try {
-    const id = req.params.id;
-    const profile = await childModel.getChildById(id);
+    const { userId, childId } = req.params;
+    const profile = await childModel.getChildByIdForUser(userId, childId);
 
     if (!profile) {
       return res.status(404).json({ message: "Profile not found" });
     }
-
     res.status(200).json(profile);
   } catch (err) {
     console.error("Error fetching profile:", err);
@@ -29,10 +29,11 @@ async function getChildById(req, res) {
 }
 
 // POST /api/child
-async function createChild(req, res) {
+async function createChildForUser(req, res) {
   try {
-    const data = req.body;
-    const insertedId = await childModel.createChild(data);
+    const { userId } = req.params;
+    const data = { ...req.body, userId };
+    const insertedId = await childModel.createChildForUser(userId, data);
     res.status(201).json({
       message: "Child profile created successfully",
       id: insertedId,
@@ -44,12 +45,20 @@ async function createChild(req, res) {
 }
 
 // PUT /api/child/:id
-async function updateChild(req, res) {
+async function updateChildForUser(req, res) {
   try {
-    const id = req.params.id;
-    const updatedData = req.body;
+    const { userId, childId } = req.params;
+    const updatedData = { ...req.body, userId };
+    const found = await childModel.updateChildForUser(
+      userId,
+      childId,
+      updatedData
+    );
 
-    await childModel.updateChild(id, updatedData);
+    if (!found) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
     res.status(200).json({ message: "Child profile updated successfully" });
   } catch (err) {
     console.error("Error updating child profile:", err);
@@ -58,10 +67,13 @@ async function updateChild(req, res) {
 }
 
 // DELETE /api/child/:id
-async function deleteChild(req, res) {
+async function deleteChildForUser(req, res) {
   try {
-    const id = req.params.id;
-    await childModel.deleteChild(id);
+    const { userId, childId } = req.params;
+    const found = await childModel.deleteChildForUser(userId, childId);
+    if (!found) {
+        return res.status(404).json({message: "Profile not found"});
+    }
     res.status(200).json({ message: "Child profile deleted successfully" });
   } catch (err) {
     console.error("Error deleting child profile:", err);
@@ -70,9 +82,9 @@ async function deleteChild(req, res) {
 }
 
 module.exports = {
-  getAllChildren,
-  getChildById,
-  createChild,
-  updateChild,
-  deleteChild,
+  getAllChildrenByUser,
+  getChildByIdForUser,
+  createChildForUser,
+  updateChildForUser,
+  deleteChildForUser,
 };
