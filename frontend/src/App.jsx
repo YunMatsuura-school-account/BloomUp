@@ -8,6 +8,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Signup from "./pages/Signup";
 import DashboardLayout from "./layout/DashboardLayout";
 import Budget from "./components/Budget";
+import Login from "./pages/Login";
 // import Calendar from "./components/Calendar";
 // import Articles from "./components/Articles";
 
@@ -17,7 +18,8 @@ function App() {
       <Routes>
         {/* Signup page */}
         <Route path="/" element={<Signup />} />
-
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
         {/* Dashboard layout with sidebar */}
         <Route path="/dashboard/*" element={<DashboardLayout />}>
           {/* Default dashboard welcome */}
