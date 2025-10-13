@@ -3,8 +3,6 @@ require("dotenv").config();
 
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
-console.log("Connecting to MongoDB:", uri.slice(0, 50) + "...");
-
 const dbName = "BloomUp";
 const collectionName = "ChildProfiles";
 
@@ -16,36 +14,48 @@ async function getCollection() {
   return db.collection(collectionName);
 }
 
-async function getAllChildren() {
+async function getAllChildrenByUser(userId) {
   const collection = await getCollection();
-  return await collection.find({}).toArray();
+  return await collection.find({ userId: String(userId) }).toArray();
 }
 
-async function getChildById(id) {
+async function getChildByIdForUser(userId, childId) {
   const collection = await getCollection();
-  return await collection.findOne({ _id: new ObjectId(id) });
+  return await collection.findOne({
+    _id: new ObjectId(childId),
+    userId: String(userId),
+  });
 }
 
-async function createChild(profileData) {
+async function createChildForUser(userId, profileData) {
   const collection = await getCollection();
-  const result = await collection.insertOne(profileData);
+  const document = { ...profileData, userId: String(userId) };
+  const result = await collection.insertOne(document);
   return result.insertedId;
 }
 
-async function updateChild(id, updatedData) {
+async function updateChildForUser(userId, childId, updatedData) {
   const collection = await getCollection();
-  await collection.updateOne({ _id: new ObjectId(id) }, { $set: updatedData });
+  const result = await collection.updateOne(
+    { _id: new ObjectId(childId), userId: String(userId) },
+    { $set: { ...updatedData, userId: String(userId) } }
+  );
+  return result.matchedCount > 0; // 0: the child not found
 }
 
-async function deleteChild(id) {
+async function deleteChildForUser(userId, childId) {
   const collection = await getCollection();
-  await collection.deleteOne({ _id: new ObjectId(id) });
+  const result = await collection.deleteOne({
+    _id: new ObjectId(childId),
+    userId: String(userId),
+  });
+  return result.deletedCount > 0; // 0: the child not found
 }
 
 module.exports = {
-  getAllChildren,
-  getChildById,
-  createChild,
-  updateChild,
-  deleteChild,
+  getAllChildrenByUser,
+  getChildByIdForUser,
+  createChildForUser,
+  updateChildForUser,
+  deleteChildForUser,
 };
