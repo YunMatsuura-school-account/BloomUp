@@ -9,7 +9,9 @@ exports.updateBudget = (req, res) => {
   const { month, amount } = req.body;
 
   if (!month || !amount || isNaN(amount)) {
-    return res.status(400).json({ message: "Please provide a valid month and number." });
+    return res
+      .status(400)
+      .json({ message: "Please provide a valid month and number." });
   }
 
   // If no value exists for the month, default is 0
@@ -17,6 +19,6 @@ exports.updateBudget = (req, res) => {
 
   res.json({
     message: `Budget for ${month} updated`,
-    monthlyBudgets
+    monthlyBudgets,
   });
 };

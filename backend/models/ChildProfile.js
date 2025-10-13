@@ -34,10 +34,7 @@ async function createChild(profileData) {
 
 async function updateChild(id, updatedData) {
   const collection = await getCollection();
-  await collection.updateOne(
-    { _id: new ObjectId(id) },
-    { $set: updatedData }
-  );
+  await collection.updateOne({ _id: new ObjectId(id) }, { $set: updatedData });
 }
 
 async function deleteChild(id) {

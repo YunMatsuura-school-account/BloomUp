@@ -2,13 +2,13 @@ const childModel = require("../models/ChildProfile");
 
 // Get All
 async function getAllChildren(req, res) {
-    try {
-      const profiles = await childModel.getAllChildren();
-      res.status(200).json(profiles);
-    } catch (err) {
-      console.error("Error fetching child profiles:", err);
-      res.status(500).json({ message: "Failed to fetch child profiles" });
-    }
+  try {
+    const profiles = await childModel.getAllChildren();
+    res.status(200).json(profiles);
+  } catch (err) {
+    console.error("Error fetching child profiles:", err);
+    res.status(500).json({ message: "Failed to fetch child profiles" });
+  }
 }
 
 // /api/child/:id

@@ -5,14 +5,25 @@ const childProfileRoutes = require("./routes/childProfileRoutes");
 const express = require("express");
 const app = express();
 const cors = require("cors");
-
 const budgetRoutes = require("./routes/budgetRoutes");
+const mongoose = require("mongoose");
 
 require("dotenv").config();
 
 app.use(express.json());
 
 app.use(cors());
+
+// Connect MongoDB via mongoose
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    dbName: process.env.DB_NAME,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ Mongoose connected to MongoDB"))
+  .catch((err) => console.error("❌ Mongoose connection error:", err));
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);

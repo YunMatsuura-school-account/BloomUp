@@ -16,14 +16,15 @@ async function connectMongo() {
 }
 
 function getDb() {
-    if (!db) throw new Error("MongoDB not connected yet. Call connectMongo() first.");
-    return db;
+  if (!db)
+    throw new Error("MongoDB not connected yet. Call connectMongo() first.");
+  return db;
 }
 
 async function closeMongo() {
-    if (client) await client.close();
-    client = null;
-    db = null;
+  if (client) await client.close();
+  client = null;
+  db = null;
 }
 
 module.exports = { connectMongo, getDb, closeMongo };
