@@ -179,7 +179,7 @@ export default function Signup() {
 
         {/* Sign Up Card */}
         <div
-          className="w-full max-w-[500px] lg:max-w-[640px] rounded-[24px] px-[45px] lg:px-[70px] py-[38px] lg:py-[42px]"
+          className="w-full max-w-[500px] lg:max-w-[640px] rounded-[24px] px-[45px] lg:px-[70px] py-[38px] lg:py-[42px] "
           style={{ background: "rgba(0, 143, 136, 0.15)" }}
         >
           <form
