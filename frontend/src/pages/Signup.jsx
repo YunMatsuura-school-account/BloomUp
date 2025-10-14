@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
+// require("dotenv").config();
+// import dotenv from "dotenv";
 export default function Signup() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -22,11 +23,14 @@ export default function Signup() {
     }
     try {
       const name = `${firstName} ${lastName}`.trim();
-      const res = await fetch("http://localhost:8888/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name, password }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, name, password }),
+        }
+      );
       const data = await res.json();
       if (res.ok) {
         setMessage("Signup successful!");
