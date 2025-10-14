@@ -1,15 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-// Dummy user
-// const users = [
-//   {
-//     email: "vaibhav@example.com",
-//     password: "123456",
-//   },
-// ];
-// console.log(users);
-
 const login = async (req, res) => {
   // const username = req.body.username;
   const { email, password } = req.body;
@@ -18,24 +9,33 @@ const login = async (req, res) => {
   if (!email && !password) {
     return res.status(400).json({ message: "Email & Password Required" });
   }
-  // Authenticate User with Password Credential
-  // Match dummy user
-  // Find user in the array
-  const user = users.find((u) => u.email === email);
 
-  if (!user || user.password !== password) {
-    return res.status(401).json({ message: "Invalid credentials" });
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(401).json({ message: "Invalid email or password" });
   }
 
-  // *****************************  Will Do After adding/Connecting Mongo DB in Project
+  // Check password match
+  if (user.password !== password) {
+    return res.status(401).json({ message: "Invalid email or password" });
+  }
 
-  //   // JWT Token Authentication
+  const accessToken = jwt.sign(
+    { id: user._id, email: user.email },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "2m" }
+  );
 
-  const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "2m", // Token expires in 30 minutes
+  res.status(200).json({
+    message: "Login successful",
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+    },
+    accessToken,
   });
-
-  res.json({ message: "Login successful", accessToken });
 };
 
 const signup = async (req, res) => {
