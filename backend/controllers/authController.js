@@ -21,9 +21,11 @@ const login = async (req, res) => {
     return res.status(401).json({ message: "Invalid email or password" });
   }
 
+  console.log("JWT Secret exists:", !!process.env.ACCESS_TOKEN_SECRET);
+
   const accessToken = jwt.sign(
     { id: user._id, email: user.email },
-    process.env.ACCESS_TOKEN_SECRET,
+    process.env.ACCESS_TOKEN_SECRET || "fallback_secret_key",
     { expiresIn: "2m" }
   );
 
@@ -40,7 +42,7 @@ const login = async (req, res) => {
 
 const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, country, state } = req.body;
 
     if (!email || !password || !name) {
       return res.status(400).json({ message: "Email and password required" });
@@ -51,7 +53,13 @@ const signup = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const newUser = new User({ name, email, password });
+    const newUser = new User({
+      name,
+      email,
+      password,
+      country,
+      state,
+    });
     await newUser.save();
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
@@ -63,4 +71,27 @@ const signup = async (req, res) => {
   // Later Have to connect with Databaser Mongo DB.
 };
 
-module.exports = { signup, login };
+const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      familyName: user.familyName,
+      country: user.country,
+      state: user.state,
+      children: user.children || [],
+    });
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = { signup, login, getCurrentUser };

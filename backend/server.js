@@ -2,6 +2,7 @@ console.log("Server is running");
 const authRoutes = require("./routes/authRoutes");
 const postRoutes = require("./routes/postRoutes");
 const childProfileRoutes = require("./routes/childProfileRoutes");
+const userRoutes = require("./routes/userRoutes");
 const express = require("express");
 const app = express();
 const cors = require("cors");
@@ -28,7 +29,7 @@ mongoose
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/users/:userId/children", childProfileRoutes);
-
+app.use("/api/users", userRoutes);
 // New budget route
 app.use("/api/budget", budgetRoutes);
 

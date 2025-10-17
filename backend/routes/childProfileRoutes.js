@@ -9,7 +9,6 @@ router.get("/", controller.getAllChildrenByUser); // get all children for the us
 // post
 router.post("/", controller.createChildForUser);
 
-
 // +++ /users/:userId/children/:childId +++
 // get one user's child
 router.get("/:childId", controller.getChildByIdForUser);
