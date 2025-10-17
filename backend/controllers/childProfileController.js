@@ -12,7 +12,7 @@ async function getAllChildrenByUser(req, res) {
   }
 }
 
-// /api/child/:id
+// /api/users/:userId/children/:childId
 async function getChildByIdForUser(req, res) {
   try {
     const { userId, childId } = req.params;
@@ -28,11 +28,19 @@ async function getChildByIdForUser(req, res) {
   }
 }
 
-// POST /api/child
+// POST /api/users/:userId/children/:childId
 async function createChildForUser(req, res) {
   try {
     const { userId } = req.params;
     const data = { ...req.body, userId };
+
+    //validation
+    if (!data.name || !data.dateOfBirth) {
+      return res.status(400).json({
+        error: "Name and Date of Birth are required",
+      });
+    }
+
     const insertedId = await childModel.createChildForUser(userId, data);
     res.status(201).json({
       message: "Child profile created successfully",
@@ -44,7 +52,7 @@ async function createChildForUser(req, res) {
   }
 }
 
-// PUT /api/child/:id
+// PUT /api/users/:userId/children/:childId
 async function updateChildForUser(req, res) {
   try {
     const { userId, childId } = req.params;
@@ -66,7 +74,7 @@ async function updateChildForUser(req, res) {
   }
 }
 
-// DELETE /api/child/:id
+// DELETE /api/users/:userId/children/:childId
 async function deleteChildForUser(req, res) {
   try {
     const { userId, childId } = req.params;

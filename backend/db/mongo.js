@@ -1,30 +1,29 @@
-const { MongoClient } = require("mongodb");
+const mongoose = require("mongoose");
+require("dotenv").config();
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.DB_NAME || "BloomUp";
 
-let client;
-let db;
-
 async function connectMongo() {
-  if (db) return db;
-  client = new MongoClient(uri, { ignoreUndefined: true });
-  await client.connect();
-  db = client.db(dbName);
-  console.log("[MongoDB] connected:", dbName);
-  return db;
-}
+    try {
+        // if already connected
+        if (mongoose.connection.readyState ===1 ) {
+            return mongoose.connection;
+        }
 
-function getDb() {
-  if (!db)
-    throw new Error("MongoDB not connected yet. Call connectMongo() first.");
-  return db;
+        await mongoose.connect(uri, {
+            dbName,
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        return mongoose.connection;
+    } catch (err) {
+        throw err;
+    }
 }
 
 async function closeMongo() {
-  if (client) await client.close();
-  client = null;
-  db = null;
+    await mongoose.disconnect();
 }
 
-module.exports = { connectMongo, getDb, closeMongo };
+module.exports = { connectMongo, closeMongo };
