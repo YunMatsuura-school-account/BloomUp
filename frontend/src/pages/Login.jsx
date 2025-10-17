@@ -23,9 +23,10 @@ export default function Login() {
       );
       const data = await res.json();
       if (res.ok) {
-        setMessage("Login successful! Token: " + data.accessToken);
-        navigate("/dashboard");
-        // setTimeout(() => navigate("/dashboard"), 1500);
+        localStorage.setItem("accessToken", data.accessToken);
+        setMessage("Login successful!");
+        // Let AuthGuard handle the routing based on user state
+        navigate("/family-setup");
       } else {
         setMessage(data.message);
       }

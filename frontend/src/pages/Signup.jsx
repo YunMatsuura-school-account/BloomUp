@@ -16,6 +16,15 @@ export default function Signup() {
   const navigate = useNavigate();
 
   const handleSignup = async (e) => {
+    console.log(
+      firstName,
+      lastName,
+      email,
+      country,
+      state,
+      password,
+      confirmPassword
+    );
     e.preventDefault();
     if (password !== confirmPassword) {
       setMessage("Passwords do not match!");
@@ -28,7 +37,7 @@ export default function Signup() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, name, password }),
+          body: JSON.stringify({ email, name, password, country, state }),
         }
       );
       const data = await res.json();
