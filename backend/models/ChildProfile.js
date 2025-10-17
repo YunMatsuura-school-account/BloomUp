@@ -1,58 +1,70 @@
-const { MongoClient, ObjectId } = require("mongodb");
+const mongoose = require("mongoose");
 require("dotenv").config();
 
 const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri);
 const dbName = "BloomUp";
 const collectionName = "ChildProfiles";
 
-async function getCollection() {
-  if (!client.topology || !client.topology.isConnected()) {
-    await client.connect();
-  }
-  const db = client.db(dbName);
-  return db.collection(collectionName);
-}
+mongoose
+  .connect(uri, { dbName: dbName })
+  .then(() => console.log("Connected to MongoDB via Mongoose"))
+  .catch((err) => console.error("Mongo error:", err));
 
+// Schema
+const childProfileSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  vaccinations: { type: Array, required: false },
+  medicalHistory: { type: String, required: false },
+  dateOfBirth: { type: Date, required: true },
+  userId: { type: String, required: true },
+});
+
+//　(model name, schema, collection name)
+const ChildProfile = mongoose.model(
+  "ChildProfile",
+  childProfileSchema,
+  "ChildProfiles"
+);
+
+//CRUD
 async function getAllChildrenByUser(userId) {
-  const collection = await getCollection();
-  return await collection.find({ userId: String(userId) }).toArray();
+  return await ChildProfile.find({ userId: String(userId) });
 }
 
 async function getChildByIdForUser(userId, childId) {
-  const collection = await getCollection();
-  return await collection.findOne({
-    _id: new ObjectId(childId),
+  return await ChildProfile.findOne({
+    _id: childId, // String is OK. new ObjectId(childId) is wrong.
     userId: String(userId),
   });
 }
 
 async function createChildForUser(userId, profileData) {
-  const collection = await getCollection();
-  const document = { ...profileData, userId: String(userId) };
-  const result = await collection.insertOne(document);
-  return result.insertedId;
+  const document = await ChildProfile.create({
+    ...profileData,
+    userId: String(userId),
+  });
+  return document._id;
 }
 
 async function updateChildForUser(userId, childId, updatedData) {
-  const collection = await getCollection();
-  const result = await collection.updateOne(
-    { _id: new ObjectId(childId), userId: String(userId) },
-    { $set: { ...updatedData, userId: String(userId) } }
+  const document = await ChildProfile.findOneAndUpdate(
+    { _id: childId, userId: String(userId) },
+    { ...updatedData, userId: String(userId) },
+    { new: true } // return updated value
   );
-  return result.matchedCount > 0; // 0: the child not found
+  return !!document; // return true or false
 }
 
 async function deleteChildForUser(userId, childId) {
-  const collection = await getCollection();
-  const result = await collection.deleteOne({
-    _id: new ObjectId(childId),
+  const document = await ChildProfile.findOneAndDelete({
+    _id: childId,
     userId: String(userId),
   });
-  return result.deletedCount > 0; // 0: the child not found
+  return !!document;
 }
 
 module.exports = {
+  mongoose,
   getAllChildrenByUser,
   getChildByIdForUser,
   createChildForUser,
