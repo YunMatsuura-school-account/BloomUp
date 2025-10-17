@@ -118,10 +118,35 @@ export default function FamilySetup() {
 
   const calcAge = (dobIso) => {
     if (!dobIso) return "N/A";
+
     const dob = new Date(dobIso);
-    const diff = new Date(Date.now() - dob.getTime());
-    const years = Math.abs(diff.getUTCFullYear() - 1970);
-    return `${years} yr${years === 1 ? "" : "s"}`;
+    const now = new Date();
+
+    let months =
+      (now.getFullYear() - dob.getFullYear()) * 12 +
+      (now.getMonth() - dob.getMonth());
+
+    // If current day is before birth day in the month, subtract one month
+    if (now.getDate() < dob.getDate()) {
+      months -= 1;
+    }
+
+    if (months < 0) return "N/A"; // future DOB guard
+
+    const years = Math.floor(months / 12);
+    const remMonths = months % 12;
+
+    if (years <= 0) {
+      return `${remMonths} mo${remMonths === 1 ? "" : "s"}`;
+    }
+
+    if (remMonths === 0) {
+      return `${years} yr${years === 1 ? "" : "s"}`;
+    }
+
+    return `${years} yr${years === 1 ? "" : "s"} ${remMonths} mo${
+      remMonths === 1 ? "" : "s"
+    }`;
   };
 
   return (
@@ -177,6 +202,11 @@ export default function FamilySetup() {
                       type="button"
                       className="text-gray-600 hover:text-gray-800"
                       aria-label="edit child"
+                      onClick={() =>
+                        navigate("/add-child", {
+                          state: { userId, childId: c._id, child: c },
+                        })
+                      }
                     >
                       ✎
                     </button>

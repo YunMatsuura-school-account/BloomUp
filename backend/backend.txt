@@ -1,11 +1,17 @@
 # Backend
 
-- Stack: Node.js + Express
-- Purpose: Handle API endpoints, authentication, and database communication
-
+- Stack: Node.js + Express + Mongoose (MongoDB)
+- Purpose: REST API, authentication (JWT), user, child profiles, budget endpoints
 # Notes:
 - I (Vaibhav) will add Node, Express, JWT, and Nodemon
 - Developers will track all installed packages and updates here.
+## Architecture
+- `server.js`: Express app bootstrap, middleware, routes mounting
+- `db/mongo.js`: Mongo connection (Mongoose)
+- `middleware/authMiddleware.js`: JWT verification, sets `req.user`
+- `controllers/*`: Route handlers (auth, users, child profiles, budget, posts)
+- `routes/*`: Express routers mapping HTTP paths to controllers
+- `models/*`: Mongoose models and data-access helpers
 
 1. ## Current Setup (Vaibhav):
 - Initialized Node project (`npm init -y`)
@@ -15,9 +21,40 @@
     - dotenv (for environment variables)
 - Installed dev dependencies:
     - nodemon (for development)
+## Folder Structure
+- `controllers/`
+  - `authController.js`: signup/login/me
+  - `childProfileController.js`: CRUD for child profiles, links child ids to `User.children`
+  - `userController.js`: user updates (e.g., family name)
+  - `budgetController.js`, `postController.js`: other features
+- `middleware/`
+  - `authMiddleware.js`: `Authorization: Bearer <token>` verification
+- `models/`
+  - `User.js`: name, email, password, familyName, children[ObjectId]
+  - `ChildProfile.js`: name, dateOfBirth, age (computed), medicalHistory, vaccinations, userId
+- `routes/`
+  - `authRoutes.js`: `/api/auth/login|signup|me`
+  - `userRoutes.js`: `/api/users/...`
+  - `childProfileRoutes.js`: `/api/users/:userId/children`
+  - `budgetRoutes.js`, `postRoutes.js`
 
+## Notable Behaviors
+- JWT token issued on login, validated on protected routes
+- `/api/auth/me` returns user and `children` ids; requires `verifyToken`
+- Creating child adds doc to `ChildProfiles` and `$addToSet` into `User.children`
+- Deleting child removes doc and `$pull`s id from `User.children`
+- Child `age` computed on create and when `dateOfBirth` is updated
 
+## Dependencies
+- runtime: `express`, `jsonwebtoken`, `dotenv`, `mongoose`
+- dev: `nodemon`
 
-in frontend
+## Env Vars
+- `MONGODB_URI` - Mongo connection string
+- `ACCESS_TOKEN_SECRET` - JWT secret
 
-    npm install react react-dom react-router-dom
+## Example Protected Flow
+1. Frontend stores `accessToken` after login
+2. Requests include `Authorization: Bearer <token>`
+3. `verifyToken` sets `req.user` from JWT
+4. Controllers use `req.user.id` for user-specific operations

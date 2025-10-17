@@ -48,10 +48,8 @@ const AuthGuard = ({ children }) => {
       const userData = await response.json();
       setUser(userData);
 
-      // Route based on user state
-      if (!userData.familyName) {
-        navigate("/family-setup");
-      } else if (userData.children.length === 0) {
+      // Route based on user state: only require at least one child
+      if (Array.isArray(userData.children) && userData.children.length === 0) {
         navigate("/family-setup");
       } else {
         navigate("/dashboard");

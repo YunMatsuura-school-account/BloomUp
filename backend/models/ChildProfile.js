@@ -16,6 +16,7 @@ const childProfileSchema = new mongoose.Schema({
   vaccinations: { type: Array, required: false },
   medicalHistory: { type: String, required: false },
   dateOfBirth: { type: Date, required: true },
+  age: { type: Number, required: false }, // age in years, computed from dateOfBirth
   userId: { type: String, required: true },
 });
 
@@ -25,6 +26,19 @@ const ChildProfile = mongoose.model(
   childProfileSchema,
   "ChildProfiles"
 );
+
+// Utilities
+function calculateAgeYears(dob) {
+  if (!dob) return undefined;
+  const birth = new Date(dob);
+  const today = new Date();
+  let years = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    years -= 1;
+  }
+  return years < 0 ? undefined : years;
+}
 
 //CRUD
 async function getAllChildrenByUser(userId) {
@@ -39,17 +53,23 @@ async function getChildByIdForUser(userId, childId) {
 }
 
 async function createChildForUser(userId, profileData) {
+  const age = calculateAgeYears(profileData.dateOfBirth);
   const document = await ChildProfile.create({
     ...profileData,
+    age,
     userId: String(userId),
   });
   return document._id;
 }
 
 async function updateChildForUser(userId, childId, updatedData) {
+  const update = { ...updatedData, userId: String(userId) };
+  if (Object.prototype.hasOwnProperty.call(updatedData, "dateOfBirth")) {
+    update.age = calculateAgeYears(updatedData.dateOfBirth);
+  }
   const document = await ChildProfile.findOneAndUpdate(
     { _id: childId, userId: String(userId) },
-    { ...updatedData, userId: String(userId) },
+    update,
     { new: true } // return updated value
   );
   return !!document; // return true or false

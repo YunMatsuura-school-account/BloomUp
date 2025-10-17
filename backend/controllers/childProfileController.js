@@ -1,4 +1,5 @@
 const childModel = require("../models/ChildProfile");
+const User = require("../models/User");
 
 // Get All
 async function getAllChildrenByUser(req, res) {
@@ -42,6 +43,14 @@ async function createChildForUser(req, res) {
     }
 
     const insertedId = await childModel.createChildForUser(userId, data);
+
+    // Link child to user
+    await User.findByIdAndUpdate(
+      userId,
+      { $addToSet: { children: insertedId } },
+      { new: true }
+    );
+
     res.status(201).json({
       message: "Child profile created successfully",
       id: insertedId,
@@ -82,6 +91,14 @@ async function deleteChildForUser(req, res) {
     if (!found) {
       return res.status(404).json({ message: "Profile not found" });
     }
+
+    // Unlink child from user
+    await User.findByIdAndUpdate(
+      userId,
+      { $pull: { children: childId } },
+      { new: true }
+    );
+
     res.status(200).json({ message: "Child profile deleted successfully" });
   } catch (err) {
     console.error("Error deleting child profile:", err);
