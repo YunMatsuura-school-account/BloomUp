@@ -19,10 +19,12 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Signup page */}
+        {/* Public auth pages */}
         <Route path="/" element={<Signup />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+
+        {/* Onboarding route (direct) */}
         <Route
           path="/family-setup"
           element={
@@ -39,22 +41,33 @@ function App() {
             </AuthGuard>
           }
         />
-        {/* Dashboard layout with sidebar */}
+
+        {/* App layout with independent top-level routes */}
         <Route
-          path="/dashboard/*"
           element={
             <AuthGuard>
               <DashboardLayout />
             </AuthGuard>
           }
         >
-          {/* Default dashboard welcome */}
-          <Route index element={<h2>Welcome to your Dashboard 👋</h2>} />
-
-          {/* Nested pages */}
-          <Route path="budget" element={<Budget />} />
-          {/* <Route path="calendar" element={<Calendar />} /> */}
-          {/* <Route path="articles" element={<Articles />} /> */}
+          <Route
+            path="/dashboard"
+            element={<h2>Welcome to your Dashboard 👋</h2>}
+          />
+          <Route path="/budget" element={<Budget />} />
+          <Route
+            path="/calendar"
+            element={<div style={{ color: "white" }}>Calendar coming soon</div>}
+          />
+          <Route
+            path="/articles"
+            element={
+              <div style={{ color: "white" }}>
+                Articles & Resources coming soon
+              </div>
+            }
+          />
+          <Route path="/family" element={<FamilySetup />} />
         </Route>
       </Routes>
     </Router>

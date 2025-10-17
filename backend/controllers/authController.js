@@ -26,7 +26,7 @@ const login = async (req, res) => {
   const accessToken = jwt.sign(
     { id: user._id, email: user.email },
     process.env.ACCESS_TOKEN_SECRET || "fallback_secret_key",
-    { expiresIn: "2m" }
+    { expiresIn: "20m" }
   );
 
   res.status(200).json({
