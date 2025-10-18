@@ -12,6 +12,12 @@ import Login from "./pages/Login";
 import FamilySetup from "./pages/FamilySetup";
 import AddChild from "./pages/AddChild";
 import AuthGuard from "./components/AuthGuard";
+import Account from "./pages/ChildProfileSummary/Account";
+import ChildDashboard from "./pages/ChildProfileSummary/ChildDashboard";
+import EditChild from "./pages/ChildProfileSummary/EditChild";
+import Settings from "./pages/ChildProfileSummary/Settings";
+import UserDashboard from "./pages/ChildProfileSummary/UserDashboard";
+
 // import Calendar from "./components/Calendar";
 // import Articles from "./components/Articles";
 
@@ -68,6 +74,14 @@ function App() {
             }
           />
           <Route path="/family" element={<FamilySetup />} />
+
+          {/* Child Profile Summary */}
+          <Route path="/account" element={<Account />} />
+          <Route path="/child-dashboard" element={<ChildDashboard />} />
+          <Route path="/child/edit/:childId" element={<EditChild />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/user-dashboard" element={<UserDashboard />} />
+          
         </Route>
       </Routes>
     </Router>
