@@ -42,21 +42,21 @@ export default function ChildDashboard() {
         });
 
         if (!meRes.ok) {
-            if (meRes.status === 401 || meRes.status === 403) {
-                localStorage.removeItem("accessToken");
-                navigate("/login");
-                return;
-            }
-            throw new Error("Auth failed");
+          if (meRes.status === 401 || meRes.status === 403) {
+            localStorage.removeItem("accessToken");
+            navigate("/login");
+            return;
+          }
+          throw new Error("Auth failed");
         }
         const me = await meRes.json();
         if (!aborted) {
-            setMeId(me.id);
+          setMeId(me.id);
         }
 
         const response = await fetch(
           `${BASE}/api/users/${me.id}/children/${childId}`,
-          { headers: { Authorization: `Bearer ${token}`} }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         if (!response.ok) {
           throw new Error(`GET ${response.status}`);
@@ -81,7 +81,9 @@ export default function ChildDashboard() {
   }, [BASE, childId, navigate]);
 
   const onEdit = () => {
-    navigate("/add-child", { state: { child, childId: child?._id, userId: meId } });
+    navigate("/add-child", {
+      state: { child, childId: child?._id, userId: meId },
+    });
   };
 
   if (loading) {
@@ -100,7 +102,7 @@ export default function ChildDashboard() {
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl text-white">Child Dashboard</h1>
+        <h1 className="text-[30px] text-white text-center">Child Dashboard</h1>
         <div className="space-x-2">
           <button
             className="px-3 py-2 rounded bg-sky-500 text-white"
@@ -116,16 +118,37 @@ export default function ChildDashboard() {
           </Link>
         </div>
       </div>
+      <hr className="mt-3 mb-10 border-black/20" />
 
-      <div className="rounded-lg bg-slate-700/60 p-4">
-        <div className="text-white font-semibold text-lg">{child.name}</div>
-        <div className="text-white/80">
-          {child.dateOfBirth
-            ? new Date(child.dateOfBirth).toLocaleDateString()
-            : "—"}
-          {age !== null ? ` · Age ${age}` : ""}
+      {/* Child Information Section */}
+      <div className="flex flex-col item-center gap-4">
+        {/* Avatar */}
+        <div className="relative">
+          <div className="flex h-32 w-32 item-center justify-center rounded-full bg-gray-500 text-white text-3xl">
+            📷
+          </div>
+          <button
+            type="button"
+            className="absolute -buttom-2 -right-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-gray-700 text-white shadow text-xl"
+            aria-label="Edit avatar"
+          >
+            ✏️
+          </button>
+        </div>
+
+        <div className="text-[20px] font-semibold text-black/90 tracking-wide">
+          {child.name}
+        </div>
+        <div className="text-black/60 text-sm">
+            {age !== null ? `${age} years` : ""}
+            {child.dateOfBirth ? " " : ""}
+            {child.dateOfBirth ? new Date(child.dateOfBirth).toLocaleDateString() : ""}
         </div>
       </div>
+
+      {/* Upcoming Events */}
+        <h2 className="mt-12 text-[20px] font-senibold text-black/90 text-center">
+        Upcoming Events</h2>
     </div>
   );
 }
