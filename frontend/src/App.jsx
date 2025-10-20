@@ -14,7 +14,6 @@ import AddChild from "./pages/AddChild";
 import AuthGuard from "./components/AuthGuard";
 import Account from "./pages/ChildProfileSummary/Account";
 import ChildDashboard from "./pages/ChildProfileSummary/ChildDashboard";
-import EditChild from "./pages/ChildProfileSummary/EditChild";
 import Settings from "./pages/ChildProfileSummary/Settings";
 import UserDashboard from "./pages/ChildProfileSummary/UserDashboard";
 
@@ -77,8 +76,7 @@ function App() {
 
           {/* Child Profile Summary */}
           <Route path="/account" element={<Account />} />
-          <Route path="/child-dashboard" element={<ChildDashboard />} />
-          <Route path="/child/edit/:childId" element={<EditChild />} />
+          <Route path="/child-dashboard/:childId" element={<ChildDashboard />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
           
