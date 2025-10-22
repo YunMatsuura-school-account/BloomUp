@@ -1,11 +1,18 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const { getBudget, updateBudget } = require("../controllers/budgetController");
+const verifyToken = require('../middleware/authMiddleware'); // Your existing middleware
+const budgetController = require('../controllers/budgetController');
 
-// Get all budgets
-router.get("/", getBudget);
-
-// Update or add a budget for a month
-router.post("/", updateBudget);
+// All routes require authentication
+router.get('/overview', verifyToken, budgetController.getBudgetOverview);
+router.post('/set', verifyToken, budgetController.setBudget);
+router.get('/expenses/category', verifyToken, budgetController.getExpensesByCategory);
+router.get('/expenses', verifyToken, budgetController.getAllExpenses);
+router.post(
+  '/upload-receipt', 
+  verifyToken, 
+  budgetController.uploadMiddleware, 
+  budgetController.uploadReceipt
+);
 
 module.exports = router;

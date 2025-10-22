@@ -1,4 +1,6 @@
+require("dotenv").config();
 console.log("Server is running");
+
 const authRoutes = require("./routes/authRoutes");
 const postRoutes = require("./routes/postRoutes");
 const childProfileRoutes = require("./routes/childProfileRoutes");
@@ -9,7 +11,7 @@ const cors = require("cors");
 const budgetRoutes = require("./routes/budgetRoutes");
 const mongoose = require("mongoose");
 
-require("dotenv").config();
+
 
 app.use(express.json());
 

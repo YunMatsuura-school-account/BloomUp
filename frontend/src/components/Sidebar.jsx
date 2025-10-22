@@ -89,7 +89,7 @@ export default function Sidebar({
             "Budget Management",
             <BudgetIcon size={26} />
           ),
-          to: "/budget",
+          to: "/dashboard/budget",
         },
         {
           label: navLabelWithIcon("Calendar", <CalendarIcon size={24} />),

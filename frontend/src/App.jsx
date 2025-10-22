@@ -7,11 +7,16 @@ import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Signup from "./pages/Signup";
 import DashboardLayout from "./layout/DashboardLayout";
-import Budget from "./components/Budget";
+// import Budget from "./components/Budget";
 import Login from "./pages/Login";
 import FamilySetup from "./pages/FamilySetup";
 import AddChild from "./pages/AddChild";
 import AuthGuard from "./components/AuthGuard";
+
+import Budget from "./components/Budget";
+import BudgetSetup from "./components/BudgetSetup";
+import AddManual from "./pages/AddExpense";      
+import UploadReceipt from "./pages/UploadReceipt"; 
 // import Calendar from "./components/Calendar";
 // import Articles from "./components/Articles";
 
@@ -54,7 +59,11 @@ function App() {
             path="/dashboard"
             element={<h2>Welcome to your Dashboard 👋</h2>}
           />
-          <Route path="/budget" element={<Budget />} />
+     <Route path="/dashboard/budget" element={<Budget />} />
+          <Route path="/dashboard/budget-setup" element={<BudgetSetup />} />
+          <Route path="/dashboard/budget/add-manual" element={<AddManual />} />
+          <Route path="/dashboard/budget/upload-receipt" element={<UploadReceipt />} />
+
           <Route
             path="/calendar"
             element={<div style={{ color: "white" }}>Calendar coming soon</div>}
