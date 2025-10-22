@@ -104,7 +104,7 @@ export default function Sidebar({
         },
         {
           label: navLabelWithIcon("Your Family", <FamilyIcon size={26} />),
-          to: "/family",
+          to: "/account",
         },
       ];
 
