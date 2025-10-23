@@ -41,6 +41,8 @@ const CalendarEventSchema = new mongoose.Schema({
     type: [String], // file paths or URLs to attachments
     default: []
   },
+
+
   linkedBudget: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Budget',
