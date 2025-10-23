@@ -9,6 +9,8 @@ import {
   LogoBloomUpGreen,
 } from "../icons";
 
+
+
 /**
  * Reusable Sidebar component aligned to Figma specs (compact scale)
  * - Rail width: 300px (was 376px)

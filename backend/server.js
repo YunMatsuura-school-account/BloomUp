@@ -11,11 +11,15 @@ const cors = require("cors");
 const budgetRoutes = require("./routes/budgetRoutes");
 const mongoose = require("mongoose");
 
-
+const calendarRoutes = require('./routes/calendarRoutes');
 
 app.use(express.json());
 
 app.use(cors());
+
+
+app.use('/api/calendar', calendarRoutes);
+
 
 // Connect MongoDB via mongoose
 mongoose
