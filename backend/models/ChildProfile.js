@@ -18,6 +18,7 @@ const childProfileSchema = new mongoose.Schema({
   dateOfBirth: { type: Date, required: true },
   age: { type: Number, required: false }, // age in years, computed from dateOfBirth
   userId: { type: String, required: true },
+  imageUrl: {type: String, required: false},
 });
 
 //　(model name, schema, collection name)

@@ -9,18 +9,36 @@ const cors = require("cors");
 const budgetRoutes = require("./routes/budgetRoutes");
 const mongoose = require("mongoose");
 
+const path = require("path");
+const uploadImageRoutes = require("./routes/uploadImageRoutes");
+
 require("dotenv").config();
 
 app.use(express.json());
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
+app.use(
+  "/static/user-images",
+  express.static(path.join(__dirname, "uploads", "userImages"))
+);
+
+app.use(
+  "/static/child-images",
+  express.static(path.join(__dirname, "uploads", "childImages"))
+);
+
+app.use("/api", uploadImageRoutes);
 
 // Connect MongoDB via mongoose
 mongoose
   .connect(process.env.MONGODB_URI, {
     dbName: process.env.DB_NAME,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
   })
   .then(() => console.log("✅ Mongoose connected to MongoDB"))
   .catch((err) => console.error("❌ Mongoose connection error:", err));
