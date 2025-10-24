@@ -9,6 +9,8 @@ import {
   LogoBloomUpGreen,
 } from "../icons";
 
+
+
 /**
  * Reusable Sidebar component aligned to Figma specs (compact scale)
  * - Rail width: 300px (was 376px)
@@ -89,7 +91,7 @@ export default function Sidebar({
             "Budget Management",
             <BudgetIcon size={26} />
           ),
-          to: "/budget",
+          to: "/dashboard/budget",
         },
         {
           label: navLabelWithIcon("Calendar", <CalendarIcon size={24} />),

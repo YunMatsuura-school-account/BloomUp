@@ -16,7 +16,13 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^5.9.2",
-    "mongoose": "^7.6.3"
+    "mongoose": "^7.6.3",
+<<<<<<< HEAD
+    "multer": "^2.0.2"
+=======
+    "multer": "^2.0.2",
+    "openai": "^6.5.0"
+>>>>>>> origin/Developer_Branch
   },
   "devDependencies": {
     "@types/node": "^24.7.2",
