@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import AvatarDropUpload from "../../components/AvatarDropUpload";
 
 export default function ChildDashboard() {
   const { childId } = useParams();
@@ -110,45 +111,51 @@ export default function ChildDashboard() {
           >
             Edit
           </button>
-          <Link
+          {/* <Link
             to="/account"
             className="px-3 py-2 rounded bg-slate-600 text-white"
           >
             ← Back to Your Family
-          </Link>
+          </Link> */}
         </div>
       </div>
       <hr className="mt-3 mb-10 border-black/20" />
 
       {/* Child Information Section */}
-      <div className="flex flex-col item-center gap-4">
+      <div className="flex flex-col items-center gap-4">
         {/* Avatar */}
         <div className="relative">
-          <div className="flex h-32 w-32 item-center justify-center rounded-full bg-gray-500 text-white text-3xl">
-            📷
-          </div>
-          <button
-            type="button"
-            className="absolute -buttom-2 -right-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-gray-700 text-white shadow text-xl"
-            aria-label="Edit avatar"
-          >
-            ✏️
-          </button>
+          <AvatarDropUpload
+            mode="child"
+            userId={meId}
+            childId={childId}
+            currentUrl={child?.imageUrl ?? null}
+            onUploaded={(url) =>
+              setChild((currentChildData) => ({
+                ...(currentChildData || {}),
+                imageUrl: url,
+              }))
+            }
+            onEdit={onEdit}
+          />
         </div>
 
         <div className="text-[20px] font-semibold text-black/90 tracking-wide">
           {child.name}
         </div>
         <div className="text-black/60 text-sm">
-            {age !== null ? `${age} years` : ""}
-            {child.dateOfBirth ? " " : ""}
-            {child.dateOfBirth ? new Date(child.dateOfBirth).toLocaleDateString() : ""}
+          {age !== null ? `${age} years` : ""}
+          {child.dateOfBirth ? " " : ""}
+          {child.dateOfBirth
+            ? new Date(child.dateOfBirth).toLocaleDateString()
+            : ""}
         </div>
       </div>
 
       {/* Upcoming Events */}
-        <h2 className="mt-12 text-[20px] font-senibold text-black/90 text-center">
-        Upcoming Events</h2>
+      <h2 className="mt-12 text-[20px] font-senibold text-black/90 text-center">
+        Upcoming Events
+      </h2>
     </div>
   );
 }
