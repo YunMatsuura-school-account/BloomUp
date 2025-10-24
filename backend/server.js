@@ -1,4 +1,6 @@
+require("dotenv").config();
 console.log("Server is running");
+
 const authRoutes = require("./routes/authRoutes");
 const postRoutes = require("./routes/postRoutes");
 const childProfileRoutes = require("./routes/childProfileRoutes");
@@ -48,6 +50,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/users/:userId/children", childProfileRoutes);
 app.use("/api/users", userRoutes);
+app.use('/api/calendar', calendarRoutes);
+
 // New budget route
 app.use("/api/budget", budgetRoutes);
 

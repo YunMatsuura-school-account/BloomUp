@@ -7,15 +7,25 @@ import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Signup from "./pages/Signup";
 import DashboardLayout from "./layout/DashboardLayout";
-import Budget from "./components/Budget";
+// import Budget from "./components/Budget";
 import Login from "./pages/Login";
 import FamilySetup from "./pages/FamilySetup";
 import AddChild from "./pages/AddChild";
 import AuthGuard from "./components/AuthGuard";
+
+
+import Budget from "./components/Budget";
+import BudgetSetup from "./components/BudgetSetup";
+import AddManual from "./pages/AddExpense";
+import UploadReceipt from "./pages/UploadReceipt";
+
 import Account from "./pages/ChildProfileSummary/Account";
 import ChildDashboard from "./pages/ChildProfileSummary/ChildDashboard";
 import Settings from "./pages/ChildProfileSummary/Settings";
 import UserDashboard from "./pages/ChildProfileSummary/UserDashboard";
+
+import CalendarPage from './pages/Calendar';
+
 
 // import Calendar from "./components/Calendar";
 // import Articles from "./components/Articles";
@@ -59,11 +69,19 @@ function App() {
             path="/dashboard"
             element={<h2>Welcome to your Dashboard 👋</h2>}
           />
-          <Route path="/budget" element={<Budget />} />
-          <Route
+          <Route path="/dashboard/budget" element={<Budget />} />
+          <Route path="/dashboard/budget-setup" element={<BudgetSetup />} />
+          <Route path="/dashboard/budget/add-manual" element={<AddManual />} />
+          <Route path="/dashboard/budget/upload-receipt" element={<UploadReceipt />} />
+
+          {/* <Route
             path="/calendar"
             element={<div style={{ color: "white" }}>Calendar coming soon</div>}
-          />
+          /> */}
+
+          {/* For Calender */}
+          <Route path="/calendar" element={<CalendarPage />} />
+
           <Route
             path="/articles"
             element={
@@ -79,7 +97,7 @@ function App() {
           <Route path="/child-dashboard/:childId" element={<ChildDashboard />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
-          
+
         </Route>
       </Routes>
     </Router>
