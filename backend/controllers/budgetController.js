@@ -37,19 +37,25 @@ const upload = multer({
 
 // Helper function to get userId from request
 function getUserId(req) {
-  return req.user?._id || req.user?.id || req.body.userId || req.query.userId || req.params.userId;
+  return (
+    req.user?._id ||
+    req.user?.id ||
+    req.body.userId ||
+    req.query.userId ||
+    req.params.userId
+  );
 }
 
 // Helper function to safely convert to ObjectId
 function toObjectId(id) {
   try {
     if (id instanceof mongoose.Types.ObjectId) return id;
-    if (typeof id === 'string' && mongoose.Types.ObjectId.isValid(id)) {
+    if (typeof id === "string" && mongoose.Types.ObjectId.isValid(id)) {
       return new mongoose.Types.ObjectId(id);
     }
     return null;
   } catch (err) {
-    console.error('ObjectId conversion error:', err);
+    console.error("ObjectId conversion error:", err);
     return null;
   }
 }
@@ -207,27 +213,29 @@ exports.uploadReceipt = async (req, res) => {
 exports.getBudgetOverview = async (req, res) => {
   try {
     const rawUserId = getUserId(req);
-    console.log('getBudgetOverview - Raw userId:', rawUserId);
+    console.log("getBudgetOverview - Raw userId:", rawUserId);
 
     if (!rawUserId) {
       return res.status(400).json({ message: "User ID required" });
     }
 
     const userId = toObjectId(rawUserId);
-    console.log('getBudgetOverview - Converted userId:', userId);
+    console.log("getBudgetOverview - Converted userId:", userId);
 
     if (!userId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: "Invalid User ID format",
-        receivedId: rawUserId 
+        receivedId: rawUserId,
       });
     }
 
     const budget = await Budget.findOne({ userId }).sort({ createdAt: -1 });
-    console.log('getBudgetOverview - Found budget:', budget);
+    console.log("getBudgetOverview - Found budget:", budget);
 
     if (!budget) {
-      return res.status(404).json({ message: "Budget not found. Please set a budget first." });
+      return res
+        .status(404)
+        .json({ message: "Budget not found. Please set a budget first." });
     }
 
     const expenses = await Expense.aggregate([
@@ -322,88 +330,95 @@ exports.setBudget = async (req, res) => {
     // console.log('setBudget - Body:', req.body);
 
     if (!rawUserId) {
-      console.log('No userId found');
+      console.log("No userId found");
       return res.status(400).json({ message: "User ID required" });
     }
 
     if (total === undefined || isNaN(total)) {
-      console.log('Invalid total amount');
-      return res.status(400).json({ message: "Please provide a valid total budget amount." });
+      console.log("Invalid total amount");
+      return res
+        .status(400)
+        .json({ message: "Please provide a valid total budget amount." });
     }
 
     const userId = toObjectId(rawUserId);
-    console.log('setBudget - Converted userId:', userId);
+    console.log("setBudget - Converted userId:", userId);
 
     if (!userId) {
-      console.log('Invalid ObjectId format');
-      return res.status(400).json({ 
+      console.log("Invalid ObjectId format");
+      return res.status(400).json({
         message: "Invalid User ID format",
-        receivedId: rawUserId 
+        receivedId: rawUserId,
       });
     }
 
     // Check if budget already exists
     let budget = await Budget.findOne({ userId });
-    console.log('setBudget - Existing budget:', budget);
+    console.log("setBudget - Existing budget:", budget);
 
     if (budget) {
       // Update existing budget
-      console.log('Updating existing budget...');
+      console.log("Updating existing budget...");
       budget.total = total;
       budget.remaining = total - budget.spent;
       const savedBudget = await budget.save();
-      console.log(' Budget updated:', savedBudget);
-      console.log(' Budget saved to DB with _id:', savedBudget._id);
+      console.log(" Budget updated:", savedBudget);
+      console.log(" Budget saved to DB with _id:", savedBudget._id);
 
       // Verify it's in database
       const verify = await Budget.findById(savedBudget._id);
-      console.log('🔍 Verification - Budget found in DB:', verify);
+      console.log("🔍 Verification - Budget found in DB:", verify);
 
-      res.json({ 
-        message: "Budget updated successfully!", 
-        budget: savedBudget 
+      res.json({
+        message: "Budget updated successfully!",
+        budget: savedBudget,
       });
     } else {
       // Create new budget
-      console.log(' Creating new budget...');
-      console.log('Data to save:', { userId, total, spent: 0, remaining: total });
-      
+      console.log(" Creating new budget...");
+      console.log("Data to save:", {
+        userId,
+        total,
+        spent: 0,
+        remaining: total,
+      });
+
       budget = new Budget({
         userId,
         total,
         spent: 0,
         remaining: total,
       });
-      
-      console.log('Budget document before save:', budget);
+
+      console.log("Budget document before save:", budget);
       const savedBudget = await budget.save();
-      console.log(' Budget created:', savedBudget);
-      console.log('Budget _id:', savedBudget._id);
-      console.log('Budget saved to collection:', Budget.collection.name);
+      console.log(" Budget created:", savedBudget);
+      console.log("Budget _id:", savedBudget._id);
+      console.log("Budget saved to collection:", Budget.collection.name);
 
       // Verify it's in database
       const verify = await Budget.findById(savedBudget._id);
-      console.log('Verification - Budget found in DB:', verify);
+      console.log("Verification - Budget found in DB:", verify);
 
       // Also check with userId
       const verifyByUser = await Budget.findOne({ userId });
-      console.log('Verification - Budget found by userId:', verifyByUser);
+      console.log("Verification - Budget found by userId:", verifyByUser);
 
       // Link budget to user
-      console.log('Linking budget to user');
+      console.log("Linking budget to user");
       const updatedUser = await User.findByIdAndUpdate(
         userId,
         { budget: savedBudget._id },
         { new: true }
       );
-      console.log('User updated:', updatedUser);
+      console.log("User updated:", updatedUser);
 
-      res.json({ 
-        message: "Budget set successfully!", 
-        budget: savedBudget 
+      res.json({
+        message: "Budget set successfully!",
+        budget: savedBudget,
       });
     }
-    console.log('=== END SET BUDGET ===\n');
+    console.log("=== END SET BUDGET ===\n");
   } catch (error) {
     console.error("❌ Error saving budget:", error);
     console.error("Error stack:", error.stack);
