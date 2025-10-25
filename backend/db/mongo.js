@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-require("dotenv").config();
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.DB_NAME || "BloomUp";
