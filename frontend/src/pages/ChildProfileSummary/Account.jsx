@@ -81,10 +81,10 @@ export default function Account() {
       <h2 className="text-[40px] font-bold text-white text-center mb-8">
         Your Family
       </h2>
-      <div className="rounded-[22px] bg-slate-700/60 min-h-[135px] p-4">
+      {/* <div className="rounded-[22px] bg-slate-700/60 min-h-[135px] p-4"> */}
         {/* <div className="text-white/70 text-sm"> Your Family Name</div> */}
-        <div className="text-white font-semibold text-lg">{familyName}</div>
-      </div>
+        <div className=" mb-2 text-white font-semibold text-lg">{familyName}</div>
+      {/* </div> */}
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
         {children.map((child) => {

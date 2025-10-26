@@ -11,6 +11,8 @@ export default function ChildDashboard() {
   const [meId, setMeId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  const [events, setEvents] = useState([]);
+  const [eventErr, setEventErr] = useState("");
 
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) {
@@ -66,6 +68,53 @@ export default function ChildDashboard() {
         if (!aborted) {
           setChild(childData);
         }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const fromIso = today.toISOString();
+        const urls = [
+          `${BASE}/api/calendar?childId=${childId}&from=${fromIso}`,
+          `${BASE}/api/calendar?child=${childId}&start=${fromIso}`,
+          `${BASE}/api/calendar`,
+        ];
+
+        let raw = [];
+        let usedUrl = "";
+
+        for (const url of urls) {
+          const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok || res.status === 204) continue;
+
+          const body = await res.json().catch(() => null);
+          const arr = Array.isArray(body)
+            ? body
+            : body?.events || body?.data || [];
+
+          if (!Array.isArray(arr) || arr.length === 0) continue;
+
+          raw = arr;
+          usedUrl = res.url;
+          break;
+        }
+
+        const cid = String(childId);
+        const upcoming = (raw || [])
+          .filter((e) => {
+            const kids = Array.isArray(e.children)
+              ? e.children.map((x) =>
+                  typeof x === "string" ? x : x && (x._id || String(x))
+                )
+              : [];
+            const hasChild = kids.map(String).includes(cid);
+            const start = e.startDate ? new Date(e.startDate) : null;
+            return hasChild && start && start >= today;
+          })
+          .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+          if (!aborted) setEvents(upcoming);
+
       } catch (e) {
         if (!aborted) {
           setErr("Failed to load child");
@@ -104,20 +153,6 @@ export default function ChildDashboard() {
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-[30px] text-white text-center">Child Dashboard</h1>
-        <div className="space-x-2">
-          <button
-            className="px-3 py-2 rounded bg-sky-500 text-white"
-            onClick={onEdit}
-          >
-            Edit
-          </button>
-          {/* <Link
-            to="/account"
-            className="px-3 py-2 rounded bg-slate-600 text-white"
-          >
-            ← Back to Your Family
-          </Link> */}
-        </div>
       </div>
       <hr className="mt-3 mb-10 border-black/20" />
 
@@ -153,9 +188,45 @@ export default function ChildDashboard() {
       </div>
 
       {/* Upcoming Events */}
-      <h2 className="mt-12 text-[20px] font-senibold text-black/90 text-center">
+      <h2 className="mt-12 text-[20px] font-semibold text-black/90 text-center">
         Upcoming Events
       </h2>
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {events.length === 0 ? (
+          <div className="col-span-full text-center text-black/60 py-8">
+            {eventErr ? eventErr : "No upcoming events"}
+          </div>
+        ) : (
+          events.map((ev) => (
+            <div
+              key={ev._id}
+              className="rounded-2xl bg-black/5 px-6 py-5 shadow-sm"
+            >
+              <div className="flex items-start justify-between text-sm text-black/60">
+                <span>
+                  {new Date(ev.startDate).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}{" "}
+                  ~{" "}
+                  {new Date(ev.endDate || ev.startDate).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+              <div className="mt-2 font-semibold text-black/90">
+                {ev.type || ev.title || ev.name || "Untitled Event"}
+              </div>
+              {ev.notes && (
+                <p className="mt-1 text-sm text-black/60 line-clamp-2">
+                  {ev.notes}
+                </p>
+              )}
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
