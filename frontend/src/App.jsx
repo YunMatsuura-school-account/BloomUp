@@ -25,7 +25,7 @@ import UserDashboard from "./pages/ChildProfileSummary/UserDashboard";
 
 import CalendarPage from "./pages/Calendar";
 import Dashboard from "./components/Dashboard";
-import CalendarPage from './pages/Calendar';
+// import CalendarPage from './pages/Calendar';
 
 import Articles from './pages/Articles';
 import ArticleCategory from './pages/ArticleCategory';
