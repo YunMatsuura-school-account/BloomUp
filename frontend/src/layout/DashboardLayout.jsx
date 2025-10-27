@@ -15,7 +15,7 @@ function DashboardLayout() {
         </div>
 
         {/* Main content area */}
-        <div className="flex-1 flex flex-col bg-[#414049ff] overflow-hidden">
+        <div className="flex-1 flex flex-col bg-[#414049] overflow-hidden">
           {/* Top bar */}
           <div className="md:hidden flex items-center justify-between px-4 h-14 bg-[#2a2930] text-white flex-shrink-0">
             <button
@@ -33,7 +33,7 @@ function DashboardLayout() {
           </div>
 
           {/* Scrollable content area */}
-          <div className="flex-1 overflow-y-auto p-5">
+          <div className="flex-1 overflow-y-auto p-0">
             <Outlet />
           </div>
         </div>
