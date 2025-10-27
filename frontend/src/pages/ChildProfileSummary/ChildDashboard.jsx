@@ -140,15 +140,18 @@ export default function ChildDashboard() {
           {child.name}
         </div>
         <div className="text-black/60 text-sm">
-            {age !== null ? `${age} years` : ""}
-            {child.dateOfBirth ? " " : ""}
-            {child.dateOfBirth ? new Date(child.dateOfBirth).toLocaleDateString() : ""}
+          {age !== null ? `${age} years` : ""}
+          {child.dateOfBirth ? " " : ""}
+          {child.dateOfBirth
+            ? new Date(child.dateOfBirth).toLocaleDateString()
+            : ""}
         </div>
       </div>
 
       {/* Upcoming Events */}
-        <h2 className="mt-12 text-[20px] font-senibold text-black/90 text-center">
-        Upcoming Events</h2>
+      <h2 className="mt-12 text-[20px] font-semibold text-black/90 text-center">
+        Upcoming Events
+      </h2>
     </div>
   );
 }

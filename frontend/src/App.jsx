@@ -13,7 +13,6 @@ import FamilySetup from "./pages/FamilySetup";
 import AddChild from "./pages/AddChild";
 import AuthGuard from "./components/AuthGuard";
 
-
 import Budget from "./components/Budget";
 import BudgetSetup from "./components/BudgetSetup";
 import AddManual from "./pages/AddExpense";
@@ -24,8 +23,8 @@ import ChildDashboard from "./pages/ChildProfileSummary/ChildDashboard";
 import Settings from "./pages/ChildProfileSummary/Settings";
 import UserDashboard from "./pages/ChildProfileSummary/UserDashboard";
 
-import CalendarPage from './pages/Calendar';
-
+import CalendarPage from "./pages/Calendar";
+import Dashboard from "./components/Dashboard";
 
 // import Calendar from "./components/Calendar";
 // import Articles from "./components/Articles";
@@ -65,14 +64,14 @@ function App() {
             </AuthGuard>
           }
         >
-          <Route
-            path="/dashboard"
-            element={<h2>Welcome to your Dashboard 👋</h2>}
-          />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/budget" element={<Budget />} />
           <Route path="/dashboard/budget-setup" element={<BudgetSetup />} />
           <Route path="/dashboard/budget/add-manual" element={<AddManual />} />
-          <Route path="/dashboard/budget/upload-receipt" element={<UploadReceipt />} />
+          <Route
+            path="/dashboard/budget/upload-receipt"
+            element={<UploadReceipt />}
+          />
 
           {/* <Route
             path="/calendar"
@@ -94,10 +93,12 @@ function App() {
 
           {/* Child Profile Summary */}
           <Route path="/account" element={<Account />} />
-          <Route path="/child-dashboard/:childId" element={<ChildDashboard />} />
+          <Route
+            path="/child-dashboard/:childId"
+            element={<ChildDashboard />}
+          />
           <Route path="/settings" element={<Settings />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
-
         </Route>
       </Routes>
     </Router>
