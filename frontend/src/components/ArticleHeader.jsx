@@ -1,7 +1,7 @@
 // frontend/src/components/ArticleHeader.jsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import ArticleSearchModal from './ArticleSearchModal';
+// import ArticleSearchModal from './ArticleSearchModal';
 
 const ArticleHeader = ({ categories, currentFilter, onFilterChange }) => {
   const [searchModalOpen, setSearchModalOpen] = useState(false);
