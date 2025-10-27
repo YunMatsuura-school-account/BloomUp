@@ -49,17 +49,50 @@ const AuthGuard = ({ children }) => {
       const userData = await response.json();
       setUser(userData);
 
+      console.log("AuthGuard - User data:", userData);
+      console.log("AuthGuard - Children:", userData.children);
+      console.log("AuthGuard - Children length:", userData.children?.length);
+
       //Route based on user state: only require at least one child
-      if (Array.isArray(userData.children) && userData.children.length === 0) {
+      const hasChildren =
+        Array.isArray(userData.children) && userData.children.length > 0;
+
+      console.log("AuthGuard - Has children:", hasChildren);
+      console.log("AuthGuard - Current path:", location.pathname);
+
+      if (!hasChildren) {
+        // No children - redirect to family-setup
+        console.log("AuthGuard - Redirecting to family-setup (no children)");
         navigate("/family-setup");
       } else {
-        // Only redirect to dashboard if we're not already on a protected route
+        // Has children - redirect to dashboard if not already on a protected route
         const currentPath = location.pathname;
-        const protectedRoutes = ['/dashboard', '/user-dashboard', '/account', '/settings', '/calendar', '/articles', '/family'];
-        const isOnProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
-        
-        if (!isOnProtectedRoute) {
+        const protectedRoutes = [
+          "/dashboard",
+          "/user-dashboard",
+          "/account",
+          "/settings",
+          "/calendar",
+          "/articles",
+          "/family",
+        ];
+        const isOnProtectedRoute = protectedRoutes.some((route) =>
+          currentPath.startsWith(route)
+        );
+
+        console.log("AuthGuard - Is on protected route:", isOnProtectedRoute);
+
+        // Special case: If on family-setup but has children, redirect to dashboard
+        if (currentPath === "/family-setup") {
+          console.log(
+            "AuthGuard - On family-setup but has children, redirecting to dashboard"
+          );
           navigate("/dashboard");
+        } else if (!isOnProtectedRoute) {
+          console.log("AuthGuard - Redirecting to dashboard (has children)");
+          navigate("/dashboard");
+        } else {
+          console.log("AuthGuard - Already on protected route, staying here");
         }
       }
     } catch (error) {
