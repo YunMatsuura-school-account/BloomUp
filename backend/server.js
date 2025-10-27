@@ -9,28 +9,46 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const budgetRoutes = require("./routes/budgetRoutes");
+const calendarRoutes = require("./routes/calendarRoutes");
+
 const mongoose = require("mongoose");
 
-const calendarRoutes = require("./routes/calendarRoutes");
+// const calendarRoutes = require("./routes/calendarRoutes");
 const vaccinationRoutes = require("./routes/vaccinationRoutes");
 // COMMENTED OUT - STARTING FRESH
 // const testVaccinationRoutes = require("./routes/testVaccinationRoutes");
+const path = require("path");
+const uploadImageRoutes = require("./routes/uploadImageRoutes");
 
 app.use(express.json());
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.use("/api/calendar", calendarRoutes);
 app.use("/api", vaccinationRoutes);
 // COMMENTED OUT - STARTING FRESH
 // app.use("/api", testVaccinationRoutes);
+app.use(
+  "/static/user-images",
+  express.static(path.join(__dirname, "uploads", "userImages"))
+);
+
+app.use(
+  "/static/child-images",
+  express.static(path.join(__dirname, "uploads", "childImages"))
+);
+
+app.use("/api", uploadImageRoutes);
 
 // Connect MongoDB via mongoose
 mongoose
   .connect(process.env.MONGODB_URI, {
     dbName: process.env.DB_NAME,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
   })
   .then(() => console.log("✅ Mongoose connected to MongoDB"))
   .catch((err) => console.error("❌ Mongoose connection error:", err));
@@ -38,8 +56,10 @@ mongoose
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
-app.use("/api/users/:userId/children", childProfileRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/users/:userId/children", childProfileRoutes);
+app.use("/api/calendar", calendarRoutes);
+
 // New budget route
 app.use("/api/budget", budgetRoutes);
 

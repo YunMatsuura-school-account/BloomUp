@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom"; // useLocation: receive state info from navigate()
+import AvatarDropUpload from "../../components/AvatarDropUpload";
 
 export default function Settings() {
   const BASE = import.meta.env.VITE_BACKEND_URL;
@@ -49,7 +50,7 @@ export default function Settings() {
         if (!aborted) {
           setMe(myData);
           setName(myData?.name ?? "");
-          setEmail(mydata?.email ?? "");
+          setEmail(myData?.email ?? "");
         }
       } catch (e) {
         if (!aborted) {
@@ -75,17 +76,12 @@ export default function Settings() {
       ? "Password does not match"
       : "");
 
+  const profileChanged =
+    name.trim() !== (me?.name ?? "") || email.trim() !== (me?.email ?? "");
+  const pwAllFilled = !!currentPw && !!newPw && !!confirmPw;
+
   const canSave =
-    !saving &&
-    !loading &&
-    !pwError &&
-    (name.trim() !== (me?.name ?? "") ||
-      email.trim() !== (me?.email ?? "") ||
-      currentPw ||
-      newPw ||
-      confirmPw ||
-      emailNotification !== false || // デフォルト false を想定
-      reminder !== false);
+    !saving && !loading && (profileChanged || (pwAllFilled && !pwError));
 
   const handleSave = async () => {
     try {
@@ -96,10 +92,66 @@ export default function Settings() {
       if (!token) {
         return navigate("/login");
       }
-    } catch {
-      console.log("");
+
+      //   update profile
+      const needProfileUpdate =
+        name.trim() !== (me?.name ?? "") || email.trim() !== (me?.email ?? "");
+      if (needProfileUpdate && userId) {
+        const res1 = await fetch(`${BASE}/api/users/${userId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: name.trim(),
+            email: email.trim(),
+          }),
+        });
+        if (!res1.ok) {
+          const msg = await res1.json().catch(() => null);
+          throw new Error(msg?.message || "Failed to update profile");
+        }
+
+        const updated = await res1.json().catch(() => null);
+        setMe((m) => ({
+          ...(m || {}),
+          ...(updated || {}),
+          name: name.trim(),
+          email: email.trim(),
+        }));
+      }
+
+      //   change password
+
+      if (pwAllFilled) {
+        if (pwError) {
+          throw new Error(pwError);
+        }
+        const res2 = await fetch(`${BASE}/api/auth/change-password`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            currentPassword: currentPw,
+            newPassword: newPw,
+          }),
+        });
+        if (!res2.ok) {
+          const msg = await res2.json().catch(() => null);
+          throw new Error(msg?.message || "Failed to change password");
+        }
+        setCurrentPw("");
+        setNewPw("");
+        setConfirmPw("");
+      }
+    } catch (e) {
+      console.error(e);
+      setErr(e.message || "Save failed");
     } finally {
-      console.log("");
+      setSaving(false);
     }
   };
 
@@ -117,21 +169,17 @@ export default function Settings() {
 
         {/* Avatar */}
         <div className="flex justify-center">
-          <div className="relative">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gray-500 text-white text-2xl">
-              📷
-            </div>
-            <button
-              type="button"
-              className="absolute -bottom-2 -right-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 text-white text-base"
-              title="Edit avatar"
-            >
-              ✏️
-            </button>
-          </div>
+          <AvatarDropUpload
+            mode="user"
+            userId={userId}
+            currentUrl={me?.imageUrl ?? ""}
+            onUploaded={(url) =>
+              setMe((m) => ({ ...(m || {}), imageUrl: url }))
+            }
+          />
         </div>
 
-        <Field label="Use name">
+        <Field label="User name">
           <input
             className="w-full rounded-lg bg-gray-300/70 px-4 py-2 outline-none"
             value={name}
@@ -245,34 +293,42 @@ export default function Settings() {
   );
 
   function Field({ label, hint, children }) {
-  return (
-    <label className="block">
-      <div className="mb-1 text-xs text-black/70">{label}</div>
-      {children}
-      {hint ? <div className="mt-1 text-xs text-red-500">{hint}</div> : null}
-    </label>
-  );
-}
-function ToggleRow({ title, description, checked, onChange }) {
-  return (
-    <div className="flex items-center justify-between rounded-xl bg-gray-300/70 px-4 py-3">
-      <div>
-        <div className="text-sm text-black/90">{title}</div>
-        <div className="text-xs text-black/60">{description}</div>
-      </div>
-      <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-        <input
-          type="checkbox"
-          className="sr-only"
-          checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-        />
-        {/* 簡易トグル */}
-        <span className={`h-6 w-10 rounded-full transition-colors ${checked ? "bg-teal-600" : "bg-gray-400"}`}>
-          <span className={`block h-5 w-5 bg-white rounded-full transition-transform translate-y-[2px] ${checked ? "translate-x-[22px]" : "translate-x-[2px]"}`} />
-        </span>
+    return (
+      <label className="block">
+        <div className="mb-1 text-xs text-black/70">{label}</div>
+        {children}
+        {hint ? <div className="mt-1 text-xs text-red-500">{hint}</div> : null}
       </label>
-    </div>
-  );
-}
+    );
+  }
+  function ToggleRow({ title, description, checked, onChange }) {
+    return (
+      <div className="flex items-center justify-between rounded-xl bg-gray-300/70 px-4 py-3">
+        <div>
+          <div className="text-sm text-black/90">{title}</div>
+          <div className="text-xs text-black/60">{description}</div>
+        </div>
+        <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            className="sr-only"
+            checked={checked}
+            onChange={(e) => onChange(e.target.checked)}
+          />
+
+          <span
+            className={`h-6 w-10 rounded-full transition-colors ${
+              checked ? "bg-teal-600" : "bg-gray-400"
+            }`}
+          >
+            <span
+              className={`block h-5 w-5 bg-white rounded-full transition-transform translate-y-[2px] ${
+                checked ? "translate-x-[22px]" : "translate-x-[2px]"
+              }`}
+            />
+          </span>
+        </label>
+      </div>
+    );
+  }
 }
