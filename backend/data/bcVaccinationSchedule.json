@@ -1,0 +1,318 @@
+{
+  "province": "British Columbia",
+  "lastUpdated": "2024-01-15",
+  "vaccinations": [
+    {
+      "name": "DTaP-HB-IPV-Hib (Infanrix hexa)",
+      "ageInMonths": 2,
+      "description": "Protects against diphtheria, tetanus, pertussis (whooping cough), hepatitis B, polio, and Haemophilus influenzae type b. First dose at 2 months.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": 4,
+      "totalDoses": 5,
+      "diseasesPrevented": [
+        "Diphtheria",
+        "Tetanus",
+        "Pertussis",
+        "Hepatitis B",
+        "Polio",
+        "Hib"
+      ],
+      "sideEffects": ["Mild fever", "Soreness at injection site", "Fussiness"],
+      "notes": "Part of the 6-in-1 vaccine series"
+    },
+    {
+      "name": "DTaP-HB-IPV-Hib (Infanrix hexa)",
+      "ageInMonths": 4,
+      "description": "Second dose of the 6-in-1 vaccine at 4 months.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": 6,
+      "totalDoses": 5,
+      "diseasesPrevented": [
+        "Diphtheria",
+        "Tetanus",
+        "Pertussis",
+        "Hepatitis B",
+        "Polio",
+        "Hib"
+      ],
+      "sideEffects": ["Mild fever", "Soreness at injection site", "Fussiness"],
+      "notes": "Part of the 6-in-1 vaccine series"
+    },
+    {
+      "name": "DTaP-HB-IPV-Hib (Infanrix hexa)",
+      "ageInMonths": 6,
+      "description": "Third dose of the 6-in-1 vaccine at 6 months.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": 18,
+      "totalDoses": 5,
+      "diseasesPrevented": [
+        "Diphtheria",
+        "Tetanus",
+        "Pertussis",
+        "Hepatitis B",
+        "Polio",
+        "Hib"
+      ],
+      "sideEffects": ["Mild fever", "Soreness at injection site", "Fussiness"],
+      "notes": "Part of the 6-in-1 vaccine series"
+    },
+    {
+      "name": "Pneumococcal Conjugate (Pneu-C-13 or Synflorix)",
+      "ageInMonths": 2,
+      "description": "Protects against pneumococcal disease (pneumonia, meningitis, blood infections). First dose at 2 months.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": 4,
+      "totalDoses": 3,
+      "diseasesPrevented": ["Pneumococcal disease"],
+      "sideEffects": ["Mild fever", "Soreness at injection site", "Drowsiness"],
+      "notes": "PCV13 or 10-valent vaccine"
+    },
+    {
+      "name": "Pneumococcal Conjugate (Pneu-C-13 or Synflorix)",
+      "ageInMonths": 4,
+      "description": "Second dose of pneumococcal vaccine at 4 months.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": 12,
+      "totalDoses": 3,
+      "diseasesPrevented": ["Pneumococcal disease"],
+      "sideEffects": ["Mild fever", "Soreness at injection site", "Drowsiness"],
+      "notes": "PCV13 or 10-valent vaccine"
+    },
+    {
+      "name": "Rotavirus (Rotarix or RotaTeq)",
+      "ageInMonths": 2,
+      "description": "Oral vaccine that protects against rotavirus, a common cause of severe diarrhea. First dose at 2 months.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": 4,
+      "totalDoses": 2,
+      "diseasesPrevented": ["Rotavirus"],
+      "sideEffects": ["Mild diarrhea", "Irritability", "Temporary mild fever"],
+      "notes": "Oral vaccine, not an injection. Must be completed by 8 months of age."
+    },
+    {
+      "name": "Rotavirus (Rotarix or RotaTeq)",
+      "ageInMonths": 4,
+      "description": "Second and final dose of rotavirus oral vaccine at 4 months.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": null,
+      "totalDoses": 2,
+      "diseasesPrevented": ["Rotavirus"],
+      "sideEffects": ["Mild diarrhea", "Irritability", "Temporary mild fever"],
+      "notes": "Oral vaccine, not an injection. Final dose."
+    },
+    {
+      "name": "Meningococcal C Conjugate (Men-C-C)",
+      "ageInMonths": 12,
+      "description": "Protects against meningococcal C disease (meningitis and blood infections). Given at 12 months.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": 144,
+      "totalDoses": 2,
+      "diseasesPrevented": ["Meningococcal C disease"],
+      "sideEffects": ["Mild fever", "Soreness at injection site", "Headache"],
+      "notes": "Booster given in Grade 9 (age 14-15)"
+    },
+    {
+      "name": "Pneumococcal Conjugate (Pneu-C-13 or Synflorix)",
+      "ageInMonths": 12,
+      "description": "Third and final dose of pneumococcal vaccine at 12 months.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": null,
+      "totalDoses": 3,
+      "diseasesPrevented": ["Pneumococcal disease"],
+      "sideEffects": ["Mild fever", "Soreness at injection site", "Drowsiness"],
+      "notes": "Final dose of infant series"
+    },
+    {
+      "name": "MMR (Measles, Mumps, Rubella)",
+      "ageInMonths": 12,
+      "description": "Protects against measles, mumps, and rubella. First dose at 12 months.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": 54,
+      "totalDoses": 2,
+      "diseasesPrevented": ["Measles", "Mumps", "Rubella"],
+      "sideEffects": [
+        "Mild fever (7-12 days after)",
+        "Mild rash",
+        "Temporary joint pain"
+      ],
+      "notes": "Second dose at 4-6 years (kindergarten)"
+    },
+    {
+      "name": "Varicella (Chickenpox)",
+      "ageInMonths": 12,
+      "description": "Protects against chickenpox (varicella). First dose at 12 months.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": 54,
+      "totalDoses": 2,
+      "diseasesPrevented": ["Chickenpox"],
+      "sideEffects": ["Mild rash", "Mild fever", "Soreness at injection site"],
+      "notes": "Second dose at 4-6 years (kindergarten)"
+    },
+    {
+      "name": "DTaP-IPV-Hib",
+      "ageInMonths": 18,
+      "description": "Booster dose of diphtheria, tetanus, pertussis, polio, and Hib vaccines at 18 months.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": 54,
+      "totalDoses": 5,
+      "diseasesPrevented": [
+        "Diphtheria",
+        "Tetanus",
+        "Pertussis",
+        "Polio",
+        "Hib"
+      ],
+      "sideEffects": ["Mild fever", "Soreness at injection site", "Fussiness"],
+      "notes": "18-month booster"
+    },
+    {
+      "name": "Hepatitis A",
+      "ageInMonths": 24,
+      "description": "Protects against hepatitis A. First dose at 24 months (2 years).",
+      "category": "routine",
+      "isRequired": false,
+      "nextDoseAge": 30,
+      "totalDoses": 2,
+      "diseasesPrevented": ["Hepatitis A"],
+      "sideEffects": ["Mild fever", "Soreness at injection site", "Fatigue"],
+      "notes": "Not universally funded in BC, but recommended for high-risk groups"
+    },
+    {
+      "name": "Hepatitis A",
+      "ageInMonths": 30,
+      "description": "Second dose of hepatitis A vaccine, given 6 months after first dose.",
+      "category": "routine",
+      "isRequired": false,
+      "nextDoseAge": null,
+      "totalDoses": 2,
+      "diseasesPrevented": ["Hepatitis A"],
+      "sideEffects": ["Mild fever", "Soreness at injection site", "Fatigue"],
+      "notes": "Not universally funded in BC, but recommended for high-risk groups"
+    },
+    {
+      "name": "DTaP-IPV (Tdap-IPV)",
+      "ageInMonths": 54,
+      "description": "Kindergarten booster for diphtheria, tetanus, pertussis, and polio at 4-6 years.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": 108,
+      "totalDoses": 5,
+      "diseasesPrevented": ["Diphtheria", "Tetanus", "Pertussis", "Polio"],
+      "sideEffects": ["Mild fever", "Soreness at injection site", "Fatigue"],
+      "notes": "Kindergarten booster (age 4-6 years)"
+    },
+    {
+      "name": "MMR (Measles, Mumps, Rubella)",
+      "ageInMonths": 54,
+      "description": "Second dose of MMR vaccine at 4-6 years (kindergarten).",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": null,
+      "totalDoses": 2,
+      "diseasesPrevented": ["Measles", "Mumps", "Rubella"],
+      "sideEffects": [
+        "Mild fever (7-12 days after)",
+        "Mild rash",
+        "Temporary joint pain"
+      ],
+      "notes": "Second and final dose"
+    },
+    {
+      "name": "Varicella (Chickenpox)",
+      "ageInMonths": 54,
+      "description": "Second dose of varicella vaccine at 4-6 years (kindergarten).",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": null,
+      "totalDoses": 2,
+      "diseasesPrevented": ["Chickenpox"],
+      "sideEffects": ["Mild rash", "Mild fever", "Soreness at injection site"],
+      "notes": "Second and final dose"
+    },
+    {
+      "name": "Tdap (Tetanus, Diphtheria, Pertussis)",
+      "ageInMonths": 108,
+      "description": "Grade 9 booster for tetanus, diphtheria, and pertussis at age 14-15 years.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": null,
+      "totalDoses": 1,
+      "diseasesPrevented": ["Tetanus", "Diphtheria", "Pertussis"],
+      "sideEffects": ["Soreness at injection site", "Mild fever", "Headache"],
+      "notes": "Grade 9 booster"
+    },
+    {
+      "name": "Meningococcal ACYW-135 Conjugate",
+      "ageInMonths": 108,
+      "description": "Grade 9 vaccine protecting against meningococcal disease types A, C, Y, and W-135.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": null,
+      "totalDoses": 1,
+      "diseasesPrevented": ["Meningococcal ACYW disease"],
+      "sideEffects": ["Soreness at injection site", "Mild fever", "Headache"],
+      "notes": "Grade 9 vaccine"
+    },
+    {
+      "name": "HPV9 (Human Papillomavirus)",
+      "ageInMonths": 108,
+      "description": "Grade 6 vaccine (age 11-12) protecting against 9 types of HPV that cause cancer and genital warts.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": 114,
+      "totalDoses": 2,
+      "diseasesPrevented": ["HPV-related cancers", "Genital warts"],
+      "sideEffects": ["Soreness at injection site", "Mild fever", "Dizziness"],
+      "notes": "2-dose series for children under 15 years"
+    },
+    {
+      "name": "HPV9 (Human Papillomavirus)",
+      "ageInMonths": 114,
+      "description": "Second dose of HPV vaccine, given 6 months after first dose.",
+      "category": "routine",
+      "isRequired": true,
+      "nextDoseAge": null,
+      "totalDoses": 2,
+      "diseasesPrevented": ["HPV-related cancers", "Genital warts"],
+      "sideEffects": ["Soreness at injection site", "Mild fever", "Dizziness"],
+      "notes": "Final dose of HPV series"
+    },
+    {
+      "name": "Influenza (Flu) - Annual",
+      "ageInMonths": 6,
+      "description": "Annual flu vaccine recommended starting at 6 months of age. Protects against seasonal influenza.",
+      "category": "annual",
+      "isRequired": false,
+      "nextDoseAge": 18,
+      "totalDoses": 999,
+      "diseasesPrevented": ["Influenza"],
+      "sideEffects": ["Soreness at injection site", "Mild fever", "Fatigue"],
+      "notes": "Annual vaccination recommended every fall. First-time recipients under 9 years need 2 doses, 4 weeks apart."
+    }
+  ],
+  "notes": [
+    "This schedule follows the BC Immunization Schedule for 2024",
+    "Some vaccines may be combined into single injections",
+    "Talk to your healthcare provider about catch-up schedules if doses are missed",
+    "High-risk groups may require additional vaccinations",
+    "Premature infants follow the same schedule based on chronological age",
+    "Consult your healthcare provider for specific recommendations"
+  ],
+  "resources": {
+    "bcImmunization": "https://immunizebc.ca",
+    "healthLinkBC": "https://www.healthlinkbc.ca/health-topics/immunization",
+    "publicHealth": "https://www.canada.ca/en/public-health"
+  }
+}

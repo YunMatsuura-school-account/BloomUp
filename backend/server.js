@@ -11,15 +11,19 @@ const cors = require("cors");
 const budgetRoutes = require("./routes/budgetRoutes");
 const mongoose = require("mongoose");
 
-const calendarRoutes = require('./routes/calendarRoutes');
+const calendarRoutes = require("./routes/calendarRoutes");
+const vaccinationRoutes = require("./routes/vaccinationRoutes");
+// COMMENTED OUT - STARTING FRESH
+// const testVaccinationRoutes = require("./routes/testVaccinationRoutes");
 
 app.use(express.json());
 
 app.use(cors());
 
-
-app.use('/api/calendar', calendarRoutes);
-
+app.use("/api/calendar", calendarRoutes);
+app.use("/api", vaccinationRoutes);
+// COMMENTED OUT - STARTING FRESH
+// app.use("/api", testVaccinationRoutes);
 
 // Connect MongoDB via mongoose
 mongoose
