@@ -1,13 +1,14 @@
 import React from "react";
 import VaccinationDashboard from "./VaccinationDashboard";
+import BudgetSummary from "./BudgetSummary";
+import AIInsights from "./AIInsights";
+import ScheduleCalendar from "./ScheduleCalendar";
+import UpcomingEvents from "./UpcomingEvents";
+import RecommendedArticles from "./RecommendedArticles";
 import { useChild } from "../contexts/ChildContext";
 
 const Dashboard = () => {
   const { selectedChild, user, loading } = useChild();
-
-  // Debug logging
-  console.log("Dashboard - selectedChild:", selectedChild);
-  console.log("Dashboard - user:", user);
 
   if (loading) {
     return (
@@ -19,36 +20,38 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Welcome to your Dashboard
-        </h1>
-        <p className="text-gray-600">
-          {user?.name ? `Hello ${user.name}!` : "Hello!"} Here's an overview of
-          your family's health and activities.
-        </p>
-      </div>
-
-      {/* Vaccination Recommendations - Only on Dashboard */}
+    <div className="min-h-screen bg-[#EFEFEF] p-5">
+      {/* Vaccination Recommendations - Full Width Below */}
       {selectedChild && (
-        <VaccinationDashboard
-          key={selectedChild._id} // Force re-render when child changes
-          childId={selectedChild._id}
-          userId={user?.id}
-          childDateOfBirth={selectedChild.dateOfBirth}
-        />
-      )}
-
-      {!selectedChild && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <p className="text-gray-600 text-center">
-            No child selected. Please select a child from the sidebar to see
-            vaccination recommendations.
-          </p>
+        <div className="max-w-[1400px] mx-auto mt-6">
+          <VaccinationDashboard
+            key={selectedChild._id}
+            childId={selectedChild._id}
+            userId={user?.id}
+            childDateOfBirth={selectedChild.dateOfBirth}
+          />
         </div>
       )}
+      {/* Main Dashboard Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-[1400px] mx-auto">
+        {/* Left Column */}
+        <div className="space-y-6">
+          {/* Budget Summary & AI Insights */}
+          <BudgetSummary />
+
+          {/* Schedule Calendar */}
+          <ScheduleCalendar />
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-6">
+          {/* Upcoming Events */}
+          <UpcomingEvents selectedChild={selectedChild} />
+
+          {/* Recommended Articles */}
+          <RecommendedArticles />
+        </div>
+      </div>
     </div>
   );
 };
