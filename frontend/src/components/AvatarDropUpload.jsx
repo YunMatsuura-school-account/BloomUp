@@ -55,10 +55,12 @@ export default function AvatarDropUpload({
     try {
       const formData = new FormData();
       formData.append("image", file);
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(endpoint, {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.status}`);
@@ -138,7 +140,9 @@ export default function AvatarDropUpload({
             src={
               currentUrl.startsWith("/static/")
                 ? `${BASE}${currentUrl}`
-                : `${BASE}/static/child-images/${currentUrl}`
+                : mode === "child"
+                ? `${BASE}/static/child-images/${currentUrl}`
+                : `${BASE}/static/user-images/${currentUrl}`
             }
             alt="avatar"
             className="h-full w-full object-cover"

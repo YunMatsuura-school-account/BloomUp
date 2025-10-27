@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const AuthGuard = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     checkAuth();
@@ -52,7 +53,14 @@ const AuthGuard = ({ children }) => {
       if (Array.isArray(userData.children) && userData.children.length === 0) {
         navigate("/family-setup");
       } else {
-        navigate("/dashboard");
+        // Only redirect to dashboard if we're not already on a protected route
+        const currentPath = location.pathname;
+        const protectedRoutes = ['/dashboard', '/user-dashboard', '/account', '/settings', '/calendar', '/articles', '/family'];
+        const isOnProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
+        
+        if (!isOnProtectedRoute) {
+          navigate("/dashboard");
+        }
       }
     } catch (error) {
       console.error("Auth check failed:", error);

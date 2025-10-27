@@ -48,8 +48,8 @@ mongoose
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
-app.use("/api/users/:userId/children", childProfileRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/users/:userId/children", childProfileRoutes);
 app.use("/api/calendar", calendarRoutes);
 
 // New budget route
