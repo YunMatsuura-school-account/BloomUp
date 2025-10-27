@@ -12,17 +12,17 @@ git add .
 git commit -m "WIP: Your current work description"
 git push origin your-branch-name
 
-# Switch to development branch
-git checkout development
+# Switch to Developer_Branch
+git checkout Developer_Branch
 
-# Pull latest changes from development
-git pull origin development
+# Pull latest changes from Developer_Branch
+git pull origin Developer_Branch
 
 # Switch back to your branch
 git checkout your-branch-name
 
-# Merge development into your branch
-git merge development
+# Merge Developer_Branch into your branch
+git merge Developer_Branch
 ```
 
 ### **2. IF CONFLICTS ARISE - Resolve Them:**
@@ -31,12 +31,12 @@ git merge development
 git status
 
 # Open conflicted files and resolve manually
-# Look for <<<<<<< HEAD, =======, >>>>>>> development markers
+# Look for <<<<<<< HEAD, =======, >>>>>>> Developer_Branch markers
 # Edit files to keep the correct code
 
 # After resolving conflicts:
 git add .
-git commit -m "Resolve merge conflicts with development"
+git commit -m "Resolve merge conflicts with Developer_Branch"
 git push origin your-branch-name
 ```
 
@@ -59,17 +59,17 @@ git push origin your-branch-name
 
 ### **Your Working Branch:**
 - Always work on YOUR branch (e.g., `vaibhav-developer`, `john-feature`, `sarah-bugfix`)
-- Never work directly on `development` or `main`
+- Never work directly on `Developer_Branch` or `main`
 - Name your branch: `your-name-feature` or `your-name-bugfix`
 
-### **Development Branch:**
-- `development` is the main integration branch
-- All features merge into `development` first
-- Only merge to `development` when your feature is complete and tested
+### **Developer_Branch:**
+- `Developer_Branch` is the main integration branch
+- All features merge into `Developer_Branch` first
+- Only merge to `Developer_Branch` when your feature is complete and tested
 
 ### **Main Branch:**
 - `main` is for production-ready code only
-- Only merge from `development` to `main` for releases
+- Only merge from `Developer_Branch` to `main` for releases
 
 ## ⚠️ **Conflict Resolution Rules:**
 
@@ -88,15 +88,15 @@ git add .
 git commit -m "WIP: Vaccination dashboard updates"
 git push origin vaibhav-developer
 
-git checkout development
-git pull origin development
+git checkout Developer_Branch
+git pull origin Developer_Branch
 git checkout vaibhav-developer
-git merge development
+git merge Developer_Branch
 
 # If conflicts:
 # Resolve conflicts manually
 git add .
-git commit -m "Resolve conflicts with development"
+git commit -m "Resolve conflicts with Developer_Branch"
 git push origin vaibhav-developer
 
 # Continue working...
@@ -121,23 +121,23 @@ git push origin vaibhav-developer
 
 ## 🚨 **Emergency Situations:**
 
-If you accidentally commit to `development`:
+If you accidentally commit to `Developer_Branch`:
 ```bash
 # Create a new branch from your commit
-git checkout development
+git checkout Developer_Branch
 git checkout -b your-name-emergency-fix
 git push origin your-name-emergency-fix
 
-# Reset development to previous commit
-git checkout development
+# Reset Developer_Branch to previous commit
+git checkout Developer_Branch
 git reset --hard HEAD~1
-git push origin development --force-with-lease
+git push origin Developer_Branch --force-with-lease
 ```
 
 ## 📞 **Team Communication:**
 
 - **Slack/Teams:** Notify team about major conflicts
-- **Code Review:** Always request review before merging to development
+- **Code Review:** Always request review before merging to Developer_Branch
 - **Documentation:** Update this file if workflow changes
 
 ---
