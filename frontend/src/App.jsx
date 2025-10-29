@@ -25,6 +25,13 @@ import UserDashboard from "./pages/ChildProfileSummary/UserDashboard";
 
 import CalendarPage from "./pages/Calendar";
 import Dashboard from "./components/Dashboard";
+// import CalendarPage from './pages/Calendar';
+
+import Articles from './pages/Articles';
+import ArticleCategory from './pages/ArticleCategory';
+import ArticleSingle from './pages/ArticleSingle';
+import './styles/articles.css';
+
 
 // import Calendar from "./components/Calendar";
 // import Articles from "./components/Articles";
@@ -81,14 +88,10 @@ function App() {
           {/* For Calender */}
           <Route path="/calendar" element={<CalendarPage />} />
 
-          <Route
-            path="/articles"
-            element={
-              <div style={{ color: "white" }}>
-                Articles & Resources coming soon
-              </div>
-            }
-          />
+          <Route path="/articles" element={<Articles />} />
+          <Route path="/articles/category" element={<ArticleCategory />} />
+          <Route path="/articles/:id" element={<ArticleSingle />} />
+
           <Route path="/family" element={<FamilySetup />} />
 
           {/* Child Profile Summary */}

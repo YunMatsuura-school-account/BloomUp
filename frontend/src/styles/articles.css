@@ -1,0 +1,397 @@
+
+/* Navigation Active State */
+nav button.active {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* ============================================
+   FEATURED ARTICLE CARD
+   ============================================ */
+.featured-card-wireframe {
+  background: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.featured-card-wireframe:hover {
+  box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.featured-card-wireframe img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  display: block;
+}
+
+.featured-card-content-wireframe {
+  padding: 1.5rem;
+}
+
+/* ============================================
+   TOP ARTICLE CARDS
+   ============================================ */
+.top-article-card-wireframe {
+  background: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-article-card-wireframe:hover {
+  box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.top-article-card-wireframe img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  display: block;
+}
+
+.top-article-card-content {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+/* ============================================
+   HORIZONTAL SMALL CARDS (You Might Also Like)
+   ============================================ */
+.horizontal-card-small-wireframe {
+  display: flex;
+  gap: 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  padding: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  align-items: flex-start;
+  flex: 1;
+  min-height: 120px;
+  cursor: pointer;
+}
+
+.horizontal-card-small-wireframe:hover {
+  box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.horizontal-card-small-wireframe img {
+  width: 120px;
+  height: 100%;
+  min-height: 90px;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 0.375rem;
+  flex-shrink: 0;
+}
+
+.horizontal-card-small-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+/* ============================================
+   SAVED ARTICLE CARDS
+   ============================================ */
+.saved-article-card-wireframe {
+  background: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.saved-article-card-wireframe:hover {
+  box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.saved-article-card-wireframe img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.saved-article-card-content {
+  padding: 1rem;
+}
+
+/* ============================================
+   HORIZONTAL CARDS (Category View)
+   ============================================ */
+.horizontal-card {
+  background: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  gap: 1rem;
+}
+
+.horizontal-card:hover {
+  box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.1);
+}
+
+.horizontal-card img {
+  width: 12rem;
+  height: 10rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.horizontal-card-content {
+  flex: 1;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ============================================
+   CARD TEXT STYLES
+   ============================================ */
+.card-category {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-description {
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================
+   TEXT CLAMPING UTILITIES
+   ============================================ */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ============================================
+   BOOKMARK BUTTON
+   ============================================ */
+.bookmark-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: all 0.3s ease;
+}
+
+.bookmark-btn:hover {
+  color: #f59e0b;
+  transform: scale(1.1);
+}
+
+.bookmark-btn svg {
+  width: 2rem;
+  height: 2rem;
+  stroke-width: 2;
+}
+
+.bookmark-btn.saved svg {
+  fill: #f59e0b;
+  stroke: #f59e0b;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+
+.empty-state-text {
+  font-size: 1.125rem;
+  color: #9ca3af;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Tablet */
+@media (max-width: 768px) {
+  .featured-card-wireframe img {
+    height: 240px;
+  }
+
+  .top-article-card-wireframe img {
+    height: 180px;
+  }
+
+  .saved-article-card-wireframe img {
+    height: 160px;
+  }
+
+  nav {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scroll-behavior: smooth;
+  }
+
+  nav button {
+    white-space: nowrap;
+    padding: 0.5rem 1rem;
+  }
+
+  .horizontal-card {
+    flex-direction: column;
+  }
+
+  .horizontal-card img {
+    width: 100%;
+    height: 200px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .featured-card-wireframe img {
+    height: 200px;
+  }
+
+  .featured-card-content-wireframe {
+    padding: 1rem;
+  }
+
+  .top-article-card-content {
+    padding: 1rem;
+  }
+
+  .saved-article-card-content {
+    padding: 0.875rem;
+  }
+
+  .horizontal-card-small-wireframe {
+    padding: 0.625rem;
+    gap: 0.75rem;
+  }
+
+  .horizontal-card-small-wireframe img {
+    width: 80px;
+    min-height: 70px;
+    max-height: 90px;
+  }
+
+  .horizontal-card img {
+    height: 180px;
+  }
+}
