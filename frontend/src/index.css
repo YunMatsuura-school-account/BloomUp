@@ -20,3 +20,13 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
+
+@layer components {
+
+  .page-surface {
+    background-color: #f5f5f5;
+    @apply min-h-full;
+  }
+
+ 
+}
