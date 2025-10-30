@@ -17,6 +17,7 @@ const childProfileSchema = new mongoose.Schema({
   medicalHistory: { type: String, required: false },
   dateOfBirth: { type: Date, required: true },
   age: { type: Number, required: false }, // age in years, computed from dateOfBirth
+  gender: { type: String, required: false },
   userId: { type: String, required: true },
   imageUrl: {type: String, required: false},
 });

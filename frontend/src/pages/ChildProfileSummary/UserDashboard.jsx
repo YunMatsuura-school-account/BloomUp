@@ -112,9 +112,9 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-[30px] text-white text-center">User Dashboard</h1>
+    <div className=" page-surface page-container p-6 space-y-4">
+      <div className="flex items-center justify-center">
+        <h1 className="text-[30px] text-black/100 text-center">User Dashboard</h1>
       </div>
       <hr className="mt-3 mb-10 border-black/20" />
 
