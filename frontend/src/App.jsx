@@ -1,40 +1,35 @@
-// import { useState, useEffect } from "react";
-// import reactLogo from "./assets/react.svg";
-// import viteLogo from "/vite.svg";
 import "./App.css";
-
-// export default App;
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import Signup from "./pages/Signup";
-import DashboardLayout from "./layout/DashboardLayout";
-// import Budget from "./components/Budget";
 import Login from "./pages/Login";
-import FamilySetup from "./pages/FamilySetup";
-import AddChild from "./pages/AddChild";
+import DashboardLayout from "./layout/DashboardLayout";
 import AuthGuard from "./components/AuthGuard";
 
+import Dashboard from "./components/Dashboard";
 import Budget from "./components/Budget";
 import BudgetSetup from "./components/BudgetSetup";
 import AddManual from "./pages/AddExpense";
 import UploadReceipt from "./pages/UploadReceipt";
+import ReviewReceipt from "./pages/ReviewReceipt";
+
+import CalendarPage from "./pages/Calendar";
+import Articles from './pages/Articles';
+import ArticleCategory from './pages/ArticleCategory';
+import ArticleSingle from './pages/ArticleSingle';
+import './styles/articles.css';
+
+import FamilySetup from "./pages/FamilySetup";
+import AddChild from "./pages/AddChild";
 
 import Account from "./pages/ChildProfileSummary/Account";
 import ChildDashboard from "./pages/ChildProfileSummary/ChildDashboard";
 import Settings from "./pages/ChildProfileSummary/Settings";
 import UserDashboard from "./pages/ChildProfileSummary/UserDashboard";
 
-import CalendarPage from "./pages/Calendar";
-import Dashboard from "./components/Dashboard";
-// import CalendarPage from './pages/Calendar';
-
-import Articles from './pages/Articles';
-import ArticleCategory from './pages/ArticleCategory';
-import ArticleSingle from './pages/ArticleSingle';
-import './styles/articles.css';
-
-
-// import Calendar from "./components/Calendar";
-// import Articles from "./components/Articles";
+function BudgetSetupWrapper() {
+  const navigate = useNavigate();
+  return <BudgetSetup onClose={() => navigate("/dashboard/budget")} />;
+}
 
 function App() {
   return (
@@ -73,19 +68,11 @@ function App() {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/budget" element={<Budget />} />
-          <Route path="/dashboard/budget-setup" element={<BudgetSetup />} />
+          <Route path="/dashboard/budget-setup" element={<BudgetSetupWrapper />} />
           <Route path="/dashboard/budget/add-manual" element={<AddManual />} />
-          <Route
-            path="/dashboard/budget/upload-receipt"
-            element={<UploadReceipt />}
-          />
+          <Route path="/dashboard/budget/upload-receipt" element={<UploadReceipt />} />
+          <Route path="/dashboard/budget/review-receipt" element={<ReviewReceipt />} />
 
-          {/* <Route
-            path="/calendar"
-            element={<div style={{ color: "white" }}>Calendar coming soon</div>}
-          /> */}
-
-          {/* For Calender */}
           <Route path="/calendar" element={<CalendarPage />} />
 
           <Route path="/articles" element={<Articles />} />
@@ -96,10 +83,7 @@ function App() {
 
           {/* Child Profile Summary */}
           <Route path="/account" element={<Account />} />
-          <Route
-            path="/child-dashboard/:childId"
-            element={<ChildDashboard />}
-          />
+          <Route path="/child-dashboard/:childId" element={<ChildDashboard />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
         </Route>
