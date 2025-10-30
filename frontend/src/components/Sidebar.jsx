@@ -8,6 +8,7 @@ import {
   FamilyIcon,
   LogoBloomUpGreen,
 } from "../icons";
+import { useChild } from "../contexts/ChildContext";
 
 /**
  * Reusable Sidebar component aligned to Figma specs (compact scale)
@@ -26,8 +27,11 @@ export default function Sidebar({
   logoutLabel = "Sign out",
 }) {
   const [displayName, setDisplayName] = useState(headerTitle || "BloomUp");
-  const [userId, setUserId] = useState(null);
-  const [childInitials, setChildInitials] = useState([]);
+  const { children, selectedChild, selectChild } = useChild();
+
+  // Debug logging
+  console.log("Sidebar - children:", children);
+  console.log("Sidebar - selectedChild:", selectedChild);
 
   useEffect(() => {
     setDisplayName((prev) => headerTitle || prev);
@@ -46,7 +50,6 @@ export default function Sidebar({
         );
         if (!res.ok) return;
         const me = await res.json();
-        setUserId(me?.id);
         const name =
           me?.familyName && me.familyName.trim()
             ? me.familyName
@@ -55,26 +58,6 @@ export default function Sidebar({
       } catch {}
     })();
   }, []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        if (!userId) return;
-        const token = localStorage.getItem("accessToken");
-        if (!token) return;
-        const res = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/users/${userId}/children`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        if (!res.ok) return;
-        const children = await res.json();
-        const initials = (Array.isArray(children) ? children : [])
-          .slice(0, 3)
-          .map((c) => (c?.name ? c.name.trim()[0]?.toUpperCase() : "?"));
-        setChildInitials(initials);
-      } catch {}
-    })();
-  }, [userId]);
 
   const navItems = items.length
     ? items
@@ -118,7 +101,7 @@ export default function Sidebar({
       />
 
       <aside
-        className={`fixed md:static z-50 left-0 top-0 h-full md:h-auto w-[300px] md:w-[300px] bg-white text-[#232527] transition-transform duration-300 md:transition-none shadow-md md:shadow-none ${
+        className={`fixed md:relative z-50 left-0 top-0 h-full md:h-screen w-[300px] md:w-[300px] bg-white text-[#232527] transition-transform duration-300 md:transition-none shadow-md md:shadow-none flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
@@ -131,7 +114,7 @@ export default function Sidebar({
 
           {/* Chips row: compact */}
           <div className="px-6 mt-5 flex items-center gap-2.5">
-            {renderChips(childInitials)}
+            {renderChips(children, selectedChild, selectChild)}
             <svg
               className="ml-1 text-[#232527]"
               width="20"
@@ -149,8 +132,8 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Side_Nav: centered items */}
-        <nav className="px-4 mt-6">
+        {/* Side_Nav: centered items - scrollable */}
+        <nav className="px-4 mt-6 flex-1 overflow-y-auto">
           <ul className="flex flex-col items-center gap-2">
             {navItems.map((item) => (
               <li
@@ -176,8 +159,8 @@ export default function Sidebar({
           </ul>
         </nav>
 
-        {/* Bottom Sign out */}
-        <div className="absolute bottom-0 left-0 right-0 px-6 py-5">
+        {/* Bottom Sign out - sticky to bottom */}
+        <div className="flex-shrink-0 px-6 py-5 border-t border-gray-200">
           <Link
             to="/login"
             className="w-full flex items-center gap-3 justify-start rounded-[12px] px-0 text-[#636363]"
@@ -216,24 +199,68 @@ function navLabelWithIcon(text, icon) {
   );
 }
 
-function renderChips(initials) {
+function renderChips(children, selectedChild, selectChild) {
   const palette = ["#006F69", "#6CC31F", "#F3BE08"]; // from figma fills
+
+  // Generate initials with smart duplicate handling
+  const getInitials = (children) => {
+    const initialsMap = {};
+
+    // Count occurrences of each initial
+    children.slice(0, 3).forEach((child) => {
+      const initial = child?.name ? child.name.trim()[0]?.toUpperCase() : "?";
+      if (!initialsMap[initial]) {
+        initialsMap[initial] = [];
+      }
+      initialsMap[initial].push(child._id);
+    });
+
+    // Generate display text with numbers for duplicates
+    const displayMap = {};
+    children.slice(0, 3).forEach((child) => {
+      const initial = child?.name ? child.name.trim()[0]?.toUpperCase() : "?";
+      const duplicates = initialsMap[initial];
+
+      if (duplicates.length > 1) {
+        // Add number suffix for duplicates
+        const position = duplicates.indexOf(child._id) + 1;
+        displayMap[child._id] = `${initial}${position}`;
+      } else {
+        // Just use initial if no duplicates
+        displayMap[child._id] = initial;
+      }
+    });
+
+    return displayMap;
+  };
+
+  const initialsDisplay = getInitials(children);
+
   return (
     <div className="flex items-center gap-2.5">
-      {Array.from({ length: 3 }).map((_, idx) => {
-        const label = initials[idx] || "";
+      {children.slice(0, 3).map((child, idx) => {
+        const isSelected = selectedChild?._id === child._id;
+        const displayText = initialsDisplay[child._id] || "?";
+
         return (
-          <div
-            key={idx}
-            className="w-10 h-10 rounded-full grid place-items-center text-white text-[13px] font-semibold"
-            style={{
-              backgroundColor: label
-                ? palette[idx % palette.length]
-                : "#E5E7EB",
+          <button
+            key={child._id}
+            onClick={() => {
+              console.log("Chip clicked - child:", child);
+              selectChild(child);
             }}
+            className={`w-10 h-10 rounded-full grid place-items-center text-white text-[11px] font-semibold transition-all hover:scale-105 ${
+              isSelected
+                ? "ring-2 ring-white ring-offset-2 ring-offset-gray-800"
+                : ""
+            }`}
+            style={{
+              backgroundColor: palette[idx % palette.length],
+            }}
+            title={child.name}
           >
-            {label}
-          </div>
+            {displayText}
+          </button>
         );
       })}
       {/* Chevron is rendered in parent */}

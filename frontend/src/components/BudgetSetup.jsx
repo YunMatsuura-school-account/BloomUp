@@ -120,7 +120,7 @@ function BudgetSetup({ onClose }) {
     if (mode === "dollar") {
       // Input is in dollars - calculate percentage
       const percentage = budget > 0 ? (inputValue / budget) * 100 : 0;
-      setCategories(categories.map(cat => 
+      setCategories(prev => prev.map(cat => 
         cat.id === id 
           ? { ...cat, allocated: inputValue, percentage: parseFloat(percentage.toFixed(2)) }
           : cat
@@ -128,7 +128,7 @@ function BudgetSetup({ onClose }) {
     } else {
       // Input is in percentage - calculate dollar amount
       const amount = (inputValue / 100) * budget;
-      setCategories(categories.map(cat => 
+      setCategories(prev => prev.map(cat => 
         cat.id === id 
           ? { ...cat, percentage: inputValue, allocated: parseFloat(amount.toFixed(2)) }
           : cat
@@ -136,8 +136,14 @@ function BudgetSetup({ onClose }) {
     }
   };
 
-  const addCategory = () => {
-    if (!newCategoryName.trim()) return;
+  const addCategory = (e) => {
+    if (e) e.preventDefault();
+    
+    if (!newCategoryName.trim()) {
+      setError("Please enter a category name");
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
     
     const colors = ["#E91E63", "#9C27B0", "#3F51B5", "#00BCD4", "#8BC34A", "#FFC107", "#FF5722"];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
@@ -151,7 +157,7 @@ function BudgetSetup({ onClose }) {
       color: randomColor
     };
     
-    setCategories([...categories, newCategory]);
+    setCategories(prev => [...prev, newCategory]);
     setNewCategoryName("");
     setShowAddCategory(false);
   };
@@ -163,7 +169,7 @@ function BudgetSetup({ onClose }) {
       setTimeout(() => setError(null), 3000);
       return;
     }
-    setCategories(categories.filter(cat => cat.id !== id));
+    setCategories(prev => prev.filter(cat => cat.id !== id));
   };
 
   const handleSubmit = async () => {
@@ -278,19 +284,14 @@ function BudgetSetup({ onClose }) {
                 <button
                   type="button"
                   onClick={() => {
-                    if (parseFloat(totalBudget) > 0) {
-                      const equalAmount = parseFloat(totalBudget) / categories.length;
-                      const equalPercent = 100 / categories.length;
-                      setCategories(categories.map(cat => ({
-                        ...cat,
-                        allocated: parseFloat(equalAmount.toFixed(2)),
-                        percentage: parseFloat(equalPercent.toFixed(2))
-                      })));
+                    if (parseFloat(totalBudget) <= 0) {
+                      setError("Please enter a valid budget amount");
+                      setTimeout(() => setError(null), 3000);
                     }
                   }}
                   className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-teal-500 text-white rounded-md text-sm font-medium hover:bg-teal-600 transition-colors"
                 >
-                  Budget Setup
+                  Set Budget
                 </button>
               </div>
             </div>
@@ -335,7 +336,7 @@ function BudgetSetup({ onClose }) {
                 <div className="flex justify-between mb-2">
                   <span className="text-sm font-medium text-gray-800">Total assigned</span>
                   <span className="text-sm font-semibold text-gray-800">
-                    ${parseFloat(totalBudget || 0)}
+                    ${parseFloat(totalBudget || 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
@@ -390,7 +391,7 @@ function BudgetSetup({ onClose }) {
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
-                        addCategory();
+                        addCategory(e);
                       }
                     }}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
@@ -430,7 +431,7 @@ function BudgetSetup({ onClose }) {
                             {category.name}
                           </div>
                           <div className="text-xs text-gray-500">
-                            ${category.allocated} allocated
+                            ${category.allocated.toFixed(2)} allocated
                           </div>
                         </div>
 
@@ -464,13 +465,15 @@ function BudgetSetup({ onClose }) {
                             type="button"
                             onClick={() => removeCategory(category.id)}
                             disabled={category.id <= 4}
-                            className={`w-8 h-8 rounded-md flex items-center justify-center text-lg ${
+                            className={`w-8 h-8 rounded-md flex items-center justify-center ${
                               category.id <= 4 
-                                ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
-                                : 'bg-red-50 text-red-500 hover:bg-red-100 cursor-pointer'
+                                ? 'bg-gray-100 cursor-not-allowed opacity-40' 
+                                : 'bg-red-50 hover:bg-red-100 cursor-pointer'
                             }`}
                           >
-                            🗑️
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6M3 6H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6" stroke="#FF7B7B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
                           </button>
                         </div>
                       </div>

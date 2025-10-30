@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const AuthGuard = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     checkAuth();
@@ -48,11 +49,37 @@ const AuthGuard = ({ children }) => {
       const userData = await response.json();
       setUser(userData);
 
-      // Route based on user state: only require at least one child
-      if (Array.isArray(userData.children) && userData.children.length === 0) {
+      // Log user + children for debugging
+      console.log("AuthGuard - User data:", userData);
+      console.log("AuthGuard - Children:", userData.children);
+
+      // Route based on user state: require at least one child to proceed
+      const hasChildren = Array.isArray(userData.children) && userData.children.length > 0;
+      const currentPath = location.pathname;
+
+      if (!hasChildren) {
+        console.log("AuthGuard - Redirecting to family-setup (no children)");
         navigate("/family-setup");
       } else {
-        navigate("/dashboard");
+        // If user already on a protected route, keep them there; otherwise go to dashboard
+        const protectedRoutes = [
+          "/dashboard",
+          "/user-dashboard",
+          "/account",
+          "/settings",
+          "/calendar",
+          "/articles",
+          "/family",
+        ];
+
+        const isOnProtectedRoute = protectedRoutes.some((route) => currentPath.startsWith(route));
+
+        // Special-case: if the user is on /family-setup but has children, redirect to dashboard
+        if (currentPath === "/family-setup") {
+          navigate("/dashboard");
+        } else if (!isOnProtectedRoute) {
+          navigate("/dashboard");
+        }
       }
     } catch (error) {
       console.error("Auth check failed:", error);

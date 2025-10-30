@@ -1,37 +1,44 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import { ChildProvider } from "../contexts/ChildContext";
 
 function DashboardLayout() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar (responsive) */}
-      <Sidebar isOpen={open} onClose={() => setOpen(false)} />
-
-      {/* Main content area */}
-      <div className="flex-1 bg-gray-100 overflow-y-auto">
-        {/* Top bar for mobile */}
-        <div className="md:hidden flex items-center justify-between px-4 h-14 bg-[#2a2930] text-white">
-          <button
-            aria-label="Open Menu"
-            className="p-2 rounded-md hover:bg-white/10"
-            onClick={() => setOpen(true)}
-          >
-            {/* Hamburger */}
-            <span className="block w-6 h-0.5 bg-white mb-1"></span>
-            <span className="block w-6 h-0.5 bg-white mb-1"></span>
-            <span className="block w-6 h-0.5 bg-white"></span>
-          </button>
-          
-          <div className="w-8" />
+    <ChildProvider>
+      <div className="flex h-screen overflow-hidden">
+        {/* Sidebar (responsive) */}
+        <div className="flex-shrink-0">
+          <Sidebar isOpen={open} onClose={() => setOpen(false)} />
         </div>
 
-        {/* Page content - no extra padding, let each page control its own layout */}
-        <Outlet />
+        {/* Main content area */}
+        <div className="flex-1 flex flex-col bg-[#414049] overflow-hidden">
+          {/* Top bar */}
+          <div className="md:hidden flex items-center justify-between px-4 h-14 bg-[#2a2930] text-white flex-shrink-0">
+            <button
+              aria-label="Open Menu"
+              className="p-2 rounded-md hover:bg-white/10"
+              onClick={() => setOpen(true)}
+            >
+              {/* Hamburger */}
+              <span className="block w-6 h-0.5 bg-white mb-1"></span>
+              <span className="block w-6 h-0.5 bg-white mb-1"></span>
+              <span className="block w-6 h-0.5 bg-white"></span>
+            </button>
+            <div className="text-sm opacity-80">Menu</div>
+            <div className="w-8" />
+          </div>
+
+          {/* Scrollable content area */}
+          <div className="flex-1 overflow-y-auto p-0">
+            <Outlet />
+          </div>
+        </div>
       </div>
-    </div>
+    </ChildProvider>
   );
 }
 

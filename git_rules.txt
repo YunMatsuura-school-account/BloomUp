@@ -1,0 +1,144 @@
+# Git Workflow Rules for BloomUP Team
+
+##  **Daily Workflow - ALWAYS Follow This Order:**
+
+### **1. START OF DAY - Pull Latest Code**
+```bash
+# Switch to your working branch
+git checkout your-branch-name
+
+# Push your current work to your branch (save your progress)
+git add .
+git commit -m "WIP: Your current work description"
+git push origin your-branch-name
+
+# Switch to Developer_Branch
+git checkout Developer_Branch
+
+# Pull latest changes from Developer_Branch
+git pull origin Developer_Branch
+
+# Switch back to your branch
+git checkout your-branch-name
+
+# Merge Developer_Branch into your branch
+git merge Developer_Branch
+```
+
+### **2. IF CONFLICTS ARISE - Resolve Them:**
+```bash
+# Check which files have conflicts
+git status
+
+# Open conflicted files and resolve manually
+# Look for <<<<<<< HEAD, =======, >>>>>>> Developer_Branch markers
+# Edit files to keep the correct code
+
+# After resolving conflicts:
+git add .
+git commit -m "Resolve merge conflicts with Developer_Branch"
+git push origin your-branch-name
+```
+
+### **3. END OF DAY - Push Your Work:**
+```bash
+# Make sure you're on your branch
+git checkout your-branch-name
+
+# Add all changes
+git add .
+
+# Commit with descriptive message
+git commit -m "Feature: Add vaccination date calculation"
+
+# Push to your branch
+git push origin your-branch-name
+```
+
+## 📋 **Branch Management:**
+
+### **Your Working Branch:**
+- Always work on YOUR branch (e.g., `vaibhav-developer`, `john-feature`, `sarah-bugfix`)
+- Never work directly on `Developer_Branch` or `main`
+- Name your branch: `your-name-feature` or `your-name-bugfix`
+
+### **Developer_Branch:**
+- `Developer_Branch` is the main integration branch
+- All features merge into `Developer_Branch` first
+- Only merge to `Developer_Branch` when your feature is complete and tested
+
+### **Main Branch:**
+- `main` is for production-ready code only
+- Only merge from `Developer_Branch` to `main` for releases
+
+## ⚠️ **Conflict Resolution Rules:**
+
+1. **NEVER** force push (`git push --force`) unless absolutely necessary
+2. **ALWAYS** resolve conflicts manually - don't use auto-merge tools
+3. **COMMUNICATE** with team if conflicts are complex
+4. **TEST** your code after resolving conflicts
+5. **COMMIT** conflict resolution with clear message
+
+## 🔄 **Complete Workflow Example:**
+
+```bash
+# Morning routine
+git checkout vaibhav-developer
+git add .
+git commit -m "WIP: Vaccination dashboard updates"
+git push origin vaibhav-developer
+
+git checkout Developer_Branch
+git pull origin Developer_Branch
+git checkout vaibhav-developer
+git merge Developer_Branch
+
+# If conflicts:
+# Resolve conflicts manually
+git add .
+git commit -m "Resolve conflicts with Developer_Branch"
+git push origin vaibhav-developer
+
+# Continue working...
+# Make changes to files
+git add .
+git commit -m "Feature: Add vaccination date calculation"
+git push origin vaibhav-developer
+
+# End of day
+git add .
+git commit -m "Complete: Vaccination dashboard with dates"
+git push origin vaibhav-developer
+```
+
+## 📝 **Commit Message Guidelines:**
+
+- **Feature:** `Feature: Add vaccination date calculation`
+- **Bugfix:** `Fix: Resolve dashboard update issue`
+- **Refactor:** `Refactor: Clean up vaccination controller`
+- **WIP:** `WIP: Working on calendar integration`
+- **Complete:** `Complete: Vaccination scheduling feature`
+
+## 🚨 **Emergency Situations:**
+
+If you accidentally commit to `Developer_Branch`:
+```bash
+# Create a new branch from your commit
+git checkout Developer_Branch
+git checkout -b your-name-emergency-fix
+git push origin your-name-emergency-fix
+
+# Reset Developer_Branch to previous commit
+git checkout Developer_Branch
+git reset --hard HEAD~1
+git push origin Developer_Branch --force-with-lease
+```
+
+## 📞 **Team Communication:**
+
+- **Slack/Teams:** Notify team about major conflicts
+- **Code Review:** Always request review before merging to Developer_Branch
+- **Documentation:** Update this file if workflow changes
+
+---
+**Remember: Better to ask questions than break the build! 🤝**
