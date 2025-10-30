@@ -50,6 +50,7 @@ export default function Signup() {
       }
     } catch (err) {
       setMessage("Something went wrong!");
+      console.error(err);
     }
   };
 
