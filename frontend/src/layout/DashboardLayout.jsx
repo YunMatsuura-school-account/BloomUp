@@ -6,15 +6,13 @@ function DashboardLayout() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div className="flex h-screen overflow-hidden">
       {/* Sidebar (responsive) */}
       <Sidebar isOpen={open} onClose={() => setOpen(false)} />
 
       {/* Main content area */}
-      <div
-        style={{ flex: 1, backgroundColor: "#414049ff", minHeight: "100vh" }}
-      >
-        {/* Top bar */}
+      <div className="flex-1 bg-gray-100 overflow-y-auto">
+        {/* Top bar for mobile */}
         <div className="md:hidden flex items-center justify-between px-4 h-14 bg-[#2a2930] text-white">
           <button
             aria-label="Open Menu"
@@ -26,13 +24,12 @@ function DashboardLayout() {
             <span className="block w-6 h-0.5 bg-white mb-1"></span>
             <span className="block w-6 h-0.5 bg-white"></span>
           </button>
-          <div className="text-sm opacity-80">Menu</div>
+          
           <div className="w-8" />
         </div>
 
-        <div className="p-5">
-          <Outlet />
-        </div>
+        {/* Page content - no extra padding, let each page control its own layout */}
+        <Outlet />
       </div>
     </div>
   );

@@ -4,7 +4,7 @@
 import "./App.css";
 
 // export default App;
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route , useNavigate} from "react-router-dom";
 import Signup from "./pages/Signup";
 import DashboardLayout from "./layout/DashboardLayout";
 // import Budget from "./components/Budget";
@@ -18,13 +18,17 @@ import Budget from "./components/Budget";
 import BudgetSetup from "./components/BudgetSetup";
 import AddManual from "./pages/AddExpense";      
 import UploadReceipt from "./pages/UploadReceipt"; 
+import ReviewReceipt from "./pages/ReviewReceipt";
 
 import Account from "./pages/ChildProfileSummary/Account";
 import ChildDashboard from "./pages/ChildProfileSummary/ChildDashboard";
 import Settings from "./pages/ChildProfileSummary/Settings";
 import UserDashboard from "./pages/ChildProfileSummary/UserDashboard";
 
-
+function BudgetSetupWrapper() {
+  const navigate = useNavigate();
+  return <BudgetSetup onClose={() => navigate("/dashboard/budget")} />;
+}
 // import Calendar from "./components/Calendar";
 // import Articles from "./components/Articles";
 
@@ -68,9 +72,11 @@ function App() {
             element={<h2>Welcome to your Dashboard 👋</h2>}
           />
      <Route path="/dashboard/budget" element={<Budget />} />
-          <Route path="/dashboard/budget-setup" element={<BudgetSetup />} />
+         <Route path="/dashboard/budget-setup" element={<BudgetSetupWrapper />} />
+
           <Route path="/dashboard/budget/add-manual" element={<AddManual />} />
           <Route path="/dashboard/budget/upload-receipt" element={<UploadReceipt />} />
+            <Route path="/dashboard/budget/review-receipt" element={<ReviewReceipt />} />
 
           <Route
             path="/calendar"

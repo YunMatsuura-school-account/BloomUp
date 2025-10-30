@@ -1,6 +1,7 @@
 const Budget = require("../models/budget");
 const Expense = require("../models/expense");
-const User = require("../models/User"); // Fixed: was requiring Expense twice
+const CategoryAllocation = require("../models/CategoryAllocation");
+const User = require("../models/User");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const OpenAI = require("openai");
@@ -54,7 +55,7 @@ function toObjectId(id) {
   }
 }
 
-// Upload Receipt and Process with OpenAI Vision
+// Upload Receipt and Process with OpenAI Vision (DO NOT SAVE TO DB YET)
 exports.uploadReceipt = async (req, res) => {
   try {
     const rawUserId = getUserId(req);
@@ -94,7 +95,8 @@ exports.uploadReceipt = async (req, res) => {
                   {
                     "name": "item name",
                     "amount": numeric value,
-                    "category": "one of: Food & Dining, Education, Healthcare, Other"
+                    "category": "one of: Medical, Education, Consumable, Clothes, Entertainment, Transport, Other",
+                    "quantity": integer
                   }
                 ],
                 "suggestedCategory": "main category for the entire purchase",
@@ -130,70 +132,57 @@ exports.uploadReceipt = async (req, res) => {
       });
     }
 
-    // Create expenses
+    // Format expenses for review (DO NOT SAVE TO DATABASE)
     const expenses = [];
-    if (receiptData.items && receiptData.items.length > 0) {
-      for (const item of receiptData.items) {
-        const expense = new Expense({
-          userId,
-          amount: item.amount || 0,
-          category: item.category || receiptData.suggestedCategory || "Other",
-          description: item.name || "Unknown item",
-          merchantName: receiptData.merchantName || "Unknown",
-          date: receiptData.date ? new Date(receiptData.date) : new Date(),
-          receiptImage: imagePath,
-          paymentMethod: "Receipt Upload",
-          notes: `From receipt at ${receiptData.merchantName}`,
-        });
 
-        await expense.save();
-        expenses.push(expense);
+    if (receiptData.items && receiptData.items.length > 0) {
+      // Group items by category
+      const grouped = {};
+
+      for (const item of receiptData.items) {
+        const cat = item.category || receiptData.suggestedCategory || "Other";
+        const qty = Number(item.quantity) || 1;
+
+        if (!grouped[cat]) grouped[cat] = { total: 0, items: [], quantity: 0 };
+
+        grouped[cat].items.push(item.name || "Unknown item");
+        grouped[cat].total += (Number(item.amount) || 0) * qty;
+        grouped[cat].quantity += qty;
+      }
+
+      // Format grouped expenses for review
+      for (const [category, data] of Object.entries(grouped)) {
+        expenses.push({
+          date: receiptData.date || new Date().toISOString().split('T')[0],
+          description: data.items.join(", "),
+          category: category,
+          quantity: data.quantity,
+          amount: data.total,
+        });
       }
     } else {
-      const expense = new Expense({
-        userId,
-        amount: receiptData.totalAmount || 0,
-        category: receiptData.suggestedCategory || "Other",
+      // Single expense fallback
+      expenses.push({
+        date: receiptData.date || new Date().toISOString().split('T')[0],
         description: `Purchase at ${receiptData.merchantName || "Unknown"}`,
-        merchantName: receiptData.merchantName || "Unknown",
-        date: receiptData.date ? new Date(receiptData.date) : new Date(),
-        receiptImage: imagePath,
-        paymentMethod: "Receipt Upload",
+        category: receiptData.suggestedCategory || "Other",
+        quantity: 1,
+        amount: receiptData.totalAmount || 0,
       });
-
-      await expense.save();
-      expenses.push(expense);
     }
 
-    // Get updated budget overview
-    const budget = await Budget.findOne({ userId }).sort({ createdAt: -1 });
-    const allExpenses = await Expense.aggregate([
-      { $match: { userId } },
-      { $group: { _id: null, totalSpent: { $sum: "$amount" } } },
-    ]);
-
-    const total = budget?.total || 0;
-    const spent = allExpenses.length ? allExpenses[0].totalSpent : 0;
-    const remaining = total - spent;
-
-    // Update budget spent and remaining
-    if (budget) {
-      budget.spent = spent;
-      budget.remaining = remaining < 0 ? 0 : remaining;
-      await budget.save();
-    }
-
+    // Return data for review without saving to database
     res.json({
       message: "Receipt processed successfully",
-      receiptData,
-      expenses,
-      budgetOverview: {
-        total,
-        spent,
-        remaining: remaining < 0 ? 0 : remaining,
-        status: remaining < 0 ? "Over budget" : "On track",
+      receiptData: {
+        merchantName: receiptData.merchantName,
+        totalAmount: receiptData.totalAmount,
+        date: receiptData.date,
+        currency: receiptData.currency,
+        expenses: expenses, // This will be reviewed and edited by user
       },
     });
+
   } catch (error) {
     console.error("Error processing receipt:", error);
     res.status(500).json({
@@ -202,53 +191,129 @@ exports.uploadReceipt = async (req, res) => {
     });
   }
 };
-
-// Get Budget Overview
-exports.getBudgetOverview = async (req, res) => {
+// Add Manual Expense
+exports.addManualExpense = async (req, res) => {
   try {
     const rawUserId = getUserId(req);
-    console.log('getBudgetOverview - Raw userId:', rawUserId);
-
     if (!rawUserId) {
       return res.status(400).json({ message: "User ID required" });
     }
 
     const userId = toObjectId(rawUserId);
-    console.log('getBudgetOverview - Converted userId:', userId);
-
     if (!userId) {
-      return res.status(400).json({ 
-        message: "Invalid User ID format",
-        receivedId: rawUserId 
-      });
+      return res.status(400).json({ message: "Invalid User ID format" });
     }
+
+    const { amount, category, description, date, quantity } = req.body;
+
+    if (!amount || !category) {
+      return res.status(400).json({ message: "Amount and category are required" });
+    }
+
+    // Create the expense
+    const expense = new Expense({
+      userId,
+      amount: parseFloat(amount),
+      category,
+      description: description || "",
+      merchantName: description || "Unknown",
+      quantity: quantity ? parseInt(quantity) : 1,
+      date: date ? new Date(date) : new Date(),
+      paymentMethod: "Manual Entry",
+      notes: `Manually added expense${quantity ? ` (Qty: ${quantity})` : ""}`,
+    });
+
+    await expense.save();
+
+    // Update budget overview
+    const budget = await Budget.findOne({ userId }).sort({ createdAt: -1 });
+    if (budget) {
+      const allExpenses = await Expense.aggregate([
+        { $match: { userId } },
+        { $group: { _id: null, totalSpent: { $sum: "$amount" } } },
+      ]);
+
+      const spent = allExpenses.length ? allExpenses[0].totalSpent : 0;
+      const remaining = budget.total - spent;
+
+      budget.spent = spent;
+      budget.remaining = remaining < 0 ? 0 : remaining;
+      await budget.save();
+    }
+
+    res.json({
+      message: "Expense added successfully",
+      expense,
+      budgetOverview: budget ? {
+        total: budget.total,
+        spent: budget.spent,
+        remaining: budget.remaining,
+        status: budget.remaining < 0 ? "Over budget" : "On track",
+      } : null,
+    });
+  } catch (error) {
+    console.error("Error adding manual expense:", error);
+    res.status(500).json({
+      message: "Failed to add expense",
+      error: error.message,
+    });
+  }
+};
+// Get Budget Overview
+exports.getBudgetOverview = async (req, res) => {
+  try {
+    const rawUserId = getUserId(req);
+    if (!rawUserId) return res.status(400).json({ message: "User ID required" });
+
+    const userId = toObjectId(rawUserId);
+    if (!userId) return res.status(400).json({ message: "Invalid User ID format" });
 
     const budget = await Budget.findOne({ userId }).sort({ createdAt: -1 });
-    console.log('getBudgetOverview - Found budget:', budget);
+    if (!budget) return res.status(404).json({ message: "Budget not found. Please set a budget first." });
 
-    if (!budget) {
-      return res.status(404).json({ message: "Budget not found. Please set a budget first." });
-    }
-
-    const expenses = await Expense.aggregate([
+    // Get all expenses per category
+    const expensesByCategory = await Expense.aggregate([
       { $match: { userId } },
-      { $group: { _id: null, totalSpent: { $sum: "$amount" } } },
+      {
+        $group: {
+          _id: "$category",
+          spent: { $sum: "$amount" },
+        },
+      },
     ]);
 
-    const total = budget.total;
-    const spent = expenses.length ? expenses[0].totalSpent : 0;
-    const remaining = total - spent;
+    // Get allocated categories
+    const allocations = await CategoryAllocation.find({ userId, budget: budget._id });
 
-    // Update budget
-    budget.spent = spent;
+    // Map allocations with spent amounts
+    const categories = allocations.map(cat => {
+      const spentEntry = expensesByCategory.find(e => e._id === cat.category);
+      const spentAmount = spentEntry ? spentEntry.spent : 0;
+      const percentage = cat.percentage || (budget.total > 0 ? ((cat.allocatedAmount / budget.total) * 100).toFixed(2) : 0);
+      
+      return {
+        name: cat.category,
+        allocated: cat.allocatedAmount,
+        spent: spentAmount,
+        percentage: parseFloat(percentage),
+      };
+    });
+
+    // Total spent and remaining
+    const totalSpent = expensesByCategory.reduce((sum, e) => sum + e.spent, 0);
+    const remaining = budget.total - totalSpent;
+
+    // Update budget in DB
+    budget.spent = totalSpent;
     budget.remaining = remaining < 0 ? 0 : remaining;
     await budget.save();
 
     res.json({
-      total,
-      spent,
+      total: budget.total,
+      spent: totalSpent,
       remaining: remaining < 0 ? 0 : remaining,
       status: remaining < 0 ? "Over budget" : "On track",
+      categories,
     });
   } catch (error) {
     console.error("Error fetching budget overview:", error);
@@ -310,104 +375,98 @@ exports.getAllExpenses = async (req, res) => {
   }
 };
 
-// Set or Update Budget
+// Set or Update Budget with Category Allocations
 exports.setBudget = async (req, res) => {
   try {
-    const { total } = req.body;
+    const { total, categories } = req.body;
     const rawUserId = getUserId(req);
 
-    // console.log('\n=== SET BUDGET REQUEST ===');
-    // console.log('setBudget - Raw userId:', rawUserId);
-    // console.log('setBudget - Total:', total);
-    // console.log('setBudget - Body:', req.body);
-
-    if (!rawUserId) {
-      console.log('No userId found');
-      return res.status(400).json({ message: "User ID required" });
-    }
-
-    if (total === undefined || isNaN(total)) {
-      console.log('Invalid total amount');
-      return res.status(400).json({ message: "Please provide a valid total budget amount." });
-    }
+    if (!rawUserId) return res.status(400).json({ message: "User ID required" });
+    if (total === undefined || isNaN(total)) return res.status(400).json({ message: "Provide a valid total budget amount." });
 
     const userId = toObjectId(rawUserId);
-    console.log('setBudget - Converted userId:', userId);
+    if (!userId) return res.status(400).json({ message: "Invalid User ID format" });
 
-    if (!userId) {
-      console.log('Invalid ObjectId format');
-      return res.status(400).json({ 
-        message: "Invalid User ID format",
-        receivedId: rawUserId 
-      });
+    // Validate categories data
+    if (!categories || !Array.isArray(categories)) {
+      return res.status(400).json({ message: "Categories must be an array" });
     }
 
-    // Check if budget already exists
+    // Get current spent amount
+    const allExpenses = await Expense.aggregate([
+      { $match: { userId } },
+      { $group: { _id: null, totalSpent: { $sum: "$amount" } } },
+    ]);
+    const spent = allExpenses.length ? allExpenses[0].totalSpent : 0;
+
     let budget = await Budget.findOne({ userId });
-    console.log('setBudget - Existing budget:', budget);
 
     if (budget) {
       // Update existing budget
-      console.log('Updating existing budget...');
       budget.total = total;
-      budget.remaining = total - budget.spent;
-      const savedBudget = await budget.save();
-      console.log(' Budget updated:', savedBudget);
-      console.log(' Budget saved to DB with _id:', savedBudget._id);
-
-      // Verify it's in database
-      const verify = await Budget.findById(savedBudget._id);
-      console.log('🔍 Verification - Budget found in DB:', verify);
-
-      res.json({ 
-        message: "Budget updated successfully!", 
-        budget: savedBudget 
-      });
+      budget.spent = spent;
+      budget.remaining = total - spent;
+      await budget.save();
     } else {
       // Create new budget
-      console.log(' Creating new budget...');
-      console.log('Data to save:', { userId, total, spent: 0, remaining: total });
-      
-      budget = new Budget({
-        userId,
-        total,
-        spent: 0,
-        remaining: total,
-      });
-      
-      console.log('Budget document before save:', budget);
-      const savedBudget = await budget.save();
-      console.log(' Budget created:', savedBudget);
-      console.log('Budget _id:', savedBudget._id);
-      console.log('Budget saved to collection:', Budget.collection.name);
-
-      // Verify it's in database
-      const verify = await Budget.findById(savedBudget._id);
-      console.log('Verification - Budget found in DB:', verify);
-
-      // Also check with userId
-      const verifyByUser = await Budget.findOne({ userId });
-      console.log('Verification - Budget found by userId:', verifyByUser);
-
-      // Link budget to user
-      console.log('Linking budget to user');
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        { budget: savedBudget._id },
-        { new: true }
-      );
-      console.log('User updated:', updatedUser);
-
-      res.json({ 
-        message: "Budget set successfully!", 
-        budget: savedBudget 
-      });
+      budget = new Budget({ userId, total, spent: 0, remaining: total });
+      await budget.save();
+      await User.findByIdAndUpdate(userId, { budget: budget._id });
     }
-    console.log('=== END SET BUDGET ===\n');
+
+    // Save category allocations
+    // Remove old allocations
+    await CategoryAllocation.deleteMany({ userId, budget: budget._id });
+
+    // Insert new allocations with both allocated amount and percentage
+    const allocations = categories.map(cat => ({
+      userId,
+      budget: budget._id,
+      category: cat.name,
+      allocatedAmount: parseFloat(cat.allocated) || 0,
+      percentage: parseFloat(cat.percentage) || 0,
+    }));
+    
+    await CategoryAllocation.insertMany(allocations);
+
+    // Fetch allocations for response with spent amounts
+    const savedAllocations = await CategoryAllocation.find({ userId, budget: budget._id });
+    
+    // Get expenses by category for spent amounts
+    const expensesByCategory = await Expense.aggregate([
+      { $match: { userId } },
+      {
+        $group: {
+          _id: "$category",
+          spent: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    // Calculate remaining
+    const remaining = total - spent;
+
+    res.json({
+      total,
+      spent,
+      remaining: remaining < 0 ? 0 : remaining,
+      status: remaining < 0 ? "Over budget" : "On track",
+      categories: savedAllocations.map(a => {
+        const spentEntry = expensesByCategory.find(e => e._id === a.category);
+        const spentAmount = spentEntry ? spentEntry.spent : 0;
+        
+        return {
+          name: a.category,
+          allocated: a.allocatedAmount,
+          percentage: a.percentage || ((a.allocatedAmount / total) * 100).toFixed(2),
+          spent: spentAmount,
+        };
+      }),
+    });
+
   } catch (error) {
-    console.error("❌ Error saving budget:", error);
-    console.error("Error stack:", error.stack);
-    res.status(500).json({ message: error.message, error: error.stack });
+    console.error("Error saving budget:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -421,5 +480,6 @@ module.exports = {
   setBudget: exports.setBudget,
   getExpensesByCategory: exports.getExpensesByCategory,
   getAllExpenses: exports.getAllExpenses,
+  addManualExpense: exports.addManualExpense,
   uploadMiddleware: exports.uploadMiddleware,
 };
