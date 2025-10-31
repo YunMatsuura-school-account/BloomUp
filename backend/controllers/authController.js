@@ -5,7 +5,6 @@ const login = async (req, res) => {
   // const username = req.body.username;
   const { email, password } = req.body;
 
-  // Here we will add more credentials later
   if (!email && !password) {
     return res.status(400).json({ message: "Email & Password Required" });
   }
@@ -66,9 +65,6 @@ const signup = async (req, res) => {
     console.error("Signup error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-
-  // Add new USer
-  // Later Have to connect with Databaser Mongo DB.
 };
 
 const getCurrentUser = async (req, res) => {

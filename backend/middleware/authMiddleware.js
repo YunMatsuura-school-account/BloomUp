@@ -13,14 +13,26 @@ function verifyToken(req, res, next) {
   console.log("Token received:", token.substring(0, 20) + "...");
 
   jwt.verify(
-    token,
-    process.env.ACCESS_TOKEN_SECRET || "fallback_secret_key",
+    token, process.env.ACCESS_TOKEN_SECRET || "fallback_secret_key",
     (err, user) => {
       if (err) {
         console.error("JWT verification error:", err);
         return res.status(403).json({ message: "Invalid Token" });
       }
       console.log("JWT verified user:", user);
+
+      // if (user.userId && !user._id) {
+      //   user._id = user.userId;
+      // }
+
+
+      if (user.id && !user._id) {
+        user._id = user.id;
+      }
+      if (user._id && !user.id) {
+        user.id = user._id;
+      }
+
       req.user = user;
       next();
     }
