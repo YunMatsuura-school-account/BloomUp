@@ -1,4 +1,7 @@
 const User = require("../models/User");
+const fs = require("fs");
+const path = require("path");
+const multer = require("multer");
 
 exports.updateFamilyName = async (req, res) => {
   try {
@@ -53,3 +56,207 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    if (req.user.id !== userId) {
+      return res.status(403).json({ message: "Not authorized to delete this user" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user)  {
+      return res.status(404).json({ message: "User not found" });
+    } 
+
+    const filesToDelete = [];
+
+    // Delete user image
+    if (user.imageUrl) {
+      const userImagePath = extractFilePath(user.imageUrl, "userImages");
+      if (userImagePath) {
+        filesToDelete.push(userImagePath);
+      }
+    }
+
+    // Delete child images
+    const { ChildProfile, getAllChildrenByUser } = require("../models/ChildProfile");
+    const children = await getAllChildrenByUser(userId);
+    for (const child of children) {
+      if (child.imageUrl) {
+        const childImagePath = extractFilePath(child.imageUrl, "childImages");
+        if (childImagePath) {
+          filesToDelete.push(childImagePath);
+        }
+      }
+    }
+
+    // Delete reciepts
+    const Expense = require("../models/expense");
+    const expenses = await Expense.find({ userId: userId });
+    for (const expense of expenses) {
+      if (expense.receiptImage) {
+        const receiptImagePath = extractFilePath(expense.receiptImage, "receipts");
+        if (receiptImagePath) {
+          filesToDelete.push(receiptImagePath);
+        }
+      }
+    }
+
+    // Delete CalendarEvent attachments
+    const CalendarEvent = require("../models/calendarEvent");
+    const calendarEvents = await CalendarEvent.find({ userId: userId });
+    for (const calendarEvent of calendarEvents) {
+      if (calendarEvent.attachments) {
+        for (const attachment of calendarEvent.attachments) {
+          const attachmentPath = extractFilePath(attachment, "calendarEventAttachments");
+          if (attachmentPath) {
+            filesToDelete.push(attachmentPath);
+          }
+        }
+      }
+    }
+
+    await ChildProfile.deleteMany({ userId: String(userId) });
+
+    const Budget = require("../models/budget");
+    await Budget.deleteMany({ userId: userId });
+
+    await Expense.deleteMany({ userId: userId });
+
+    const CategoryAllocation = require("../models/CategoryAllocation");
+    await CategoryAllocation.deleteMany({ userId: userId });
+
+    await CalendarEvent.deleteMany({ userId: userId });
+
+    const SavedArticle = require("../models/SavedArticle");
+    await SavedArticle.deleteMany({ userId: userId });
+
+
+    await User.findByIdAndDelete(userId);
+    deleteFiles(filesToDelete);
+
+    res.status(200).json({ message: "User deleted successfully" });
+
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// helper function to extract the file path from the image url
+function extractFilePath(imageUrl, type) {
+  if (!imageUrl) return null;
+  try {
+    if (imageUrl.startsWith("/static/")) {
+      const filename = imageUrl.split("/").pop();
+      const uploadsDir = path.join(__dirname, "..", "uploads", type);
+      return path.join(uploadsDir, filename);
+    }
+  
+    if (!imageUrl.includes("/") && !imageUrl.includes("\\")) {
+      const uploadDir = path.join(__dirname, "..", "uploads", type);
+      return path.join(uploadDir, imageUrl);
+    }
+
+    if (imageUrl.includes("uploads")){
+      const filename = imageUrl.split("/").pop();
+      const uploadsDir = path.join(__dirname, "..", "uploads", type);
+      return path.join(uploadsDir, filename);
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`Error extracting file path from image url: ${imageUrl}`, error);
+    return null;
+  }
+}
+
+// Multer設定 for user images
+const userImagesDir = path.join(__dirname, "..", "uploads", "userImages");
+if (!fs.existsSync(userImagesDir)) {
+  fs.mkdirSync(userImagesDir, { recursive: true });
+}
+
+const userStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, userImagesDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || "";
+    const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    cb(null, name);
+  },
+});
+
+const uploadUser = multer({
+  storage: userStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
+
+// POST /api/users/:id/photo
+exports.uploadUserPhoto = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // 認証チェック
+    if (req.user.id !== userId) {
+      return res.status(403).json({ message: "Not authorized to upload photo for this user" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const publicPath = `/static/user-images/${req.file.filename}`;
+    
+    // UserのimageUrlを更新
+    const updated = await User.findByIdAndUpdate(
+      userId,
+      { $set: { imageUrl: publicPath } },
+      { new: true }
+    );
+
+    if (!updated) {
+      // ファイルはアップロード済みだが、更新に失敗した場合は削除
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkErr) {
+        console.error("Error deleting uploaded file:", unlinkErr);
+      }
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ url: publicPath });
+  } catch (err) {
+    console.error("Error uploading user photo:", err);
+    // エラー時はアップロードされたファイルを削除
+    if (req.file && req.file.path) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkErr) {
+        console.error("Error deleting uploaded file:", unlinkErr);
+      }
+    }
+    res.status(500).json({ message: "Failed to upload photo" });
+  }
+};
+
+exports.uploadUserPhotoMiddleware = uploadUser.single("image");
+
+// helper function to delete the files in the filePaths array
+function deleteFiles(filePaths) {
+  for (const filePath of filePaths) {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath); // delete the file
+        console.log(`Deleted file: ${filePath}`);
+      } else {
+        console.log(`File not found: ${filePath}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting file: ${filePath}`, error);
+    }
+  }
+}

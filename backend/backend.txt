@@ -1,60 +1,375 @@
-# Backend
+# BloomUP Backend Documentation
 
-- Stack: Node.js + Express + Mongoose (MongoDB)
-- Purpose: REST API, authentication (JWT), user, child profiles, budget endpoints
-# Notes:
-- I (Vaibhav) will add Node, Express, JWT, and Nodemon
-- Developers will track all installed packages and updates here.
+## Overview
+Backend built with Node.js, Express, and MongoDB (Mongoose) providing REST API for authentication, user management, child profiles, budget tracking, AI insights, and more.
+
+---
+
+## Tech Stack & Libraries
+
+### Core Framework
+- **Node.js**: JavaScript runtime environment
+- **Express** (`^5.1.0`): Web framework for building REST APIs
+
+### Database
+- **MongoDB** (`^5.9.2`): NoSQL database driver
+- **Mongoose** (`^7.6.3`): MongoDB object modeling tool (ODM)
+
+### Authentication
+- **JSON Web Token** (`^9.0.2`): JWT for user authentication and authorization
+
+### File Upload
+- **Multer** (`^2.0.2`): Middleware for handling multipart/form-data (file uploads)
+
+### AI Integration
+- **OpenAI** (`^6.5.0`): OpenAI API client for GPT models (used in AI insights)
+
+### Utilities
+- **CORS** (`^2.8.5`): Cross-Origin Resource Sharing middleware
+- **Dotenv** (`^17.2.3`): Loads environment variables from `.env` files
+
+### Development Dependencies
+- **Nodemon** (`^3.1.10`): Automatically restarts server on file changes
+- **@types/node** (`^24.7.2`): TypeScript type definitions for Node.js
+
+---
+
+## External Resources & APIs
+
+### OpenAI API
+- **Service:** OpenAI GPT models (gpt-4o-mini)
+- **Purpose:** Generate AI-powered budget insights and suggestions
+- **Usage:** 
+  - File: `services/openaiClient.js`
+  - Endpoint: `/api/ai/insights/budget`
+  - Generates: Top spending analysis, budget suggestions, predictions
+- **Configuration:** Requires `OPENAI_API_KEY` in environment variables
+
+### MongoDB Atlas / Local MongoDB
+- **Database:** MongoDB
+- **Collections:**
+  - `users` - User accounts and authentication
+  - `childprofiles` - Child profiles and medical data
+  - `budgets` - Budget allocations and categories
+  - `expenses` - Expense records
+  - `articles` - Educational articles
+  - `calendarevents` - Calendar/event management
+  - `savedarticles` - User-saved articles
+  - `vaccinations` - Vaccination records and schedules
+
+---
+
 ## Architecture
-- `server.js`: Express app bootstrap, middleware, routes mounting
-- `db/mongo.js`: Mongo connection (Mongoose)
-- `middleware/authMiddleware.js`: JWT verification, sets `req.user`
-- `controllers/*`: Route handlers (auth, users, child profiles, budget, posts)
-- `routes/*`: Express routers mapping HTTP paths to controllers
-- `models/*`: Mongoose models and data-access helpers
 
-1. ## Current Setup (Vaibhav):
-- Initialized Node project (`npm init -y`)
-- Installed packages:
-    - express
-    - jsonwebtoken (JWT)
-    - dotenv (for environment variables)
-- Installed dev dependencies:
-    - nodemon (for development)
-## Folder Structure
-- `controllers/`
-  - `authController.js`: signup/login/me
-  - `childProfileController.js`: CRUD for child profiles, links child ids to `User.children`
-  - `userController.js`: user updates (e.g., family name)
-  - `budgetController.js`, `postController.js`: other features
-- `middleware/`
-  - `authMiddleware.js`: `Authorization: Bearer <token>` verification
-- `models/`
-  - `User.js`: name, email, password, familyName, children[ObjectId]
-  - `ChildProfile.js`: name, dateOfBirth, age (computed), medicalHistory, vaccinations, userId
-- `routes/`
-  - `authRoutes.js`: `/api/auth/login|signup|me`
-  - `userRoutes.js`: `/api/users/...`
-  - `childProfileRoutes.js`: `/api/users/:userId/children`
-  - `budgetRoutes.js`, `postRoutes.js`
+### Folder Structure
+```
+backend/
+├── server.js                    # Express app entry point
+├── controllers/                 # Business logic handlers
+│   ├── aiInsightsController.js  # AI insights generation
+│   ├── authController.js        # Authentication (login/signup)
+│   ├── userController.js        # User management
+│   ├── childProfileController.js # Child profile CRUD
+│   ├── budgetController.js      # Budget management
+│   ├── articleController.js     # Article management
+│   ├── calendarController.js    # Calendar events
+│   ├── vaccinationController.js # Vaccination management
+│   └── postController.js        # Post/social features
+├── routes/                      # API route definitions
+│   ├── authRoutes.js
+│   ├── userRoutes.js
+│   ├── childrenRoutes.js
+│   ├── budgetRoutes.js
+│   ├── aiRoutes.js              # AI insights endpoints
+│   ├── articleRoutes.js
+│   ├── calendarRoutes.js
+│   ├── vaccinationRoutes.js
+│   ├── postRoutes.js
+│   └── uploadImageRoutes.js    # Image upload endpoints
+├── models/                      # Mongoose schemas
+│   ├── User.js
+│   ├── ChildProfile.js
+│   ├── budget.js
+│   ├── expense.js
+│   ├── Article.js
+│   ├── calendarEvent.js
+│   ├── vaccination.js
+│   ├── SavedArticle.js
+│   └── CategoryAllocation.js
+├── middleware/                  # Custom middleware
+│   └── authMiddleware.js        # JWT verification
+├── db/                          # Database connection
+│   └── mongo.js                 # Mongoose connection setup
+├── services/                    # External service integrations
+│   └── openaiClient.js          # OpenAI client configuration
+├── config/                      # Configuration files
+├── scripts/                     # Utility scripts
+│   ├── seedArticles.js          # Seed articles data
+│   └── seedBCVaccinationData.js # Seed vaccination schedules
+└── uploads/                     # Uploaded files storage
+    ├── receipts/
+    ├── userImages/
+    └── childImages/
+```
+
+---
+
+## API Endpoints
+
+### Authentication (`/api/auth`)
+- `POST /api/auth/signup` - User registration
+- `POST /api/auth/login` - User login (returns JWT token)
+- `GET /api/auth/me` - Get current user (protected)
+
+### Users (`/api/users`)
+- `GET /api/users/:userId` - Get user details
+- `PUT /api/users/:userId` - Update user (e.g., family name)
+- `POST /api/users/:userId/image` - Upload user profile image
+
+### Children (`/api/users/:userId/children`)
+- `GET /api/users/:userId/children` - Get all children
+- `POST /api/users/:userId/children` - Create child profile
+- `GET /api/users/:userId/children/:childId` - Get child by ID
+- `PUT /api/users/:userId/children/:childId` - Update child profile
+- `DELETE /api/users/:userId/children/:childId` - Delete child
+- `POST /api/users/:userId/children/:childId/image` - Upload child image
+
+### Budget (`/api/budget`)
+- `GET /api/budget/:userId` - Get user budget
+- `POST /api/budget` - Create/update budget
+- `GET /api/budget/:userId/expenses` - Get expenses
+- `POST /api/budget/expenses` - Create expense
+- `PUT /api/budget/expenses/:expenseId` - Update expense
+- `DELETE /api/budget/expenses/:expenseId` - Delete expense
+
+### AI Insights (`/api/ai/insights/budget`)
+- `GET /api/ai/insights/budget?userId=:userId&start=:start&end=:end`
+  - Generates AI-powered budget insights
+  - Returns: top spending category, suggestions, predictions
+  - Uses OpenAI GPT-4o-mini model
+
+### Articles (`/api/articles`)
+- `GET /api/articles` - Get all articles
+- `GET /api/articles/:id` - Get article by ID
+- `GET /api/articles/category/:category` - Get articles by category
+- `POST /api/articles/:id/save` - Save article for user
+- `GET /api/articles/saved/:userId` - Get saved articles
+
+### Calendar (`/api/calendar`)
+- `GET /api/calendar/events/:userId` - Get events
+- `POST /api/calendar/events` - Create event
+- `PUT /api/calendar/events/:eventId` - Update event
+- `DELETE /api/calendar/events/:eventId` - Delete event
+
+### Vaccinations (`/api/vaccinations`)
+- `GET /api/users/:userId/children/:childId/vaccinations/recommendations` - Get recommendations
+
+---
+
+## Key Features
+
+### Authentication Flow
+1. User signs up/logs in → receives JWT token
+2. Token stored in `Authorization: Bearer <token>` header
+3. `authMiddleware.js` verifies token on protected routes
+4. `req.user` populated with user data after verification
+
+### AI Insights Generation
+- **Controller:** `aiInsightsController.js`
+- **Process:**
+  1. Fetches user expenses for date range
+  2. Computes category statistics
+  3. Sends data to OpenAI GPT-4o-mini with structured prompt
+  4. Parses JSON response with insights
+  5. Returns: top spending, suggestions, predictions
+
+### File Upload
+- Uses Multer middleware for handling file uploads
+- Stores files in `uploads/` directory
+- Supports receipt images, user images, child images
+- Routes: `/api/users/:userId/image`, `/api/users/:userId/children/:childId/image`
+
+### Database Models
+
+#### User Model
+- `name`, `email`, `password` (hashed), `familyName`
+- `children[]` - Array of ChildProfile ObjectIds
+
+#### ChildProfile Model
+- `name`, `dateOfBirth`, `age` (computed), `userId`
+- `medicalHistory[]`, `vaccinations[]`
+
+#### Expense Model
+- `userId`, `amount`, `category`, `date`, `description`
+- `receiptImage` (optional)
+
+#### Budget Model
+- `userId`, `totalBudget`, `month`, `year`
+- `categoryAllocations[]` - Array of CategoryAllocation
+
+---
+
+## Environment Variables
+
+Create a `.env` file in the `backend/` directory:
+
+```env
+# Database
+MONGODB_URI=mongodb://localhost:27017/bloomup
+# Or MongoDB Atlas connection string:
+# MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/bloomup
+
+# JWT Secret
+ACCESS_TOKEN_SECRET=your-secret-key-here
+
+# OpenAI API Key
+OPENAI_API_KEY=sk-your-openai-api-key
+
+# Server Port (optional, defaults to 5000)
+PORT=5000
+
+# CORS Origin (optional)
+CORS_ORIGIN=http://localhost:5173
+```
+
+---
+
+## Development Setup
+
+### Installation
+```bash
+cd backend
+npm install
+```
+
+### Run Development Server
+```bash
+npm start
+# Uses nodemon for auto-restart
+```
+
+### Run Production Server
+```bash
+node server.js
+```
+
+---
 
 ## Notable Behaviors
+
+### Authentication
 - JWT token issued on login, validated on protected routes
 - `/api/auth/me` returns user and `children` ids; requires `verifyToken`
-- Creating child adds doc to `ChildProfiles` and `$addToSet` into `User.children`
-- Deleting child removes doc and `$pull`s id from `User.children`
+- Token stored in HTTP-only cookies or Authorization header
+
+### Child Profile Management
+- Creating child adds document to `ChildProfiles` collection
+- Automatically adds child ID to `User.children` array using `$addToSet`
+- Deleting child removes document and `$pull`s ID from `User.children`
 - Child `age` computed on create and when `dateOfBirth` is updated
 
-## Dependencies
-- runtime: `express`, `jsonwebtoken`, `dotenv`, `mongoose`
-- dev: `nodemon`
+### Budget & Expenses
+- Expenses linked to user via `userId`
+- Budget allocations stored per category
+- Supports receipt image uploads for expenses
 
-## Env Vars
-- `MONGODB_URI` - Mongo connection string
-- `ACCESS_TOKEN_SECRET` - JWT secret
+### AI Insights
+- Fetches expenses for current month by default
+- Computes category-wise spending statistics
+- Uses OpenAI GPT-4o-mini for generating insights
+- Returns structured JSON with top spending, suggestions, and predictions
 
-## Example Protected Flow
-1. Frontend stores `accessToken` after login
-2. Requests include `Authorization: Bearer <token>`
-3. `verifyToken` sets `req.user` from JWT
-4. Controllers use `req.user.id` for user-specific operations
+---
+
+## Data Seeding Scripts
+
+### Seed Articles
+```bash
+node scripts/seedArticles.js
+```
+- Populates articles collection with educational content
+
+### Seed Vaccination Data
+```bash
+node scripts/seedBCVaccinationData.js
+```
+- Populates vaccination schedules (BC Provincial data)
+
+---
+
+## Security Considerations
+
+### Authentication
+- Passwords hashed before storage (implement hashing in authController)
+- JWT tokens expire after set time
+- Protected routes require valid token
+
+### File Uploads
+- Validate file types and sizes
+- Sanitize filenames
+- Store uploads securely
+
+### CORS
+- Configure allowed origins in `server.js`
+- Prevent unauthorized cross-origin requests
+
+---
+
+## Error Handling
+
+- Controllers use try-catch blocks
+- Returns appropriate HTTP status codes:
+  - `200` - Success
+  - `201` - Created
+  - `400` - Bad Request
+  - `401` - Unauthorized
+  - `403` - Forbidden
+  - `404` - Not Found
+  - `500` - Server Error
+
+---
+
+## For Developers
+
+### Adding New Features
+1. Create model in `models/` directory
+2. Create controller in `controllers/` directory
+3. Define routes in `routes/` directory
+4. Mount routes in `server.js`
+5. Use `authMiddleware` for protected routes
+
+### Database Queries
+- Use Mongoose for all database operations
+- Follow existing patterns for CRUD operations
+- Use proper indexing for performance
+
+### API Response Format
+```javascript
+// Success
+res.status(200).json({ success: true, data: result });
+
+// Error
+res.status(400).json({ success: false, message: "Error message" });
+```
+
+---
+
+## Version Information
+
+- **Node Version:** Compatible with Node 16+
+- **Package Manager:** npm
+- **Express Version:** 5.1.0
+- **MongoDB Driver:** 5.9.2
+- **Mongoose Version:** 7.6.3
+
+---
+
+## Notes for Development Team
+
+- All developers should track package installations and updates in this file
+- When adding new dependencies, update this documentation
+- Follow existing code patterns for consistency
+- Always use `authMiddleware` for protected routes
+- Test authentication flows after making changes
+- Document new API endpoints here
+- Keep `.env` file secure and never commit it to version control

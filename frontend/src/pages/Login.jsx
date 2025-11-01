@@ -25,6 +25,8 @@ export default function Login() {
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem("accessToken", data.accessToken);
+         //localStorage.setItem("accessToken", data.token);
+
         setMessage("Login successful!");
         // Let AuthGuard handle the routing based on user state
         navigate("/family-setup");
@@ -252,3 +254,4 @@ export default function Login() {
     </div>
   );
 }
+

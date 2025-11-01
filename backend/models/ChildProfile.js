@@ -87,6 +87,7 @@ async function deleteChildForUser(userId, childId) {
 
 module.exports = {
   mongoose,
+  ChildProfile,
   getAllChildrenByUser,
   getChildByIdForUser,
   createChildForUser,

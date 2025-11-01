@@ -5,7 +5,6 @@ const login = async (req, res) => {
   // const username = req.body.username;
   const { email, password } = req.body;
 
-  // Here we will add more credentials later
   if (!email && !password) {
     return res.status(400).json({ message: "Email & Password Required" });
   }
@@ -42,7 +41,7 @@ const login = async (req, res) => {
 
 const signup = async (req, res) => {
   try {
-    const { name, email, password, country, state } = req.body;
+    const { name, email, password, country, state, familyName } = req.body;
 
     if (!email || !password || !name) {
       return res.status(400).json({ message: "Email and password required" });
@@ -59,6 +58,7 @@ const signup = async (req, res) => {
       password,
       country,
       state,
+      familyName,
     });
     await newUser.save();
     res.status(201).json({ message: "User created successfully" });
@@ -66,9 +66,6 @@ const signup = async (req, res) => {
     console.error("Signup error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-
-  // Add new USer
-  // Later Have to connect with Databaser Mongo DB.
 };
 
 const getCurrentUser = async (req, res) => {
