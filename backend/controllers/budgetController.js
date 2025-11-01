@@ -123,29 +123,32 @@ exports.uploadReceipt = async (req, res) => {
       temperature: 0.2,
     });
 
-   const content = response.choices[0].message.content;
-let receiptData;
+    const content = response.choices[0].message.content;
+    let receiptData;
 
-try {
-  // Remove markdown code blocks if present
-  let jsonString = content.trim();
-  
-  // Remove ```json and ``` wrappers
-  jsonString = jsonString.replace(/^```json\s*/i, '').replace(/```\s*$/g, '').trim();
-  
-  // Try to extract JSON object
-  const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
-  const jsonToParse = jsonMatch ? jsonMatch[0] : jsonString;
-  
-  receiptData = JSON.parse(jsonToParse);
-} catch (parseError) {
-  console.error("Error parsing OpenAI response:", parseError);
-  console.error("Raw content:", content);
-  return res.status(500).json({
-    message: "Failed to parse receipt data",
-    rawResponse: content,
-  });
-}
+    try {
+      // Remove markdown code blocks if present
+      let jsonString = content.trim();
+
+      // Remove ```json and ``` wrappers
+      jsonString = jsonString
+        .replace(/^```json\s*/i, "")
+        .replace(/```\s*$/g, "")
+        .trim();
+
+      // Try to extract JSON object
+      const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+      const jsonToParse = jsonMatch ? jsonMatch[0] : jsonString;
+
+      receiptData = JSON.parse(jsonToParse);
+    } catch (parseError) {
+      console.error("Error parsing OpenAI response:", parseError);
+      console.error("Raw content:", content);
+      return res.status(500).json({
+        message: "Failed to parse receipt data",
+        rawResponse: content,
+      });
+    }
 
     // Format expenses for review (DO NOT SAVE TO DATABASE)
     const expenses = [];
@@ -168,7 +171,7 @@ try {
       // Format grouped expenses for review
       for (const [category, data] of Object.entries(grouped)) {
         expenses.push({
-          date: receiptData.date || new Date().toISOString().split('T')[0],
+          date: receiptData.date || new Date().toISOString().split("T")[0],
           description: data.items.join(", "),
           category: category,
           quantity: data.quantity,
@@ -178,7 +181,7 @@ try {
     } else {
       // Single expense fallback
       expenses.push({
-        date: receiptData.date || new Date().toISOString().split('T')[0],
+        date: receiptData.date || new Date().toISOString().split("T")[0],
         description: `Purchase at ${receiptData.merchantName || "Unknown"}`,
         category: receiptData.suggestedCategory || "Other",
         quantity: 1,
@@ -197,7 +200,6 @@ try {
         expenses: expenses, // This will be reviewed and edited by user
       },
     });
-
   } catch (error) {
     console.error("Error processing receipt:", error);
     res.status(500).json({
@@ -222,7 +224,9 @@ exports.addManualExpense = async (req, res) => {
     const { amount, category, description, date, quantity } = req.body;
 
     if (!amount || !category) {
-      return res.status(400).json({ message: "Amount and category are required" });
+      return res
+        .status(400)
+        .json({ message: "Amount and category are required" });
     }
 
     // Create the expense
@@ -259,12 +263,14 @@ exports.addManualExpense = async (req, res) => {
     res.json({
       message: "Expense added successfully",
       expense,
-      budgetOverview: budget ? {
-        total: budget.total,
-        spent: budget.spent,
-        remaining: budget.remaining,
-        status: budget.remaining < 0 ? "Over budget" : "On track",
-      } : null,
+      budgetOverview: budget
+        ? {
+            total: budget.total,
+            spent: budget.spent,
+            remaining: budget.remaining,
+            status: budget.remaining < 0 ? "Over budget" : "On track",
+          }
+        : null,
     });
   } catch (error) {
     console.error("Error adding manual expense:", error);
@@ -278,17 +284,31 @@ exports.addManualExpense = async (req, res) => {
 exports.getBudgetOverview = async (req, res) => {
   try {
     const rawUserId = getUserId(req);
-    if (!rawUserId) return res.status(400).json({ message: "User ID required" });
+    if (!rawUserId)
+      return res.status(400).json({ message: "User ID required" });
 
     const userId = toObjectId(rawUserId);
-    if (!userId) return res.status(400).json({ message: "Invalid User ID format" });
+    if (!userId)
+      return res.status(400).json({ message: "Invalid User ID format" });
 
     const budget = await Budget.findOne({ userId }).sort({ createdAt: -1 });
-    if (!budget) return res.status(404).json({ message: "Budget not found. Please set a budget first." });
+    if (!budget)
+      return res
+        .status(404)
+        .json({ message: "Budget not found. Please set a budget first." });
 
-    // Get all expenses per category
+    // Optional date range filter (e.g., current month)
+    const { start, end } = req.query;
+    const dateFilter = {};
+    if (start || end) {
+      dateFilter.date = {};
+      if (start) dateFilter.date.$gte = new Date(start);
+      if (end) dateFilter.date.$lte = new Date(end);
+    }
+
+    // Get expenses per category within optional range
     const expensesByCategory = await Expense.aggregate([
-      { $match: { userId } },
+      { $match: { userId, ...dateFilter } },
       {
         $group: {
           _id: "$category",
@@ -298,14 +318,28 @@ exports.getBudgetOverview = async (req, res) => {
     ]);
 
     // Get allocated categories
-    const allocations = await CategoryAllocation.find({ userId, budget: budget._id });
+    const allocations = await CategoryAllocation.find({
+      userId,
+      budget: budget._id,
+    });
 
-    // Map allocations with spent amounts
-    const categories = allocations.map(cat => {
-      const spentEntry = expensesByCategory.find(e => e._id === cat.category);
-      const spentAmount = spentEntry ? spentEntry.spent : 0;
-      const percentage = cat.percentage || (budget.total > 0 ? ((cat.allocatedAmount / budget.total) * 100).toFixed(2) : 0);
-      
+    // Build case-insensitive lookup of expenses by category
+    const normalize = (s) => (s || "").toString().trim().toLowerCase();
+    const expenseMap = new Map();
+    for (const e of expensesByCategory) {
+      expenseMap.set(normalize(e._id), Number(e.spent || 0));
+    }
+
+    // Map allocations with spent amounts using normalized match
+    const categories = allocations.map((cat) => {
+      const key = normalize(cat.category);
+      const spentAmount = expenseMap.has(key) ? expenseMap.get(key) : 0;
+      const percentage =
+        cat.percentage ||
+        (budget.total > 0
+          ? ((cat.allocatedAmount / budget.total) * 100).toFixed(2)
+          : 0);
+
       return {
         name: cat.category,
         allocated: cat.allocatedAmount,
@@ -396,12 +430,17 @@ exports.setBudget = async (req, res) => {
     const { total, categories } = req.body;
     const rawUserId = getUserId(req);
 
-    if (!rawUserId) return res.status(400).json({ message: "User ID required" });
-    if (total === undefined || isNaN(total)) return res.status(400).json({ message: "Provide a valid total budget amount." });
+    if (!rawUserId)
+      return res.status(400).json({ message: "User ID required" });
+    if (total === undefined || isNaN(total))
+      return res
+        .status(400)
+        .json({ message: "Provide a valid total budget amount." });
 
     const userId = toObjectId(rawUserId);
     console.log("setBudget - Converted userId:", userId);
-    if (!userId) return res.status(400).json({ message: "Invalid User ID format" });
+    if (!userId)
+      return res.status(400).json({ message: "Invalid User ID format" });
 
     // Validate categories data
     if (!categories || !Array.isArray(categories)) {
@@ -485,19 +524,22 @@ exports.setBudget = async (req, res) => {
     await CategoryAllocation.deleteMany({ userId, budget: budget._id });
 
     // Insert new allocations with both allocated amount and percentage
-    const allocations = categories.map(cat => ({
+    const allocations = categories.map((cat) => ({
       userId,
       budget: budget._id,
       category: cat.name,
       allocatedAmount: parseFloat(cat.allocated) || 0,
       percentage: parseFloat(cat.percentage) || 0,
     }));
-    
+
     await CategoryAllocation.insertMany(allocations);
 
     // Fetch allocations for response with spent amounts
-    const savedAllocations = await CategoryAllocation.find({ userId, budget: budget._id });
-    
+    const savedAllocations = await CategoryAllocation.find({
+      userId,
+      budget: budget._id,
+    });
+
     // Get expenses by category for spent amounts
     const expensesByCategory = await Expense.aggregate([
       { $match: { userId } },
@@ -517,19 +559,19 @@ exports.setBudget = async (req, res) => {
       spent,
       remaining: remaining < 0 ? 0 : remaining,
       status: remaining < 0 ? "Over budget" : "On track",
-      categories: savedAllocations.map(a => {
-        const spentEntry = expensesByCategory.find(e => e._id === a.category);
+      categories: savedAllocations.map((a) => {
+        const spentEntry = expensesByCategory.find((e) => e._id === a.category);
         const spentAmount = spentEntry ? spentEntry.spent : 0;
-        
+
         return {
           name: a.category,
           allocated: a.allocatedAmount,
-          percentage: a.percentage || ((a.allocatedAmount / total) * 100).toFixed(2),
+          percentage:
+            a.percentage || ((a.allocatedAmount / total) * 100).toFixed(2),
           spent: spentAmount,
         };
       }),
     });
-
   } catch (error) {
     console.error("Error saving budget:", error);
     res.status(500).json({ message: error.message });
