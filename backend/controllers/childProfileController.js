@@ -1,6 +1,29 @@
 const childModel = require("../models/ChildProfile");
 const User = require("../models/User");
 
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+const childImagesDir = path.join(__dirname, "..", "uploads", "childImages");
+if (!fs.existsSync(childImagesDir)) fs.mkdirSync(childImagesDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, childImagesDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || "";
+    const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    cb(null, name);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
+
 // Get All
 async function getAllChildrenByUser(req, res) {
   try {
@@ -106,10 +129,55 @@ async function deleteChildForUser(req, res) {
   }
 }
 
+// POST /api/users/:userId/children/:childId/photo
+async function uploadChildPhoto(req, res) {
+  try {
+    const { userId, childId } = req.params;
+    
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const publicPath = `/static/child-images/${req.file.filename}`;
+    
+    // ChildProfileのimageUrlを更新
+    const updated = await childModel.updateChildForUser(
+      userId,
+      childId,
+      { imageUrl: publicPath }
+    );
+
+    if (!updated) {
+      // ファイルはアップロード済みだが、更新に失敗した場合は削除
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkErr) {
+        console.error("Error deleting uploaded file:", unlinkErr);
+      }
+      return res.status(404).json({ message: "Child profile not found" });
+    }
+
+    res.status(200).json({ url: publicPath });
+  } catch (err) {
+    console.error("Error uploading child photo:", err);
+    // エラー時はアップロードされたファイルを削除
+    if (req.file && req.file.path) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkErr) {
+        console.error("Error deleting uploaded file:", unlinkErr);
+      }
+    }
+    res.status(500).json({ message: "Failed to upload photo" });
+  }
+}
+
 module.exports = {
   getAllChildrenByUser,
   getChildByIdForUser,
   createChildForUser,
   updateChildForUser,
   deleteChildForUser,
+  uploadChildPhoto,
+  uploadMiddleware: upload.single("image"),
 };

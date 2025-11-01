@@ -2,14 +2,16 @@ const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/userController");
 const verifyToken = require("../middleware/authMiddleware");
-const { updateFamilyName, updateUser } = require("../controllers/userController");
+const { updateFamilyName, updateUser, deleteUser, uploadUserPhoto, uploadUserPhotoMiddleware } = require("../controllers/userController");
 
 const User = require("../models/User");
 
 // router.get("/")
 router.put("/family-name", verifyToken, updateFamilyName);
+// Upload user photo - this route must be before /:id routes to avoid conflicts
+router.post("/:id/photo", verifyToken, uploadUserPhotoMiddleware, uploadUserPhoto);
 router.patch("/:id", verifyToken, updateUser);
-
+router.delete("/:id", verifyToken, deleteUser);
 
 
 // Get current user profile

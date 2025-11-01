@@ -87,6 +87,8 @@ export default function Settings() {
 
   const [loading, setLoading] = useState(!state?.user);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteErr, setDeleteErr] = useState("");
   const [err, setErr] = useState("");
 
   //fallback for no state
@@ -148,6 +150,46 @@ export default function Settings() {
 
   const canSave =
     !saving && !loading && (profileChanged || (pwAllFilled && !pwError));
+
+  const handleDelete = async () => {
+
+    const confirmed = window.confirm("Are you sure you want to delete your account?");
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      setDeleteErr("");
+
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        return navigate("/login");
+      }
+
+      if (!userId) {
+        throw new Error("User ID not found");
+      }
+
+      const res = await fetch(`${BASE}/api/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to delete account");
+      }
+      localStorage.removeItem("accessToken");
+      navigate("/login");
+    } catch (e) {
+      console.error(e);
+      setDeleteErr(e.message || "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -350,15 +392,16 @@ export default function Settings() {
         </h2>
         <p className="text-xs text-black/60 text-center">
           When you delete your account, you lose access to BloomUp services, and
-          we permanently delete your personal data. You can cancel the deletion
-          for 14 days.
+          we permanently delete your personal data.
         </p>
         <div className="flex justify-center">
           <button
             type="button"
             className="px-5 py-2 rounded bg-gray-400/70 text-black/80"
-            onClick={() => alert("TODO: implement delete")}
+            onClick={() => handleDelete()}
+            disabled={deleting} // disable button during the button cannot be clicked. This avoid trying to delete multiple times.
           >
+            {deleting ? "Deleting..." : "Delete"}
             Delete
           </button>
         </div>

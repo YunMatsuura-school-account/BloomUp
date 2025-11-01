@@ -41,7 +41,7 @@ const login = async (req, res) => {
 
 const signup = async (req, res) => {
   try {
-    const { name, email, password, country, state } = req.body;
+    const { name, email, password, country, state, familyName } = req.body;
 
     if (!email || !password || !name) {
       return res.status(400).json({ message: "Email and password required" });
@@ -58,6 +58,7 @@ const signup = async (req, res) => {
       password,
       country,
       state,
+      familyName,
     });
     await newUser.save();
     res.status(201).json({ message: "User created successfully" });
