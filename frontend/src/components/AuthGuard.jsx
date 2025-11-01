@@ -50,24 +50,19 @@ const AuthGuard = ({ children }) => {
       const userData = await response.json();
       setUser(userData);
 
+      // Log user + children for debugging
       console.log("AuthGuard - User data:", userData);
       console.log("AuthGuard - Children:", userData.children);
-      console.log("AuthGuard - Children length:", userData.children?.length);
 
-      //Route based on user state: only require at least one child
-      const hasChildren =
-        Array.isArray(userData.children) && userData.children.length > 0;
-
-      console.log("AuthGuard - Has children:", hasChildren);
-      console.log("AuthGuard - Current path:", location.pathname);
+      // Route based on user state: require at least one child to proceed
+      const hasChildren = Array.isArray(userData.children) && userData.children.length > 0;
+      const currentPath = location.pathname;
 
       if (!hasChildren) {
-        // No children - redirect to family-setup
         console.log("AuthGuard - Redirecting to family-setup (no children)");
         navigate("/family-setup");
       } else {
-        // Has children - redirect to dashboard if not already on a protected route
-        const currentPath = location.pathname;
+        // If user already on a protected route, keep them there; otherwise go to dashboard
         const protectedRoutes = [
           "/dashboard",
           "/user-dashboard",
@@ -77,23 +72,14 @@ const AuthGuard = ({ children }) => {
           "/articles",
           "/family",
         ];
-        const isOnProtectedRoute = protectedRoutes.some((route) =>
-          currentPath.startsWith(route)
-        );
 
-        console.log("AuthGuard - Is on protected route:", isOnProtectedRoute);
+        const isOnProtectedRoute = protectedRoutes.some((route) => currentPath.startsWith(route));
 
-        // Special case: If on family-setup but has children, redirect to dashboard
+        // Special-case: if the user is on /family-setup but has children, redirect to dashboard
         if (currentPath === "/family-setup") {
-          console.log(
-            "AuthGuard - On family-setup but has children, redirecting to dashboard"
-          );
           navigate("/dashboard");
         } else if (!isOnProtectedRoute) {
-          console.log("AuthGuard - Redirecting to dashboard (has children)");
           navigate("/dashboard");
-        } else {
-          console.log("AuthGuard - Already on protected route, staying here");
         }
       }
     } catch (error) {

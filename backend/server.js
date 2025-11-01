@@ -9,6 +9,7 @@ const app = express();
 const cors = require("cors");
 const budgetRoutes = require("./routes/budgetRoutes");
 const calendarRoutes = require("./routes/calendarRoutes");
+const articleRoutes = require('./routes/articleRoutes');
 
 const childrenRoutes = require("./routes/childrenRoutes");
 
@@ -65,6 +66,7 @@ app.use("/api/posts", postRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/users/:userId/children", childProfileRoutes);
 app.use("/api/calendar", calendarRoutes);
+app.use('/api/articles', articleRoutes);
 
 app.use("/api/calendar", childrenRoutes);
 

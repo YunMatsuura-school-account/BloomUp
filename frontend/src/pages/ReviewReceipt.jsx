@@ -1,0 +1,299 @@
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+
+export default function ReviewReceipt() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [receiptInfo, setReceiptInfo] = useState(null);
+
+  const API_URL = "http://localhost:8888/api/budget";
+  const getToken = () => localStorage.getItem("accessToken");
+
+  const categories = ["Medical", "Education", "Consumable", "Clothes", "Entertainment", "Transport", "Other"];
+
+  useEffect(() => {
+    console.log("Location state:", location.state); // Debug log
+    
+    // Fix: Access the nested receiptData properly
+    const data = location.state?.receiptData?.receiptData;
+    
+    if (data?.expenses && data.expenses.length > 0) {
+      // Store receipt info for display
+      setReceiptInfo({
+        merchantName: data.merchantName,
+        totalAmount: data.totalAmount,
+        date: data.date,
+        currency: data.currency
+      });
+
+      // Format expenses from OpenAI response
+      const formattedExpenses = data.expenses.map((exp, idx) => ({
+        id: idx,
+        date: exp.date || new Date().toISOString().split('T')[0],
+        description: data.merchantName || exp.description || "Unknown Merchant", // Use merchantName in description
+        category: exp.category || "Other",
+        quantity: exp.quantity || 1,
+        amount: parseFloat(exp.amount) || 0
+      }));
+      
+      setExpenses(formattedExpenses);
+    } else {
+      // Fallback: Create a default expense
+      console.warn("No expenses found in receipt data");
+      setExpenses([{
+        id: 0,
+        date: new Date().toISOString().split('T')[0],
+        description: "",
+        category: "Other",
+        quantity: 1,
+        amount: 0
+      }]);
+    }
+  }, [location.state]);
+
+  const handleChange = (id, field, value) => {
+    setExpenses(prev => prev.map(exp => 
+      exp.id === id ? { ...exp, [field]: value } : exp
+    ));
+  };
+
+  const handleRemoveExpense = (id) => {
+    if (expenses.length > 1) {
+      setExpenses(prev => prev.filter(exp => exp.id !== id));
+    }
+  };
+
+  const handleAddExpense = () => {
+    const newId = Math.max(...expenses.map(e => e.id), 0) + 1;
+    setExpenses(prev => [...prev, {
+      id: newId,
+      date: new Date().toISOString().split('T')[0],
+      description: "",
+      category: "Other",
+      quantity: 1,
+      amount: 0
+    }]);
+  };
+
+  const handleSave = async () => {
+    const token = getToken();
+    if (!token) {
+      alert("You must be logged in.");
+      navigate("/login");
+      return;
+    }
+
+    // Validate that at least one expense has amount > 0
+    const validExpenses = expenses.filter(exp => exp.amount > 0);
+    if (validExpenses.length === 0) {
+      alert("Please add at least one expense with a valid amount.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Save each expense individually using the add-manual endpoint
+      const savedExpenses = [];
+      
+      for (const expense of validExpenses) {
+        const response = await fetch(`${API_URL}/add-manual`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            amount: parseFloat(expense.amount),
+            category: expense.category,
+            description: expense.description || "Receipt item",
+            date: expense.date,
+            quantity: parseInt(expense.quantity) || 1
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Failed to save expense: ${expense.description}`);
+        }
+
+        const data = await response.json();
+        savedExpenses.push(data);
+      }
+
+      alert(`${savedExpenses.length} expense(s) saved successfully!`);
+      navigate("/dashboard/budget");
+    } catch (err) {
+      console.error("Save error:", err);
+      alert("Failed to save expenses: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalAmount = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+
+  return (
+    <>
+      {/* Backdrop Blur Overlay */}
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 z-[9998]" 
+        style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+        onClick={() => navigate("/dashboard/budget")} 
+      />
+      
+      {/* Modal Container */}
+      <div className="fixed inset-0 flex items-center justify-center z-[9999] p-5 pointer-events-none">
+        <div className="pointer-events-auto bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="px-8 py-6">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-semibold m-0 mb-2">Review and Edit Receipt</h2>
+                {receiptInfo && (
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">{receiptInfo.merchantName || "Unknown Merchant"}</span>
+                    {receiptInfo.date && <span className="ml-3">• {receiptInfo.date}</span>}
+                    {receiptInfo.totalAmount && (
+                      <span className="ml-3">• Total: {receiptInfo.currency || "$"}{receiptInfo.totalAmount.toFixed(2)}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => navigate("/dashboard/budget")}
+                className="bg-transparent border-none text-2xl cursor-pointer p-1 text-gray-600 hover:text-gray-800"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Table Header */}
+            <div className="grid grid-cols-[120px_2fr_140px_100px_120px_80px] gap-4 px-4 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600">
+              <div>Date</div>
+              <div>Description</div>
+              <div>Category</div>
+              <div className="text-center">Quantity</div>
+              <div className="text-right">Amount</div>
+              <div className="text-center">Action</div>
+            </div>
+
+            {/* Expense Rows */}
+            <div className="max-h-96 overflow-y-auto">
+              {expenses.map((expense) => (
+                <div
+                  key={expense.id}
+                  className="grid grid-cols-[120px_2fr_140px_100px_120px_80px] gap-4 px-4 py-4 border-b border-gray-200 items-center"
+                >
+                  {/* Date */}
+                  <input
+                    type="date"
+                    value={expense.date}
+                    onChange={(e) => handleChange(expense.id, "date", e.target.value)}
+                    className="px-3 py-2  text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
+
+                  {/* Description */}
+                  <input
+                    type="text"
+                    value={expense.description}
+                    onChange={(e) => handleChange(expense.id, "description", e.target.value)}
+                    placeholder="Description"
+                    className="px-3 py-2  text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
+
+                  {/* Category */}
+                  <select
+                    value={expense.category}
+                    onChange={(e) => handleChange(expense.id, "category", e.target.value)}
+                    className="px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  >
+                    {categories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+
+                  {/* Quantity */}
+                  <input
+                    type="number"
+                    value={expense.quantity}
+                    onChange={(e) => handleChange(expense.id, "quantity", e.target.value)}
+                    min="1"
+                    className="px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
+
+                  {/* Amount */}
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={expense.amount}
+                    onChange={(e) => handleChange(expense.id, "amount", e.target.value)}
+                    placeholder="0.00"
+                    className="px-3 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-1 justify-center">
+                    <button 
+                      onClick={() => handleRemoveExpense(expense.id)}
+                      disabled={expenses.length === 1}
+                      className="bg-transparent border-none cursor-pointer p-1 hover:bg-red-50 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Delete"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
+                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Add Row Button */}
+            <div className="px-4 py-3 border-b border-gray-200">
+              <button
+                onClick={handleAddExpense}
+                className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center gap-2 bg-transparent border-none cursor-pointer"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Add Another Item
+              </button>
+            </div>
+
+            {/* Summary */}
+            <div className="px-4 py-4 bg-gray-50 rounded-lg mt-4 flex justify-between items-center">
+              <div className="text-sm text-gray-600">
+                Total Items: <span className="font-semibold">{expenses.length}</span>
+              </div>
+              <div className="text-lg font-semibold text-gray-800">
+                Total: ${totalAmount.toFixed(2)}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 justify-center mt-6 pb-4">
+              <button
+                onClick={() => navigate("/dashboard/budget")}
+                disabled={loading}
+                className="py-3 px-8 bg-gray-100 text-gray-700 border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={loading || expenses.every(exp => exp.amount === 0)}
+                className="py-3 px-8 bg-teal-500 text-white border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-teal-600 disabled:cursor-not-allowed disabled:bg-gray-400"
+              >
+                {loading ? "Saving..." : `Save ${expenses.filter(e => e.amount > 0).length} Expense(s)`}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

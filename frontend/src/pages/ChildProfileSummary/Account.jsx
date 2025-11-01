@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import personIcon from "../../icons/person_icon.png";
 import pencilIcon from "../../icons/pencil_icon.png";
+import plusIcon from "../../icons/plus_icon.png";
 
 export default function Account() {
   const BASE = import.meta.env.VITE_BACKEND_URL;
@@ -77,26 +78,48 @@ export default function Account() {
   }
 
   return (
-    <div className="p-6">
-      <h2 className="text-[40px] font-bold text-white text-center mb-8">
+    <div className=" page-surface p-6">
+      <h2 className="text-[40px] font-bold text-black/100 text-center mb-8">
         Your Family
       </h2>
-      {/* <div className="rounded-[22px] bg-slate-700/60 min-h-[135px] p-4"> */}
-        {/* <div className="text-white/70 text-sm"> Your Family Name</div> */}
-        <div className=" mb-2 text-white font-semibold text-lg">{familyName}</div>
+
+      <div className=" mb-2 text-black/100 font-semibold text-lg">
+        {familyName}
+      </div>
       {/* </div> */}
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
         {children.map((child) => {
           const age = calculateAge(child.dateOfBirth);
+          const avatarSrc = child.imageUrl
+            ? child.imageUrl.startsWith(`/static/`)
+              ? `${BASE}${child.imageUrl}`
+              : `${BASE}/static/child-images/${child.imageUrl}`
+            : null;
           return (
             <button
               key={child._id}
               className="flex items-center rounded-[22px] bg-slate-700/60 min-h-[135px] p-4 text-left hover:bg-slate-600/60"
+              style={{ backgroundColor: "#238D88" }}
               onClick={() => navigate(`/child-dashboard/${child._id}`)}
             >
-              <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                <img src={personIcon} alt="person icon" />
+              <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                {avatarSrc ? (
+                  <img
+                    src={avatarSrc}
+                    alt={`${child.name || "Child"} profile`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={personIcon}
+                    slt="person icon"
+                    className="w-12 h-12 opacity-90"
+                  />
+                )}
               </div>
 
               <div className="p-4">
@@ -104,14 +127,30 @@ export default function Account() {
                   {child.name || "Your Child's name"}
                 </div>
                 <div className="text-white/70 text-sm">
-                  {/* {age ? `Age ${age}` : "Age"} */}
                   {age !== null ? `Age ${age}` : "Age"}
                 </div>
               </div>
 
               <div className="flex justify-end flex-1">
-                <button className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                  <img src={pencilIcon} alt="pencil icon" />
+                <button
+                  className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate("/add-child", {
+                      state: {
+                        mode: "edit",
+                        childId: child._id,
+                        child: child,
+                        userId: userId,
+                      },
+                    });
+                  }}
+                >
+                  <img
+                    src={pencilIcon}
+                    alt="edit"
+                    className="w-12 h-12 invert opacity-80"
+                  />
                 </button>
               </div>
             </button>
@@ -119,12 +158,29 @@ export default function Account() {
         })}
 
         <button
-          className="rounded-[22px] border border-dashed border-white/30 bg-slate-700/20 min-h-[135px] p-4 text-left hover:bg-slate-600/20 focus:outline-none focus:ring-2 focus:ring-sky-500"
-          onClick={() => navigate("/add-child")}
+          className="rounded-2xl border-2 border-dashed border-gray-400/60 
+             bg-gray-200/60 min-h-[135px] p-4 text-left hover:bg-gray-200/80 
+             text-gray-600 flex items-center justify-between"
+          onClick={() => navigate("/add-child", { state: { userId: userId } })}
           aria-label="Add your child here"
         >
-          <div className="text-white font-semibold">Add your child here</div>
-          <div className="text-white/70 text-sm">Age</div>
+          <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+            <img
+              src={personIcon}
+              alt="person icon"
+              className="w-12 h-12 opacity-90"
+            />
+          </div>
+          <div className="text-black/30 font-semibold">Add your child here</div>
+          <div className="text-black/30 text-sm">Age</div>
+
+          <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+            <img
+              src={plusIcon}
+              alt="edit"
+              className="w-12 h-12 invert opacity-80"
+            />
+          </div>
         </button>
       </div>
     </div>
