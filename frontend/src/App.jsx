@@ -1,5 +1,11 @@
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
+import { useEffect } from "react";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import DashboardLayout from "./layout/DashboardLayout";
@@ -13,10 +19,10 @@ import UploadReceipt from "./pages/UploadReceipt";
 import ReviewReceipt from "./pages/ReviewReceipt";
 
 import CalendarPage from "./pages/Calendar";
-import Articles from './pages/Articles';
-import ArticleCategory from './pages/ArticleCategory';
-import ArticleSingle from './pages/ArticleSingle';
-import './styles/articles.css';
+import Articles from "./pages/Articles";
+import ArticleCategory from "./pages/ArticleCategory";
+import ArticleSingle from "./pages/ArticleSingle";
+import "./styles/articles.css";
 
 import FamilySetup from "./pages/FamilySetup";
 import AddChild from "./pages/AddChild";
@@ -32,6 +38,46 @@ function BudgetSetupWrapper() {
 }
 
 function App() {
+  // Global fetch interceptor to attach token and handle 401/403
+  useEffect(() => {
+    const originalFetch = window.fetch;
+    window.fetch = async (input, init = {}) => {
+      try {
+        const token =
+          localStorage.getItem("accessToken") ||
+          localStorage.getItem("token") ||
+          localStorage.getItem("authToken");
+        const headers = new Headers(init?.headers || {});
+        if (token && !headers.has("Authorization")) {
+          headers.set("Authorization", `Bearer ${token}`);
+        }
+
+        const response = await originalFetch(input, {
+          ...init,
+          headers,
+          credentials: init?.credentials || "include",
+        });
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("token");
+          localStorage.removeItem("authToken");
+          // Hard redirect to login so app state resets cleanly
+          if (!window.location.pathname.startsWith("/login")) {
+            window.location.href = "/login";
+          }
+        }
+        return response;
+      } catch (err) {
+        // On network errors, just rethrow
+        throw err;
+      }
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, []);
+
   return (
     <Router>
       <Routes>
@@ -68,10 +114,19 @@ function App() {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/budget" element={<Budget />} />
-          <Route path="/dashboard/budget-setup" element={<BudgetSetupWrapper />} />
+          <Route
+            path="/dashboard/budget-setup"
+            element={<BudgetSetupWrapper />}
+          />
           <Route path="/dashboard/budget/add-manual" element={<AddManual />} />
-          <Route path="/dashboard/budget/upload-receipt" element={<UploadReceipt />} />
-          <Route path="/dashboard/budget/review-receipt" element={<ReviewReceipt />} />
+          <Route
+            path="/dashboard/budget/upload-receipt"
+            element={<UploadReceipt />}
+          />
+          <Route
+            path="/dashboard/budget/review-receipt"
+            element={<ReviewReceipt />}
+          />
 
           <Route path="/calendar" element={<CalendarPage />} />
 
@@ -83,7 +138,10 @@ function App() {
 
           {/* Child Profile Summary */}
           <Route path="/account" element={<Account />} />
-          <Route path="/child-dashboard/:childId" element={<ChildDashboard />} />
+          <Route
+            path="/child-dashboard/:childId"
+            element={<ChildDashboard />}
+          />
           <Route path="/settings" element={<Settings />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
         </Route>
