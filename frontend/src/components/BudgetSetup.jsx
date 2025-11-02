@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 function BudgetSetup({ onClose }) {
   const [totalBudget, setTotalBudget] = useState("");
@@ -14,9 +14,13 @@ function BudgetSetup({ onClose }) {
   const [error, setError] = useState(null);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showAddCategory, setShowAddCategory] = useState(false);
+  const [draggingCategory, setDraggingCategory] = useState(null);
   
   const API_URL = "http://localhost:8888/api/budget";
   const getToken = () => localStorage.getItem("accessToken");
+
+  // Custom brand color
+  const brandColor = "#238D88";
 
   useEffect(() => {
     const fetchExistingBudget = async () => {
@@ -44,7 +48,6 @@ function BudgetSetup({ onClose }) {
             setTotalBudget(data.total.toString());
           }
           
-          // Load existing category allocations
           if (data.categories && data.categories.length > 0) {
             const loadedCategories = data.categories.map((cat, index) => {
               const existingCat = categories.find(c => c.name === cat.name);
@@ -118,7 +121,6 @@ function BudgetSetup({ onClose }) {
     }
 
     if (mode === "dollar") {
-      // Input is in dollars - calculate percentage
       const percentage = budget > 0 ? (inputValue / budget) * 100 : 0;
       setCategories(prev => prev.map(cat => 
         cat.id === id 
@@ -126,7 +128,6 @@ function BudgetSetup({ onClose }) {
           : cat
       ));
     } else {
-      // Input is in percentage - calculate dollar amount
       const amount = (inputValue / 100) * budget;
       setCategories(prev => prev.map(cat => 
         cat.id === id 
@@ -134,6 +135,44 @@ function BudgetSetup({ onClose }) {
           : cat
       ));
     }
+  };
+
+  const handleProgressBarDrag = (categoryId, event, barElement) => {
+    const budget = parseFloat(totalBudget) || 0;
+    if (budget === 0) {
+      setError("Please set total budget first");
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    const rect = barElement.getBoundingClientRect();
+    const offsetX = event.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(100, (offsetX / rect.width) * 100));
+    const allocated = (percentage / 100) * budget;
+
+    setCategories(prev => prev.map(cat => 
+      cat.id === categoryId 
+        ? { ...cat, allocated: parseFloat(allocated.toFixed(2)), percentage: parseFloat(percentage.toFixed(2)) }
+        : cat
+    ));
+  };
+
+  const startDragging = (categoryId, event, barElement) => {
+    setDraggingCategory(categoryId);
+    handleProgressBarDrag(categoryId, event, barElement);
+
+    const handleMouseMove = (e) => {
+      handleProgressBarDrag(categoryId, e, barElement);
+    };
+
+    const handleMouseUp = () => {
+      setDraggingCategory(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const addCategory = (e) => {
@@ -230,10 +269,8 @@ function BudgetSetup({ onClose }) {
 
   if (fetching) {
     return (
-      <div className="fixed inset-0 z-[100] flex">
-        {/* Sidebar space */}
+      <div className="fixed inset-0 z-[100] flex" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
         <div className="hidden md:block md:w-[300px]" />
-        {/* Overlay area */}
         <div className="flex-1 bg-black bg-opacity-50 overflow-y-auto flex items-center justify-center p-4">
           <div className="bg-white rounded-xl p-8 text-center">
             <div className="text-gray-600">Loading budget data...</div>
@@ -244,14 +281,11 @@ function BudgetSetup({ onClose }) {
   }
 
   return (
-    // Overlay only on right side, not covering sidebar
-    <div className="fixed inset-0 z-[100] flex">
-      {/* Sidebar space - no overlay here on desktop */}
+    <div className="fixed inset-0 z-[100] flex" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
       <div className="hidden md:block md:w-[300px]" />
       
-      {/* Overlay area - only on the right side */}
       <div className="flex-1 bg-black bg-opacity-50 overflow-y-auto flex items-start justify-center p-4">
-        <div className="bg-white rounded-xl p-8 w-full max-w-3xl my-8 shadow-md">
+        <div className="bg-white flex flex-col items-start gap-5 p-[48px_46px] w-[1034px] rounded-[10px] shadow-md">
 
           <h2 className="text-xl font-semibold text-gray-800 mb-1">Set your overall Budget</h2>
           <p className="text-gray-600 text-sm mb-5">
@@ -265,9 +299,8 @@ function BudgetSetup({ onClose }) {
           )}
 
           <div>
-            {/* Total Budget Input */}
             <div className="mb-6">
-              <div className="relative">
+              <div className="relative flex items-center gap-4">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base text-gray-600 z-10">
                   $
                 </span>
@@ -279,7 +312,13 @@ function BudgetSetup({ onClose }) {
                   step="0.01"
                   min="0"
                   disabled={loading}
-                  className="w-full pl-8 pr-28 py-3 border border-gray-300 rounded-lg text-base outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="flex w-[665px] items-center px-[30px] pr-[561px] py-[11px] rounded-[15px] border border-gray-300 text-[20px] font-[500] leading-[26px] text-black outline-none"
+                  style={{ 
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    boxShadow: 'none'
+                  }}
+                  onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${brandColor}`}
+                  onBlur={(e) => e.target.style.boxShadow = 'none'}
                 />
                 <button
                   type="button"
@@ -289,14 +328,19 @@ function BudgetSetup({ onClose }) {
                       setTimeout(() => setError(null), 3000);
                     }
                   }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-teal-500 text-white rounded-md text-sm font-medium hover:bg-teal-600 transition-colors"
+                  className="flex justify-center items-center w-[172px] h-[48px] px-[136px] py-[15px] gap-[10px] rounded-[15px] text-white text-[16px] font-[600] leading-[22.4px] cursor-pointer transition-opacity"
+                  style={{ 
+                    backgroundColor: brandColor,
+                    fontFamily: 'Inter, system-ui, sans-serif'
+                  }}
+                  onMouseEnter={(e) => e.target.style.opacity = '0.9'}
+                  onMouseLeave={(e) => e.target.style.opacity = '1'}
                 >
                   Set Budget
                 </button>
               </div>
             </div>
 
-            {/* Mode Selection */}
             <div className="mb-5">
               <div className="flex justify-end items-center gap-4">
                 <span className="text-sm font-medium text-gray-600">Mode:</span>
@@ -308,6 +352,7 @@ function BudgetSetup({ onClose }) {
                     checked={mode === "dollar"}
                     onChange={(e) => setMode(e.target.value)}
                     className="cursor-pointer"
+                    style={{ accentColor: brandColor }}
                   />
                   <span className="text-sm text-gray-800">$</span>
                 </label>
@@ -319,19 +364,18 @@ function BudgetSetup({ onClose }) {
                     checked={mode === "percentage"}
                     onChange={(e) => setMode(e.target.value)}
                     className="cursor-pointer"
+                    style={{ accentColor: brandColor }}
                   />
                   <span className="text-sm text-gray-800">%</span>
                 </label>
               </div>
             </div>
 
-            {/* Category Section */}
             <div className="mb-6">
               <h3 className="text-base font-semibold text-gray-800 mb-4">
                 Define your budget by category
               </h3>
 
-              {/* Total Assigned Progress */}
               <div className="mb-5">
                 <div className="flex justify-between mb-2">
                   <span className="text-sm font-medium text-gray-800">Total assigned</span>
@@ -341,8 +385,11 @@ function BudgetSetup({ onClose }) {
                 </div>
                 <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
                   <div 
-                    className="h-full transition-all duration-300 rounded bg-teal-500"
-                    style={{ width: `${Math.min(totalPercentage, 100)}%` }}
+                    className="h-full transition-all duration-300 rounded"
+                    style={{ 
+                      width: `${Math.min(totalPercentage, 100)}%`,
+                      backgroundColor: brandColor
+                    }}
                   />
                 </div>
                 <div className="flex justify-between items-center mt-1">
@@ -369,18 +416,22 @@ function BudgetSetup({ onClose }) {
                 </div>
               </div>
 
-              {/* Add New Category Button */}
               {!showAddCategory && (
                 <button
                   type="button"
                   onClick={() => setShowAddCategory(true)}
-                  className="w-full py-2.5 bg-gray-100 text-teal-500 border border-dashed border-teal-500 rounded-lg text-sm font-medium mb-4 hover:bg-gray-50 transition-colors"
+                  className="w-full py-2.5 bg-gray-100 rounded-lg text-sm font-medium mb-4 border border-dashed transition-colors"
+                  style={{ 
+                    color: brandColor,
+                    borderColor: brandColor
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f9fafb'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#f3f4f6'}
                 >
                   + Add New Category
                 </button>
               )}
 
-              {/* New Category Input */}
               {showAddCategory && (
                 <div className="mb-4 flex gap-2">
                   <input
@@ -394,12 +445,18 @@ function BudgetSetup({ onClose }) {
                         addCategory(e);
                       }
                     }}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm outline-none"
+                    style={{ boxShadow: 'none' }}
+                    onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${brandColor}`}
+                    onBlur={(e) => e.target.style.boxShadow = 'none'}
                   />
                   <button 
                     type="button" 
                     onClick={addCategory}
-                    className="px-4 py-2 bg-teal-500 text-white rounded-md text-sm font-medium hover:bg-teal-600 transition-colors"
+                    className="px-4 py-2 text-white rounded-md text-sm font-medium transition-opacity"
+                    style={{ backgroundColor: brandColor }}
+                    onMouseEnter={(e) => e.target.style.opacity = '0.9'}
+                    onMouseLeave={(e) => e.target.style.opacity = '1'}
                   >
                     Add
                   </button>
@@ -416,16 +473,15 @@ function BudgetSetup({ onClose }) {
                 </div>
               )}
 
-              {/* Category List */}
               <div className="flex flex-col gap-3">
                 {categories.map((category) => {
                   const spentPercentage = category.allocated > 0 ? (category.spent / category.allocated) * 100 : 0;
+                  const allocationPercentage = category.percentage;
 
                   return (
                     <div key={category.id} className="bg-gray-100 rounded-lg p-3 border border-gray-200">
                       <div className="flex items-center gap-3">
                         
-                        {/* Category Info */}
                         <div className="flex-1">
                           <div className="text-sm font-semibold text-gray-800 mb-0.5">
                             {category.name}
@@ -435,15 +491,22 @@ function BudgetSetup({ onClose }) {
                           </div>
                         </div>
 
-                        {/* Progress Bar */}
-                        <div className="flex-1 h-3 bg-gray-200 rounded overflow-hidden relative mt-1">
+                        <div 
+                          className="flex-1 h-3 bg-gray-200 rounded overflow-hidden relative mt-1 cursor-pointer"
+                          onMouseDown={(e) => startDragging(category.id, e, e.currentTarget)}
+                          style={{ userSelect: 'none' }}
+                          title="Drag to allocate budget"
+                        >
                           <div
-                            className="h-full rounded transition-all duration-300"
-                            style={{ width: `${Math.min(spentPercentage, 100)}%`, backgroundColor: category.color }}
+                            className="h-full rounded transition-all duration-150"
+                            style={{ 
+                              width: `${Math.min(allocationPercentage, 100)}%`, 
+                              backgroundColor: brandColor,
+                              opacity: draggingCategory === category.id ? 0.8 : 1
+                            }}
                           />
                         </div>
 
-                        {/* Input and Delete Button */}
                         <div className="flex items-center gap-2">
                           <div className="relative w-20">
                             <input
@@ -454,7 +517,10 @@ function BudgetSetup({ onClose }) {
                               step={mode === "dollar" ? "0.01" : "0.1"}
                               min="0"
                               max={mode === "percentage" ? "100" : undefined}
-                              className="w-full pr-6 pl-2 py-1.5 border border-gray-300 rounded-md text-sm text-right outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                              className="w-full pr-6 pl-2 py-1.5 border border-gray-300 rounded-md text-sm text-right outline-none"
+                              style={{ boxShadow: 'none' }}
+                              onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${brandColor}`}
+                              onBlur={(e) => e.target.style.boxShadow = 'none'}
                             />
                             <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-600">
                               {mode === "percentage" ? "%" : "$"}
@@ -483,7 +549,6 @@ function BudgetSetup({ onClose }) {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-3">
               <button
                 type="button"
@@ -496,11 +561,18 @@ function BudgetSetup({ onClose }) {
                 type="button"
                 onClick={handleSubmit}
                 disabled={loading || !totalBudget || totalAssigned > parseFloat(totalBudget)}
-                className={`flex-1 py-3 rounded-lg text-base font-medium transition-colors ${
-                  loading || !totalBudget || totalAssigned > parseFloat(totalBudget)
-                    ? 'bg-gray-300 text-white cursor-not-allowed'
-                    : 'bg-teal-500 text-white hover:bg-teal-600 cursor-pointer'
-                }`}
+                className="flex-1 py-3 rounded-lg text-base font-medium transition-opacity"
+                style={{
+                  backgroundColor: (loading || !totalBudget || totalAssigned > parseFloat(totalBudget)) ? '#d1d5db' : brandColor,
+                  color: 'white',
+                  cursor: (loading || !totalBudget || totalAssigned > parseFloat(totalBudget)) ? 'not-allowed' : 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading && totalBudget && totalAssigned <= parseFloat(totalBudget)) {
+                    e.target.style.opacity = '0.9';
+                  }
+                }}
+                onMouseLeave={(e) => e.target.style.opacity = '1'}
               >
                 {loading ? "Saving..." : "Save"}
               </button>

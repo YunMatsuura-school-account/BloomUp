@@ -1,19 +1,69 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function AddExpense() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("Consumable");
+  const [category, setCategory] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   const navigate = useNavigate();
   const API_URL = "http://localhost:8888/api/budget";
   const getToken = () => localStorage.getItem("accessToken");
 
-  const categories = ["Medical", "Education", "Consumable", "Clothes", "Entertainment", "Transport", "Other"];
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const token = getToken();
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      const currentMonth = new Date().getMonth() + 1;
+      const currentYear = new Date().getFullYear();
+
+      const response = await fetch(
+        `${API_URL}/overview?month=${currentMonth}&year=${currentYear}`,
+        {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Budget overview:", data);
+        
+        if (data.categories && data.categories.length > 0) {
+          const categoryNames = data.categories.map(cat => cat.name);
+          setCategories(categoryNames);
+          setCategory(categoryNames[0]); // Set first as default
+          console.log("Categories loaded:", categoryNames);
+        } else {
+          console.warn("No categories in budget");
+        }
+      } else if (response.status === 404) {
+        console.warn("No budget found for current month");
+        alert("Please set up your budget first!");
+        navigate("/dashboard/budget-setup");
+      }
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,7 +75,22 @@ export default function AddExpense() {
       return;
     }
 
+    if (!category) {
+      alert("Please select a category");
+      return;
+    }
+
     setLoading(true);
+
+    const payload = {
+      amount: parseFloat(amount), 
+      category, 
+      description,
+      date,
+      quantity: parseInt(quantity)
+    };
+
+    console.log("Submitting expense:", payload);
 
     try {
       const res = await fetch(`${API_URL}/add-manual`, {
@@ -34,46 +99,54 @@ export default function AddExpense() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ 
-          amount: parseFloat(amount), 
-          category, 
-          description,
-          merchantName: description,
-          date,
-          quantity: parseInt(quantity)
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
+      console.log("Response:", data);
 
       if (res.ok) {
         alert("Expense added successfully!");
         navigate("/dashboard/budget");
       } else {
+        console.error("Error:", data);
         alert(data.message || "Error adding expense");
       }
     } catch (err) {
-      console.error(err);
-      alert("Error adding expense");
+      console.error("Request error:", err);
+      alert("Error adding expense: " + err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  if (loadingCategories) {
+    return (
+      <>
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-[9998]" 
+          style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+        />
+        <div className="fixed inset-0 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-2xl p-8 shadow-2xl">
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
-      {/* Backdrop Blur Overlay */}
       <div 
         className="fixed inset-0 bg-black bg-opacity-50 z-[9998]" 
         style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
         onClick={() => navigate("/dashboard/budget")} 
       />
       
-      {/* Modal Container */}
       <div className="fixed inset-0 flex items-center justify-center z-[9999] p-5 pointer-events-none">
         <div className="pointer-events-auto bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
           <div className="p-8">
-            {/* Header */}
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-2xl font-semibold m-0">Add Expense</h2>
               <button
@@ -84,9 +157,7 @@ export default function AddExpense() {
               </button>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Date */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Date
@@ -100,7 +171,6 @@ export default function AddExpense() {
                 />
               </div>
 
-              {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Category
@@ -111,13 +181,19 @@ export default function AddExpense() {
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 >
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
+                  {categories.length === 0 ? (
+                    <option value="">No categories available</option>
+                  ) : (
+                    <>
+                      <option value="">Select category</option>
+                      {categories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </>
+                  )}
                 </select>
               </div>
 
-              {/* Amount */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Amount
@@ -138,7 +214,6 @@ export default function AddExpense() {
                 </div>
               </div>
 
-              {/* Quantity */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Quantity
@@ -153,7 +228,6 @@ export default function AddExpense() {
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description
@@ -163,15 +237,14 @@ export default function AddExpense() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows="3"
-                  maxLength="30"
+                  maxLength="100"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
                 <div className="text-right text-xs text-gray-400 mt-1">
-                  Max. 30 words
+                  {description.length}/100 characters
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
@@ -183,8 +256,8 @@ export default function AddExpense() {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="flex-1 py-3 px-6 bg-teal-500 text-white border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-teal-600 disabled:cursor-not-allowed disabled:bg-gray-400"
+                  disabled={loading || categories.length === 0}
+                  className="flex-1 py-3 px-6 bg-[#238D88] text-white border-none rounded-lg cursor-pointer text-sm font-medium disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
                   {loading ? "Saving..." : "Save"}
                 </button>

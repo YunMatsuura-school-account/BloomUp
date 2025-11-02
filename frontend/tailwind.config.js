@@ -6,6 +6,9 @@ export default {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
       },
+      colors: {
+        'custom-teal': '#238D88', // <-- Add this
+      },
     },
   },
   plugins: [],

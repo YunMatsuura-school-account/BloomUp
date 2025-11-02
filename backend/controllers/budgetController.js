@@ -36,6 +36,35 @@ const upload = multer({
   },
 });
 
+// Helper function to get current period
+function getCurrentPeriod() {
+  const now = new Date();
+  return {
+    month: now.getMonth() + 1, // 1-12
+    year: now.getFullYear()
+  };
+}
+
+// Helper function to get date range for a period - FIXED
+function getPeriodDateRange(month, year) {
+  // month parameter is 1-12 (human readable)
+  // JavaScript Date months are 0-11, so we subtract 1
+  
+  // Start: First day of the month at 00:00:00
+  const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+  
+  // End: Last day of the month at 23:59:59.999
+  // Using month (without -1) and day 0 gives us the last day of the previous month
+  // So month - 1 + 1 = month, and day 0 gives last day of month-1, which is our target month
+  const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+  
+  console.log(`Date range for month ${month}/${year}:`);
+  console.log(`  Start: ${startDate.toISOString()}`);
+  console.log(`  End: ${endDate.toISOString()}`);
+  
+  return { startDate, endDate };
+}
+
 // Helper function to get userId from request
 function getUserId(req) {
   return (
@@ -61,7 +90,7 @@ function toObjectId(id) {
   }
 }
 
-// Upload Receipt and Process with OpenAI Vision (DO NOT SAVE TO DB YET)
+// Upload Receipt and Process with OpenAI Vision
 exports.uploadReceipt = async (req, res) => {
   try {
     const rawUserId = getUserId(req);
@@ -78,12 +107,10 @@ exports.uploadReceipt = async (req, res) => {
       return res.status(400).json({ message: "No receipt image uploaded" });
     }
 
-    // Read the uploaded image
     const imagePath = req.file.path;
     const imageBuffer = await fs.readFile(imagePath);
     const base64Image = imageBuffer.toString("base64");
 
-    // Use OpenAI Vision API
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -123,35 +150,26 @@ exports.uploadReceipt = async (req, res) => {
       temperature: 0.2,
     });
 
-   const content = response.choices[0].message.content;
-let receiptData;
+    const content = response.choices[0].message.content;
+    let receiptData;
 
-try {
-  // Remove markdown code blocks if present
-  let jsonString = content.trim();
-  
-  // Remove ```json and ``` wrappers
-  jsonString = jsonString.replace(/^```json\s*/i, '').replace(/```\s*$/g, '').trim();
-  
-  // Try to extract JSON object
-  const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
-  const jsonToParse = jsonMatch ? jsonMatch[0] : jsonString;
-  
-  receiptData = JSON.parse(jsonToParse);
-} catch (parseError) {
-  console.error("Error parsing OpenAI response:", parseError);
-  console.error("Raw content:", content);
-  return res.status(500).json({
-    message: "Failed to parse receipt data",
-    rawResponse: content,
-  });
-}
+    try {
+      let jsonString = content.trim();
+      jsonString = jsonString.replace(/^```json\s*/i, '').replace(/```\s*$/g, '').trim();
+      const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+      const jsonToParse = jsonMatch ? jsonMatch[0] : jsonString;
+      receiptData = JSON.parse(jsonToParse);
+    } catch (parseError) {
+      console.error("Error parsing OpenAI response:", parseError);
+      return res.status(500).json({
+        message: "Failed to parse receipt data",
+        rawResponse: content,
+      });
+    }
 
-    // Format expenses for review (DO NOT SAVE TO DATABASE)
     const expenses = [];
 
     if (receiptData.items && receiptData.items.length > 0) {
-      // Group items by category
       const grouped = {};
 
       for (const item of receiptData.items) {
@@ -165,7 +183,6 @@ try {
         grouped[cat].quantity += qty;
       }
 
-      // Format grouped expenses for review
       for (const [category, data] of Object.entries(grouped)) {
         expenses.push({
           date: receiptData.date || new Date().toISOString().split('T')[0],
@@ -176,7 +193,6 @@ try {
         });
       }
     } else {
-      // Single expense fallback
       expenses.push({
         date: receiptData.date || new Date().toISOString().split('T')[0],
         description: `Purchase at ${receiptData.merchantName || "Unknown"}`,
@@ -186,7 +202,6 @@ try {
       });
     }
 
-    // Return data for review without saving to database
     res.json({
       message: "Receipt processed successfully",
       receiptData: {
@@ -194,7 +209,7 @@ try {
         totalAmount: receiptData.totalAmount,
         date: receiptData.date,
         currency: receiptData.currency,
-        expenses: expenses, // This will be reviewed and edited by user
+        expenses: expenses,
       },
     });
 
@@ -206,15 +221,18 @@ try {
     });
   }
 };
-// Add Manual Expense
+
+// Add Manual Expense - FIXED
 exports.addManualExpense = async (req, res) => {
   try {
     const rawUserId = getUserId(req);
+    
     if (!rawUserId) {
       return res.status(400).json({ message: "User ID required" });
     }
 
     const userId = toObjectId(rawUserId);
+    
     if (!userId) {
       return res.status(400).json({ message: "Invalid User ID format" });
     }
@@ -225,6 +243,9 @@ exports.addManualExpense = async (req, res) => {
       return res.status(400).json({ message: "Amount and category are required" });
     }
 
+    // Parse date properly
+    const expenseDate = date ? new Date(date) : new Date();
+    
     // Create the expense
     const expense = new Expense({
       userId,
@@ -233,18 +254,37 @@ exports.addManualExpense = async (req, res) => {
       description: description || "",
       merchantName: description || "Unknown",
       quantity: quantity ? parseInt(quantity) : 1,
-      date: date ? new Date(date) : new Date(),
+      date: expenseDate,
       paymentMethod: "Manual Entry",
       notes: `Manually added expense${quantity ? ` (Qty: ${quantity})` : ""}`,
     });
 
-    await expense.save();
+    await expense.save(); // SINGLE SAVE
 
-    // Update budget overview
-    const budget = await Budget.findOne({ userId }).sort({ createdAt: -1 });
+    // Get the period for this expense
+    const period = {
+      month: expenseDate.getMonth() + 1,
+      year: expenseDate.getFullYear()
+    };
+
+    const { startDate, endDate } = getPeriodDateRange(period.month, period.year);
+
+    // Find budget for this period
+    const budget = await Budget.findOne({ 
+      userId,
+      'period.month': period.month,
+      'period.year': period.year
+    });
+
     if (budget) {
+      // Recalculate total spent
       const allExpenses = await Expense.aggregate([
-        { $match: { userId } },
+        { 
+          $match: { 
+            userId,
+            date: { $gte: startDate, $lte: endDate }
+          } 
+        },
         { $group: { _id: null, totalSpent: { $sum: "$amount" } } },
       ]);
 
@@ -252,7 +292,7 @@ exports.addManualExpense = async (req, res) => {
       const remaining = budget.total - spent;
 
       budget.spent = spent;
-      budget.remaining = remaining < 0 ? 0 : remaining;
+      budget.remaining = remaining;
       await budget.save();
     }
 
@@ -264,6 +304,7 @@ exports.addManualExpense = async (req, res) => {
         spent: budget.spent,
         remaining: budget.remaining,
         status: budget.remaining < 0 ? "Over budget" : "On track",
+        period: period
       } : null,
     });
   } catch (error) {
@@ -274,7 +315,8 @@ exports.addManualExpense = async (req, res) => {
     });
   }
 };
-// Get Budget Overview
+
+// Get Budget Overview - FIXED
 exports.getBudgetOverview = async (req, res) => {
   try {
     const rawUserId = getUserId(req);
@@ -283,12 +325,42 @@ exports.getBudgetOverview = async (req, res) => {
     const userId = toObjectId(rawUserId);
     if (!userId) return res.status(400).json({ message: "Invalid User ID format" });
 
-    const budget = await Budget.findOne({ userId }).sort({ createdAt: -1 });
-    if (!budget) return res.status(404).json({ message: "Budget not found. Please set a budget first." });
+    // Get period
+    const period = req.query.month && req.query.year 
+      ? { month: parseInt(req.query.month), year: parseInt(req.query.year) }
+      : getCurrentPeriod();
 
-    // Get all expenses per category
+    console.log(`\n=== Getting budget overview for: ${period.month}/${period.year} ===`);
+
+    // Find budget for this period
+    const budget = await Budget.findOne({ 
+      userId, 
+      'period.month': period.month,
+      'period.year': period.year 
+    });
+
+    if (!budget) {
+      console.log(`No budget found for ${period.month}/${period.year}`);
+      return res.status(404).json({ 
+        message: "Budget not found for this period. Please set a budget first.",
+        period 
+      });
+    }
+
+    console.log(`Budget found: Total=${budget.total}, Month=${budget.period.month}, Year=${budget.period.year}`);
+
+    const { startDate, endDate } = getPeriodDateRange(period.month, period.year);
+    
+    console.log(`Expense date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+
+    // Get expenses by category
     const expensesByCategory = await Expense.aggregate([
-      { $match: { userId } },
+      { 
+        $match: { 
+          userId,
+          date: { $gte: startDate, $lte: endDate }
+        } 
+      },
       {
         $group: {
           _id: "$category",
@@ -297,10 +369,12 @@ exports.getBudgetOverview = async (req, res) => {
       },
     ]);
 
-    // Get allocated categories
+    console.log(`Expenses by category:`, expensesByCategory);
+
+    // Get allocations
     const allocations = await CategoryAllocation.find({ userId, budget: budget._id });
 
-    // Map allocations with spent amounts
+    // Map categories with spent
     const categories = allocations.map(cat => {
       const spentEntry = expensesByCategory.find(e => e._id === cat.category);
       const spentAmount = spentEntry ? spentEntry.spent : 0;
@@ -314,28 +388,67 @@ exports.getBudgetOverview = async (req, res) => {
       };
     });
 
-    // Total spent and remaining
+    // Calculate totals
     const totalSpent = expensesByCategory.reduce((sum, e) => sum + e.spent, 0);
     const remaining = budget.total - totalSpent;
 
-    // Update budget in DB
+    console.log(`Total spent: ${totalSpent}, Remaining: ${remaining}\n`);
+
+    // Update budget
     budget.spent = totalSpent;
-    budget.remaining = remaining < 0 ? 0 : remaining;
+    budget.remaining = remaining;
     await budget.save();
 
     res.json({
       total: budget.total,
       spent: totalSpent,
-      remaining: remaining < 0 ? 0 : remaining,
+      remaining: remaining,
       status: remaining < 0 ? "Over budget" : "On track",
       categories,
+      period: period
     });
   } catch (error) {
     console.error("Error fetching budget overview:", error);
     res.status(500).json({ message: error.message });
   }
 };
+// Get All Expenses for a Specific Year
+exports.getExpensesByYear = async (req, res) => {
+  try {
+    const rawUserId = getUserId(req);
+    if (!rawUserId) {
+      return res.status(400).json({ message: "User ID required" });
+    }
 
+    const userId = toObjectId(rawUserId);
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid User ID format" });
+    }
+
+    const year = parseInt(req.params.year) || new Date().getFullYear();
+    
+    console.log(`\n=== Getting all expenses for year: ${year} ===`);
+    
+    // Get date range for entire year
+    const yearStart = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0)); // Jan 1
+    const yearEnd = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)); // Dec 31
+    
+    console.log(`Query range: ${yearStart.toISOString()} to ${yearEnd.toISOString()}`);
+
+    // Get all expenses for the year
+    const expenses = await Expense.find({ 
+      userId,
+      date: { $gte: yearStart, $lte: yearEnd }
+    }).sort({ date: -1 });
+
+    console.log(`Found ${expenses.length} expenses for year ${year}\n`);
+
+    res.json(expenses);
+  } catch (error) {
+    console.error("Error fetching expenses by year:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
 // Get Expenses by Category
 exports.getExpensesByCategory = async (req, res) => {
   try {
@@ -349,8 +462,19 @@ exports.getExpensesByCategory = async (req, res) => {
       return res.status(400).json({ message: "Invalid User ID format" });
     }
 
+    const period = req.query.month && req.query.year 
+      ? { month: parseInt(req.query.month), year: parseInt(req.query.year) }
+      : getCurrentPeriod();
+
+    const { startDate, endDate } = getPeriodDateRange(period.month, period.year);
+
     const expensesByCategory = await Expense.aggregate([
-      { $match: { userId } },
+      { 
+        $match: { 
+          userId,
+          date: { $gte: startDate, $lte: endDate }
+        } 
+      },
       {
         $group: {
           _id: "$category",
@@ -368,7 +492,7 @@ exports.getExpensesByCategory = async (req, res) => {
   }
 };
 
-// Get All Expenses
+// Get All Expenses - FIXED
 exports.getAllExpenses = async (req, res) => {
   try {
     const rawUserId = getUserId(req);
@@ -381,7 +505,33 @@ exports.getAllExpenses = async (req, res) => {
       return res.status(400).json({ message: "Invalid User ID format" });
     }
 
-    const expenses = await Expense.find({ userId }).sort({ date: -1 });
+    const period = req.query.month && req.query.year 
+      ? { month: parseInt(req.query.month), year: parseInt(req.query.year) }
+      : getCurrentPeriod();
+
+    console.log(`\n=== Getting expenses for period: ${period.month}/${period.year} ===`);
+    
+    const { startDate, endDate } = getPeriodDateRange(period.month, period.year);
+    
+    console.log(`Query range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+
+    // First check all expenses for this user
+    const allUserExpenses = await Expense.find({ userId });
+    console.log(`Total expenses for user: ${allUserExpenses.length}`);
+    if (allUserExpenses.length > 0) {
+      console.log('Sample expense dates:');
+      allUserExpenses.slice(0, 3).forEach(exp => {
+        console.log(`  - ${exp.date.toISOString()} (${exp.description})`);
+      });
+    }
+
+    // Get expenses for this period
+    const expenses = await Expense.find({ 
+      userId,
+      date: { $gte: startDate, $lte: endDate }
+    }).sort({ date: -1 });
+
+    console.log(`Found ${expenses.length} expenses in range for ${period.month}/${period.year}\n`);
 
     res.json(expenses);
   } catch (error) {
@@ -390,7 +540,7 @@ exports.getAllExpenses = async (req, res) => {
   }
 };
 
-// Set or Update Budget with Category Allocations
+// Set or Update Budget
 exports.setBudget = async (req, res) => {
   try {
     const { total, categories } = req.body;
@@ -400,91 +550,54 @@ exports.setBudget = async (req, res) => {
     if (total === undefined || isNaN(total)) return res.status(400).json({ message: "Provide a valid total budget amount." });
 
     const userId = toObjectId(rawUserId);
-    console.log("setBudget - Converted userId:", userId);
     if (!userId) return res.status(400).json({ message: "Invalid User ID format" });
 
-    // Validate categories data
     if (!categories || !Array.isArray(categories)) {
       return res.status(400).json({ message: "Categories must be an array" });
     }
 
-    // Get current spent amount
+    const period = getCurrentPeriod();
+    const { startDate, endDate } = getPeriodDateRange(period.month, period.year);
+
+    // Get current spent
     const allExpenses = await Expense.aggregate([
-      { $match: { userId } },
+      { 
+        $match: { 
+          userId,
+          date: { $gte: startDate, $lte: endDate }
+        } 
+      },
       { $group: { _id: null, totalSpent: { $sum: "$amount" } } },
     ]);
     const spent = allExpenses.length ? allExpenses[0].totalSpent : 0;
 
-    let budget = await Budget.findOne({ userId });
+    // Find or create budget
+    let budget = await Budget.findOne({ 
+      userId,
+      'period.month': period.month,
+      'period.year': period.year
+    });
 
     if (budget) {
-      // Update existing budget
       budget.total = total;
-      budget.remaining = total - budget.spent;
-      const savedBudget = await budget.save();
-      console.log(" Budget updated:", savedBudget);
-      console.log(" Budget saved to DB with _id:", savedBudget._id);
-
-      // Verify it's in database
-      const verify = await Budget.findById(savedBudget._id);
-      console.log("🔍 Verification - Budget found in DB:", verify);
-
-      res.json({
-        message: "Budget updated successfully!",
-        budget: savedBudget,
-      });
       budget.spent = spent;
       budget.remaining = total - spent;
       await budget.save();
+      await CategoryAllocation.deleteMany({ userId, budget: budget._id });
     } else {
-      // Create new budget
-      console.log(" Creating new budget...");
-      console.log("Data to save:", {
-        userId,
-        total,
-        spent: 0,
-        remaining: total,
-      });
-
       budget = new Budget({
         userId,
         total,
-        spent: 0,
-        remaining: total,
+        spent,
+        remaining: total - spent,
+        period: period,
+        isActive: true
       });
-
-      console.log("Budget document before save:", budget);
-      const savedBudget = await budget.save();
-      console.log(" Budget created:", savedBudget);
-      console.log("Budget _id:", savedBudget._id);
-      console.log("Budget saved to collection:", Budget.collection.name);
-
-      // Verify it's in database
-      const verify = await Budget.findById(savedBudget._id);
-      console.log("Verification - Budget found in DB:", verify);
-
-      // Also check with userId
-      const verifyByUser = await Budget.findOne({ userId });
-      console.log("Verification - Budget found by userId:", verifyByUser);
-
-      // Link budget to user
-      console.log("Linking budget to user");
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        { budget: savedBudget._id },
-        { new: true }
-      );
-      console.log("User updated:", updatedUser);
-      budget = new Budget({ userId, total, spent: 0, remaining: total });
       await budget.save();
       await User.findByIdAndUpdate(userId, { budget: budget._id });
     }
 
-    // Save category allocations
-    // Remove old allocations
-    await CategoryAllocation.deleteMany({ userId, budget: budget._id });
-
-    // Insert new allocations with both allocated amount and percentage
+    // Save allocations
     const allocations = categories.map(cat => ({
       userId,
       budget: budget._id,
@@ -495,12 +608,15 @@ exports.setBudget = async (req, res) => {
     
     await CategoryAllocation.insertMany(allocations);
 
-    // Fetch allocations for response with spent amounts
     const savedAllocations = await CategoryAllocation.find({ userId, budget: budget._id });
     
-    // Get expenses by category for spent amounts
     const expensesByCategory = await Expense.aggregate([
-      { $match: { userId } },
+      { 
+        $match: { 
+          userId,
+          date: { $gte: startDate, $lte: endDate }
+        } 
+      },
       {
         $group: {
           _id: "$category",
@@ -509,14 +625,14 @@ exports.setBudget = async (req, res) => {
       },
     ]);
 
-    // Calculate remaining
     const remaining = total - spent;
 
     res.json({
       total,
       spent,
-      remaining: remaining < 0 ? 0 : remaining,
+      remaining: remaining,
       status: remaining < 0 ? "Over budget" : "On track",
+      period: period,
       categories: savedAllocations.map(a => {
         const spentEntry = expensesByCategory.find(e => e._id === a.category);
         const spentAmount = spentEntry ? spentEntry.spent : 0;
@@ -536,10 +652,146 @@ exports.setBudget = async (req, res) => {
   }
 };
 
+// Get Monthly Spending for Chart (Current Year)
+exports.getMonthlySpending = async (req, res) => {
+  try {
+    const rawUserId = getUserId(req);
+    if (!rawUserId) {
+      return res.status(400).json({ message: "User ID required" });
+    }
+
+    const userId = toObjectId(rawUserId);
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid User ID format" });
+    }
+
+    // Get year from query or use current year
+    const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
+
+    console.log(`\n=== Getting monthly spending for year: ${year} ===`);
+
+    // Get all expenses for the entire year
+    const yearStart = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0)); // Jan 1
+    const yearEnd = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)); // Dec 31
+
+    const expenses = await Expense.aggregate([
+      { 
+        $match: { 
+          userId,
+          date: { $gte: yearStart, $lte: yearEnd }
+        } 
+      },
+      {
+        $project: {
+          month: { $month: "$date" },
+          amount: 1,
+          category: 1
+        }
+      },
+      {
+        $group: {
+          _id: { month: "$month", category: "$category" },
+          spent: { $sum: "$amount" }
+        }
+      },
+      {
+        $sort: { "_id.month": 1 }
+      }
+    ]);
+
+    console.log(`Found ${expenses.length} expense groups for year ${year}`);
+
+    // Initialize 12 months with empty data
+    const monthlyData = Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1, // 1-12
+      total: 0,
+      categories: {}
+    }));
+
+    // Fill in the actual expense data
+    expenses.forEach(exp => {
+      const monthIndex = exp._id.month - 1; // Convert to 0-indexed
+      monthlyData[monthIndex].total += exp.spent;
+      monthlyData[monthIndex].categories[exp._id.category] = 
+        (monthlyData[monthIndex].categories[exp._id.category] || 0) + exp.spent;
+    });
+
+    console.log(`Monthly totals:`, monthlyData.map(m => `${m.month}: ${m.total}`).join(', '));
+
+    res.json({
+      year,
+      months: monthlyData
+    });
+
+  } catch (error) {
+    console.error("Error fetching monthly spending:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get Weekly Spending for Current Month
+exports.getWeeklySpending = async (req, res) => {
+  try {
+    const rawUserId = getUserId(req);
+    if (!rawUserId) {
+      return res.status(400).json({ message: "User ID required" });
+    }
+
+    const userId = toObjectId(rawUserId);
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid User ID format" });
+    }
+
+    // Get period from query or use current
+    const period = req.query.month && req.query.year 
+      ? { month: parseInt(req.query.month), year: parseInt(req.query.year) }
+      : getCurrentPeriod();
+
+    console.log(`\n=== Getting weekly spending for: ${period.month}/${period.year} ===`);
+
+    const { startDate, endDate } = getPeriodDateRange(period.month, period.year);
+
+    // Get all expenses for the month
+    const expenses = await Expense.find({ 
+      userId,
+      date: { $gte: startDate, $lte: endDate }
+    });
+
+    // Initialize 4 weeks
+    const weeklyData = Array.from({ length: 4 }, (_, i) => ({
+      week: i + 1,
+      total: 0,
+      categories: {}
+    }));
+
+    // Group expenses by week
+    expenses.forEach(exp => {
+      const expDate = new Date(exp.date);
+      const dayOfMonth = expDate.getUTCDate();
+      const weekIndex = Math.min(Math.floor((dayOfMonth - 1) / 7), 3); // 0-3
+
+      weeklyData[weekIndex].total += exp.amount;
+      weeklyData[weekIndex].categories[exp.category] = 
+        (weeklyData[weekIndex].categories[exp.category] || 0) + exp.amount;
+    });
+
+    console.log(`Weekly totals:`, weeklyData.map(w => `Week ${w.week}: ${w.total}`).join(', '));
+
+    res.json({
+      period,
+      weeks: weeklyData
+    });
+
+  } catch (error) {
+    console.error("Error fetching weekly spending:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Middleware export
 exports.uploadMiddleware = upload.single("receipt");
 
-// Export everything explicitly
+// Export everything
 module.exports = {
   uploadReceipt: exports.uploadReceipt,
   getBudgetOverview: exports.getBudgetOverview,
@@ -547,5 +799,8 @@ module.exports = {
   getExpensesByCategory: exports.getExpensesByCategory,
   getAllExpenses: exports.getAllExpenses,
   addManualExpense: exports.addManualExpense,
+  getMonthlySpending: exports.getMonthlySpending,
+  getWeeklySpending: exports.getWeeklySpending,
   uploadMiddleware: exports.uploadMiddleware,
+  getExpensesByYear: exports.getExpensesByYear,
 };
