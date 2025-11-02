@@ -17,6 +17,7 @@ export default function AddChild() {
   const userId = state?.userId;
   const editChild = state?.child || null;
   const childId = state?.childId || null;
+  const returnPath = state?.returnPath || null;
   const isEdit = !!editChild && !!childId;
 
   const [form, setForm] = useState({
@@ -59,7 +60,13 @@ export default function AddChild() {
         },
         body: JSON.stringify(form),
       });
-      if (res.ok) navigate("/family-setup"); // returns to FamilySetup; it will re-fetch
+      if (res.ok) {
+        if (isEdit && returnPath){
+          navigate(returnPath); // returns to the previous page
+        } else {
+          navigate("/family-setup"); // returns to FamilySetup; it will re-fetch
+        }
+      }
     } catch (e) {
       console.error(e);
     }
