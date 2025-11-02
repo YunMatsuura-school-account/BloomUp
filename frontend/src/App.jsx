@@ -1,13 +1,8 @@
-// import { useState, useEffect } from "react";
-// import reactLogo from "./assets/react.svg";
-// import viteLogo from "/vite.svg";
 import "./App.css";
 
-// export default App;
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Signup from "./pages/Signup";
 import DashboardLayout from "./layout/DashboardLayout";
-// import Budget from "./components/Budget";
 import Login from "./pages/Login";
 import FamilySetup from "./pages/FamilySetup";
 import AddChild from "./pages/AddChild";
@@ -25,16 +20,11 @@ import UserDashboard from "./pages/ChildProfileSummary/UserDashboard";
 
 import CalendarPage from "./pages/Calendar";
 import Dashboard from "./components/Dashboard";
-// import CalendarPage from './pages/Calendar';
 
 import Articles from './pages/Articles';
 import ArticleCategory from './pages/ArticleCategory';
 import ArticleSingle from './pages/ArticleSingle';
 import './styles/articles.css';
-
-
-// import Calendar from "./components/Calendar";
-// import Articles from "./components/Articles";
 
 function App() {
   return (
@@ -80,16 +70,12 @@ function App() {
             element={<UploadReceipt />}
           />
 
-          {/* <Route
-            path="/calendar"
-            element={<div style={{ color: "white" }}>Calendar coming soon</div>}
-          /> */}
-
-          {/* For Calender */}
+          {/* Calendar */}
           <Route path="/calendar" element={<CalendarPage />} />
 
+          {/* Articles Routes - ORDER MATTERS! */}
           <Route path="/articles" element={<Articles />} />
-          <Route path="/articles/category" element={<ArticleCategory />} />
+          <Route path="/articles/category/:category" element={<ArticleCategory />} /> {/* FIXED: Added :category */}
           <Route path="/articles/:id" element={<ArticleSingle />} />
 
           <Route path="/family" element={<FamilySetup />} />

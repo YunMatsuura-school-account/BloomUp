@@ -9,20 +9,19 @@ const ArticleHeader = ({ categories, currentFilter, onFilterChange }) => {
   const location = useLocation();
 
   const handleCategoryClick = (category) => {
-    // Special handling for "Saved" category - stay on home page
+    // Special handling for "Saved" category
     if (category === 'Saved') {
-      if (location.pathname === '/articles') {
-        // On articles home page, just update filter to show saved
-        if (onFilterChange) {
-          onFilterChange(category);
-        }
-      } else {
-        // From other pages, go to articles home and show saved
-        navigate('/articles', { state: { filter: 'Saved' } });
+      // Call the onFilterChange if provided
+      if (onFilterChange) {
+        onFilterChange(category);
       }
+      navigate('/articles', { state: { filter: 'Saved' } });
     } else {
-      // For all other categories, navigate to category view
-      navigate('/articles/category', { state: { category } });
+      // For other categories, navigate to category page
+      if (onFilterChange) {
+        onFilterChange(category);
+      }
+      navigate(`/articles/category/${category}`);
     }
   };
 
@@ -30,61 +29,128 @@ const ArticleHeader = ({ categories, currentFilter, onFilterChange }) => {
     navigate('/articles');
   };
 
+  const handleNotificationClick = () => {
+    // Add your notification logic here
+    console.log('Notification clicked');
+  };
+
+  const handleProfileClick = () => {
+    // Add your profile navigation logic here
+    navigate('/profile');
+  };
+
   return (
-    <>
-      <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-8">
-              <h1 
-                className="text-xl font-semibold text-gray-900 cursor-pointer hover:text-gray-700 transition" 
-                onClick={goHome}
+    <header className="bg-white shadow-sm sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <button
+              onClick={goHome}
+              className="text-gray-900 hover:text-teal-600 font-medium transition-colors"
+            >
+              Articles & Resources
+            </button>
+            {categories && categories.filter(cat => cat !== 'Saved').map((category) => (
+              <button
+                key={category}
+                onClick={() => handleCategoryClick(category)}
+                className={`text-gray-700 hover:text-teal-600 transition-colors ${
+                  currentFilter === category ? 'text-teal-600 font-semibold' : ''
+                }`}
               >
-                Articles & Resources
-              </h1>
-              <nav className="hidden md:flex items-center gap-6">
-                {categories.filter(cat => cat !== 'Saved').map((category) => (
-                  <button
-                    key={category}
-                    className={`nav-btn ${
-                      currentFilter === category ? 'active' : ''
-                    } text-gray-600 hover:text-gray-900 font-medium transition-all duration-300`}
-                    onClick={() => handleCategoryClick(category)}
-                  >
-                    {category}
-                  </button>
-                ))}
-                <button
-                  key="Saved"
-                  className={`nav-btn ${
-                    currentFilter === 'Saved' ? 'active' : ''
-                  } text-gray-600 hover:text-gray-900 font-medium transition-all duration-300`}
-                  onClick={() => handleCategoryClick('Saved')}
-                >
-                  Saved
-                </button>
-              </nav>
-            </div>
-            <div className="flex items-center gap-4">
-              <button 
-                className="text-gray-600 hover:text-gray-900 transition"
-                onClick={() => setSearchModalOpen(true)}
-                title="Search articles"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                {category}
               </button>
-            </div>
+            ))}
+            {categories && categories.includes('Saved') && (
+              <button
+                onClick={() => handleCategoryClick('Saved')}
+                className={`text-gray-700 hover:text-teal-600 transition-colors ${
+                  currentFilter === 'Saved' ? 'text-teal-600 font-semibold' : ''
+                }`}
+              >
+                Saved
+              </button>
+            )}
+          </nav>
+
+          {/* Right side icons */}
+          <div className="flex items-center gap-4">
+            {/* Search Icon */}
+            <button
+              onClick={() => setSearchModalOpen(true)}
+              className="p-2 text-gray-600 hover:text-teal-600 transition-colors"
+              aria-label="Search"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
+
+            {/* Notification Bell Icon */}
+            <button
+              onClick={handleNotificationClick}
+              className="p-2 text-gray-600 hover:text-teal-600 transition-colors relative"
+              aria-label="Notifications"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+              {/* Optional: Add notification badge */}
+              {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span> */}
+            </button>
+
+            {/* Profile Icon */}
+            <button
+              onClick={handleProfileClick}
+              className="p-2 text-gray-600 hover:text-teal-600 transition-colors"
+              aria-label="Profile"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </button>
           </div>
         </div>
-      </header>
+      </div>
 
-      <ArticleSearchModal 
-        isOpen={searchModalOpen} 
-        onClose={() => setSearchModalOpen(false)} 
+      {/* Search Modal */}
+      <ArticleSearchModal
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
       />
-    </>
+    </header>
   );
 };
 
