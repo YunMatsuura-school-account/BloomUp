@@ -37,6 +37,7 @@ const expenseSchema = new mongoose.Schema(
     remarks: { 
       type: String 
     },
+      quantity: { type: Number, default: 1 },
   },
   { 
     collection: "Expenses",

@@ -1,5 +1,15 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import personIcon from "../icons/person_icon.png";
+
+const ALLOWED = [
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/webp",
+  "image/gif",
+];
+const MAX_SIZE = 5 * 1024 * 1024;
 
 export default function AddChild() {
   const navigate = useNavigate();
@@ -55,6 +65,98 @@ export default function AddChild() {
     }
   };
 
+  const BASE = import.meta.env.VITE_BACKEND_URL;
+  const fileInputRef = useRef(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const pickFile = () => fileInputRef.current?.click();
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
+  const onDragLeave = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+  };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      uploadImage(file);
+    }
+  };
+
+  const onPick = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadImage(file);
+    }
+  };
+
+  const validateImage = (file) => {
+    if (!ALLOWED.includes(file.type)) {
+      return "Only images are allowed.";
+    }
+    if (file.size > MAX_SIZE) {
+      return "File size is too large. (> 5MB)";
+    }
+    return null;
+  };
+
+  const uploadImage = async (file) => {
+    const err = validateImage(file);
+    if (err) {
+      return alert(err);
+    }
+
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+
+    if (!userId || !childId) {
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(
+        `${BASE}/api/users/${userId}/children/${childId}/photo`,
+        {
+          method: "POST",
+          body: formData,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        }
+      );
+      if (!res.ok) {
+        throw new Error(`Upload failed: ${res.status}`);
+      }
+      const { url: publicUrl } = await res.json();
+
+      setForm((f) => ({ ...f, imageUrl: publicUrl })); //save URL
+      setPreview(null);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const storedUrl = form?.imageUrl || editChild?.imageUrl || null;
+  const absoluteUrl = storedUrl
+    ? storedUrl.startsWith("/static")
+      ? `${BASE}${storedUrl}`
+      : `${BASE}/static/child-images/${storedUrl}`
+    : null;
+
+  const avatarSrc = editChild?.imageUrl
+    ? editChild.imageUrl.startsWith("/static/")
+      ? `${BASE}${editChild.imageUrl}`
+      : `${BASE}/static/child-images/${editChild.imageUrl}`
+    : null;
+
   return (
     <div className="min-h-screen w-full grid place-items-center bg-gray-100 p-4">
       <form
@@ -65,7 +167,30 @@ export default function AddChild() {
           {isEdit ? "Edit child" : "Add child"}
         </h2>
 
-        <div className="w-20 h-20 rounded-full bg-gray-300 mx-auto mb-6" />
+        <div 
+        className="mx-auto mb-6 w-20 h-20 rounded-full overflow-hidden flex items-center justify-center"
+        onClick={pickFile}
+        
+        >
+          {preview ? (
+            <img
+              src={preview}
+              alt="preview"
+              className="w-full h-full object-cover"
+            />
+          ) : absoluteUrl ? (
+            <img
+              src={absoluteUrl}
+              alt="child avatar"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          ) : (
+            <img src={personIcon} alt="" className="w-10 h-10 opacity-80" />
+          )}
+        </div>
 
         <label className="block text-sm font-medium mb-1">Name</label>
         <input

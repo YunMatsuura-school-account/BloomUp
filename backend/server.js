@@ -4,13 +4,18 @@ console.log("Server is running");
 const authRoutes = require("./routes/authRoutes");
 const postRoutes = require("./routes/postRoutes");
 const childProfileRoutes = require("./routes/childProfileRoutes");
-const userRoutes = require("./routes/userRoutes");
 const express = require("express");
 const app = express();
 const cors = require("cors");
 const budgetRoutes = require("./routes/budgetRoutes");
 const calendarRoutes = require("./routes/calendarRoutes");
-const articleRoutes = require('./routes/articleRoutes');
+const articleRoutes = require("./routes/articleRoutes");
+const aiRoutes = require("./routes/aiRoutes");
+
+const childrenRoutes = require("./routes/childrenRoutes");
+
+const userRoutes = require("./routes/userRoutes");
+
 
 const mongoose = require("mongoose");
 
@@ -32,6 +37,8 @@ app.use(
 
 app.use("/api/calendar", calendarRoutes);
 app.use("/api", vaccinationRoutes);
+
+
 // COMMENTED OUT - STARTING FRESH
 // app.use("/api", testVaccinationRoutes);
 app.use(
@@ -45,6 +52,7 @@ app.use(
 );
 
 app.use("/api", uploadImageRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Connect MongoDB via mongoose
 mongoose
@@ -60,14 +68,22 @@ app.use("/api/posts", postRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/users/:userId/children", childProfileRoutes);
 app.use("/api/calendar", calendarRoutes);
-app.use('/api/articles', articleRoutes);
+app.use("/api/articles", articleRoutes);
+
+app.use("/api/calendar", childrenRoutes);
 
 // New budget route
 app.use("/api/budget", budgetRoutes);
 
+app.use("/api/user", userRoutes); 
+
+app.use("/api/children", childrenRoutes);
+
+
 const PORT = process.env.PORT || 8888; // Form env file
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 // const posts = [
 //   {

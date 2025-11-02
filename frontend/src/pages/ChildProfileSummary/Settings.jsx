@@ -2,6 +2,67 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom"; // useLocation: receive state info from navigate()
 import AvatarDropUpload from "../../components/AvatarDropUpload";
 
+// Hoisted helper components to avoid remounting inputs on each render
+function Field({ label, hint, children }) {
+  return (
+    <label className="block">
+      <div className="mb-1 text-xs text-black/70">{label}</div>
+      {children}
+      {hint ? <div className="mt-1 text-xs text-red-500">{hint}</div> : null}
+    </label>
+  );
+}
+
+function ToggleRow({ title, description, checked, onChange }) {
+  return (
+    <div className="flex items-center justify-between rounded-xl bg-gray-300/70 px-4 py-3">
+      <div>
+        <div className="text-sm text-black/90">{title}</div>
+        <div className="text-xs text-black/60">{description}</div>
+      </div>
+      <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          className="sr-only"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+        />
+
+        <span
+          className={`h-6 w-10 rounded-full transition-colors ${
+            checked ? "bg-teal-600" : "bg-gray-400"
+          }`}
+        >
+          <span
+            className={`block h-5 w-5 bg-white rounded-full transition-transform translate-y-[2px] ${
+              checked ? "translate-x-[22px]" : "translate-x-[2px]"
+            }`}
+          />
+        </span>
+      </label>
+    </div>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.77 21.77 0 0 1 5.06-5.94"/>
+      <path d="M1 1l22 22"/>
+      <path d="M9.88 9.88A3 3 0 0 0 12 15a3 3 0 0 0 3-3 3 3 0 0 0-2.12-2.12"/>
+    </svg>
+  );
+}
+
 export default function Settings() {
   const BASE = import.meta.env.VITE_BACKEND_URL;
   const { state } = useLocation();
@@ -19,8 +80,15 @@ export default function Settings() {
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
 
+  // password visibility toggles
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+
   const [loading, setLoading] = useState(!state?.user);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteErr, setDeleteErr] = useState("");
   const [err, setErr] = useState("");
 
   //fallback for no state
@@ -82,6 +150,46 @@ export default function Settings() {
 
   const canSave =
     !saving && !loading && (profileChanged || (pwAllFilled && !pwError));
+
+  const handleDelete = async () => {
+
+    const confirmed = window.confirm("Are you sure you want to delete your account?");
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      setDeleteErr("");
+
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        return navigate("/login");
+      }
+
+      if (!userId) {
+        throw new Error("User ID not found");
+      }
+
+      const res = await fetch(`${BASE}/api/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to delete account");
+      }
+      localStorage.removeItem("accessToken");
+      navigate("/login");
+    } catch (e) {
+      console.error(e);
+      setDeleteErr(e.message || "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -199,33 +307,63 @@ export default function Settings() {
         </Field>
 
         <Field label="Current password">
-          <input
-            type="password"
-            className="w-full rounded-lg bg-gray-300/70 px-4 py-2 outline-none"
-            value={currentPw}
-            onChange={(e) => setCurrentPw(e.target.value)}
-            placeholder="••••••"
-          />
+          <div className="relative">
+            <input
+              type={showCurrentPw ? "text" : "password"}
+              className="w-full rounded-lg bg-gray-300/70 px-4 py-2 pr-10 outline-none"
+              value={currentPw}
+              onChange={(e) => setCurrentPw(e.target.value)}
+              placeholder=""
+            />
+            <button
+              type="button"
+              aria-label={showCurrentPw ? "Hide password" : "Show password"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black/70"
+              onClick={() => setShowCurrentPw((v) => !v)}
+            >
+              {showCurrentPw ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          </div>
         </Field>
 
         <Field label="New password">
-          <input
-            type="password"
-            className="w-full rounded-lg bg-gray-300/70 px-4 py-2 outline-none"
-            value={newPw}
-            onChange={(e) => setNewPw(e.target.value)}
-            placeholder="••••••"
-          />
+          <div className="relative">
+            <input
+              type={showNewPw ? "text" : "password"}
+              className="w-full rounded-lg bg-gray-300/70 px-4 py-2 pr-10 outline-none"
+              value={newPw}
+              onChange={(e) => setNewPw(e.target.value)}
+              placeholder=""
+            />
+            <button
+              type="button"
+              aria-label={showNewPw ? "Hide password" : "Show password"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black/70"
+              onClick={() => setShowNewPw((v) => !v)}
+            >
+              {showNewPw ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          </div>
         </Field>
 
         <Field label="Confirm password" hint={pwError}>
-          <input
-            type="password"
-            className="w-full rounded-lg bg-gray-300/70 px-4 py-2 outline-none"
-            value={confirmPw}
-            onChange={(e) => setConfirmPw(e.target.value)}
-            placeholder="••••••"
-          />
+          <div className="relative">
+            <input
+              type={showConfirmPw ? "text" : "password"}
+              className="w-full rounded-lg bg-gray-300/70 px-4 py-2 pr-10 outline-none"
+              value={confirmPw}
+              onChange={(e) => setConfirmPw(e.target.value)}
+              placeholder=""
+            />
+            <button
+              type="button"
+              aria-label={showConfirmPw ? "Hide password" : "Show password"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black/70"
+              onClick={() => setShowConfirmPw((v) => !v)}
+            >
+              {showConfirmPw ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          </div>
         </Field>
       </section>
 
@@ -254,15 +392,16 @@ export default function Settings() {
         </h2>
         <p className="text-xs text-black/60 text-center">
           When you delete your account, you lose access to BloomUp services, and
-          we permanently delete your personal data. You can cancel the deletion
-          for 14 days.
+          we permanently delete your personal data.
         </p>
         <div className="flex justify-center">
           <button
             type="button"
             className="px-5 py-2 rounded bg-gray-400/70 text-black/80"
-            onClick={() => alert("TODO: implement delete")}
+            onClick={() => handleDelete()}
+            disabled={deleting} // disable button during the button cannot be clicked. This avoid trying to delete multiple times.
           >
+            {deleting ? "Deleting..." : "Delete"}
             Delete
           </button>
         </div>
@@ -292,43 +431,4 @@ export default function Settings() {
     </div>
   );
 
-  function Field({ label, hint, children }) {
-    return (
-      <label className="block">
-        <div className="mb-1 text-xs text-black/70">{label}</div>
-        {children}
-        {hint ? <div className="mt-1 text-xs text-red-500">{hint}</div> : null}
-      </label>
-    );
-  }
-  function ToggleRow({ title, description, checked, onChange }) {
-    return (
-      <div className="flex items-center justify-between rounded-xl bg-gray-300/70 px-4 py-3">
-        <div>
-          <div className="text-sm text-black/90">{title}</div>
-          <div className="text-xs text-black/60">{description}</div>
-        </div>
-        <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            className="sr-only"
-            checked={checked}
-            onChange={(e) => onChange(e.target.checked)}
-          />
-
-          <span
-            className={`h-6 w-10 rounded-full transition-colors ${
-              checked ? "bg-teal-600" : "bg-gray-400"
-            }`}
-          >
-            <span
-              className={`block h-5 w-5 bg-white rounded-full transition-transform translate-y-[2px] ${
-                checked ? "translate-x-[22px]" : "translate-x-[2px]"
-              }`}
-            />
-          </span>
-        </label>
-      </div>
-    );
-  }
 }

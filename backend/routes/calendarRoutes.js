@@ -19,3 +19,4 @@ router.put('/:id', authMiddleware, calendarCtrl.updateEvent);
 router.delete('/:id', authMiddleware, calendarCtrl.deleteEvent);
 
 module.exports = router;
+
