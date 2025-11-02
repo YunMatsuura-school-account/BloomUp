@@ -28,6 +28,7 @@ export default function Sidebar({
 }) {
   const [displayName, setDisplayName] = useState(headerTitle || "BloomUp");
   const { children, selectedChild, selectChild } = useChild();
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // Debug logging
   console.log("Sidebar - children:", children);
@@ -36,6 +37,25 @@ export default function Sidebar({
   useEffect(() => {
     setDisplayName((prev) => headerTitle || prev);
   }, [headerTitle]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        showDropdown &&
+        !event.target.closest(".children-dropdown-container")
+      ) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener("click", handleClickOutside);
+      return () => {
+        document.removeEventListener("click", handleClickOutside);
+      };
+    }
+  }, [showDropdown]);
 
   useEffect(() => {
     (async () => {
@@ -113,22 +133,43 @@ export default function Sidebar({
           </div>
 
           {/* Chips row: compact */}
-          <div className="px-6 mt-5 flex items-center gap-2.5">
-            {renderChips(children, selectedChild, selectChild)}
-            <svg
-              className="ml-1 text-[#232527]"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
+          <div className="px-6 mt-5 flex items-center gap-2.5 relative children-dropdown-container">
+            {renderChips(
+              children,
+              selectedChild,
+              selectChild,
+              showDropdown,
+              setShowDropdown
+            )}
+            {children.length > 3 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDropdown(!showDropdown);
+                }}
+                className="ml-1 text-[#232527] hover:text-[#238D88] transition-colors cursor-pointer"
+                title={`Show all children (${children.length} total)`}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  className={
+                    showDropdown
+                      ? "rotate-180 transition-transform"
+                      : "transition-transform"
+                  }
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
@@ -199,15 +240,21 @@ function navLabelWithIcon(text, icon) {
   );
 }
 
-function renderChips(children, selectedChild, selectChild) {
-  const palette = ["#006F69", "#6CC31F", "#F3BE08"]; // from figma fills
+function renderChips(
+  children,
+  selectedChild,
+  selectChild,
+  showDropdown,
+  setShowDropdown
+) {
+  const palette = ["#006F69", "#6CC31F", "#F3BE08", "#238D88", "#FF6B6B"]; // Extended palette for more children
 
-  // Generate initials with smart duplicate handling
-  const getInitials = (children) => {
+  // Generate initials with smart duplicate handling for all children
+  const getInitials = (allChildren) => {
     const initialsMap = {};
 
-    // Count occurrences of each initial
-    children.slice(0, 3).forEach((child) => {
+    // Count occurrences of each initial for all children
+    allChildren.forEach((child) => {
       const initial = child?.name ? child.name.trim()[0]?.toUpperCase() : "?";
       if (!initialsMap[initial]) {
         initialsMap[initial] = [];
@@ -217,7 +264,7 @@ function renderChips(children, selectedChild, selectChild) {
 
     // Generate display text with numbers for duplicates
     const displayMap = {};
-    children.slice(0, 3).forEach((child) => {
+    allChildren.forEach((child) => {
       const initial = child?.name ? child.name.trim()[0]?.toUpperCase() : "?";
       const duplicates = initialsMap[initial];
 
@@ -235,35 +282,99 @@ function renderChips(children, selectedChild, selectChild) {
   };
 
   const initialsDisplay = getInitials(children);
+  const visibleChildren = children.slice(0, 3);
+  const hiddenChildren = children.slice(3);
 
   return (
-    <div className="flex items-center gap-2.5">
-      {children.slice(0, 3).map((child, idx) => {
-        const isSelected = selectedChild?._id === child._id;
-        const displayText = initialsDisplay[child._id] || "?";
+    <>
+      <div className="flex items-center gap-2.5">
+        {visibleChildren.map((child, idx) => {
+          const isSelected = selectedChild?._id === child._id;
+          const displayText = initialsDisplay[child._id] || "?";
 
-        return (
-          <button
-            key={child._id}
-            onClick={() => {
-              console.log("Chip clicked - child:", child);
-              selectChild(child);
-            }}
-            className={`w-10 h-10 rounded-full grid place-items-center text-white text-[11px] font-semibold transition-all hover:scale-105 ${
-              isSelected
-                ? "ring-2 ring-white ring-offset-2 ring-offset-gray-800"
-                : ""
-            }`}
-            style={{
-              backgroundColor: palette[idx % palette.length],
-            }}
-            title={child.name}
-          >
-            {displayText}
-          </button>
-        );
-      })}
-      {/* Chevron is rendered in parent */}
-    </div>
+          return (
+            <button
+              key={child._id}
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("Chip clicked - child:", child);
+                selectChild(child);
+                setShowDropdown(false);
+              }}
+              className={`w-10 h-10 rounded-full grid place-items-center text-white text-[11px] font-semibold transition-all hover:scale-105 ${
+                isSelected
+                  ? "ring-2 ring-white ring-offset-2 ring-offset-gray-800"
+                  : ""
+              }`}
+              style={{
+                backgroundColor: palette[idx % palette.length],
+              }}
+              title={child.name}
+            >
+              {displayText}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Dropdown menu for additional children */}
+      {hiddenChildren.length > 0 && showDropdown && (
+        <div className="absolute top-14 left-6 right-6 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+          <div className="p-2">
+            <div className="text-xs text-gray-500 px-2 py-1 font-semibold">
+              All Children ({children.length})
+            </div>
+            {children.map((child, idx) => {
+              const isSelected = selectedChild?._id === child._id;
+              const displayText = initialsDisplay[child._id] || "?";
+
+              return (
+                <button
+                  key={child._id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log("Dropdown clicked - child:", child);
+                    selectChild(child);
+                    setShowDropdown(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors ${
+                    isSelected ? "bg-[#238D88] text-white" : ""
+                  }`}
+                >
+                  <div
+                    className="w-8 h-8 rounded-full grid place-items-center text-white text-[10px] font-semibold flex-shrink-0"
+                    style={{
+                      backgroundColor: palette[idx % palette.length],
+                    }}
+                  >
+                    {displayText}
+                  </div>
+                  <span
+                    className={`text-sm font-medium ${
+                      isSelected ? "text-white" : "text-gray-700"
+                    }`}
+                  >
+                    {child.name}
+                  </span>
+                  {isSelected && (
+                    <svg
+                      className="ml-auto w-4 h-4 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

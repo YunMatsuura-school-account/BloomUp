@@ -1,0 +1,242 @@
+# BloomUP Frontend Documentation
+
+## Overview
+Frontend built with React, Vite, React Router, and TailwindCSS for a family finance and child management application.
+
+---
+
+## Recent Changes & Features
+
+### AI Insights Loader Implementation (Latest)
+**Date:** Current Session
+**File Modified:** `src/components/AIInsights.jsx`
+
+
+---
+
+## Tech Stack & Libraries
+
+### Core Framework
+- **React** (`^18.3.1`): UI library for building components
+- **React DOM** (`^18.3.1`): React renderer for web
+- **Vite** (`^7.1.7`): Fast build tool and dev server
+
+### Routing
+- **React Router DOM** (`^7.9.4`): Client-side routing for navigation
+
+### Styling
+- **TailwindCSS** (`^3.4.14`): Utility-first CSS framework
+- **PostCSS** (`^8.5.6`): CSS transformer
+- **Autoprefixer** (`^10.4.21`): Adds vendor prefixes to CSS
+
+### Data Visualization
+- **Chart.js** (`^4.5.1`): Charting library
+- **React Chart.js 2** (`^5.3.1`): React wrapper for Chart.js
+
+### HTTP Requests
+- **Axios** (`^1.12.2`): Promise-based HTTP client for API calls
+
+### Environment Variables
+- **Dotenv** (`^17.2.3`): Loads environment variables from `.env` files
+
+### Development Dependencies
+- **ESLint** (`^9.36.0`): JavaScript/JSX linter
+- **@vitejs/plugin-react** (`^5.0.4`): Vite plugin for React
+- **@types/react** (`^19.1.16`): TypeScript types for React
+- **@types/react-dom** (`^19.1.9`): TypeScript types for React DOM
+- **eslint-plugin-react-hooks** (`^5.2.0`): ESLint rules for React Hooks
+- **eslint-plugin-react-refresh** (`^0.4.22`): ESLint plugin for React Refresh
+
+---
+
+## External Resources & APIs
+
+### Backend API
+- **Base URL:** Configured via `VITE_BACKEND_URL` environment variable
+- **Endpoints Used:**
+  - `/api/auth/login` - User authentication
+  - `/api/auth/signup` - User registration
+  - `/api/auth/me` - Get current user data
+  - `/api/users/:userId/children` - Child profile CRUD
+  - `/api/budget/*` - Budget management
+  - `/api/ai/insights/budget` - AI insights and suggestions
+  - `/api/articles/*` - Article management
+  - `/api/calendar/*` - Calendar events
+  - `/api/vaccinations/*` - Vaccination data
+
+### Authentication
+- **JWT (JSON Web Tokens):** Stored in localStorage as `accessToken`, `token`, or `authToken`
+- **Authorization Header:** `Bearer <token>` format
+
+---
+
+## Architecture
+
+### File Structure
+```
+frontend/
+├── src/
+│   ├── components/          # Reusable UI components
+│   │   ├── AIInsights.jsx    # AI insights with loader (RECENTLY UPDATED)
+│   │   ├── AuthGuard.jsx     # Authentication wrapper
+│   │   ├── Dashboard.jsx     # Main dashboard page
+│   │   ├── Budget.jsx        # Budget management
+│   │   └── ...
+│   ├── pages/                # Page components
+│   │   ├── Login.jsx
+│   │   ├── Signup.jsx
+│   │   ├── FamilySetup.jsx
+│   │   └── ...
+│   ├── layout/               # Layout components
+│   │   └── DashboardLayout.jsx
+│   ├── contexts/             # React Context providers
+│   │   └── ChildContext.jsx
+│   ├── App.jsx               # Main app with routes
+│   └── main.jsx              # Entry point
+├── public/                   # Static assets
+├── package.json              # Dependencies
+└── vite.config.js            # Vite configuration
+```
+
+### Key Components
+
+#### AuthGuard (`src/components/AuthGuard.jsx`)
+- Checks authentication status on route access
+- Fetches `/api/auth/me` to validate token
+- Redirects to `/login` if unauthenticated
+- Redirects to `/family-setup` if user has no children
+
+#### Dashboard (`src/components/Dashboard.jsx`)
+- Main dashboard page
+- Displays BudgetSummary, AIInsights, Calendar, UpcomingEvents, RecommendedArticles
+- Uses ChildContext for selected child state
+
+#### AIInsights (`src/components/AIInsights.jsx`)
+- Fetches AI-generated budget insights
+- **NEW:** Shows loading spinner while fetching data
+- Displays top spending category, suggestions, and predictions
+- Uses `useChild` context to get current user
+
+### Routing Structure
+```
+/ → Signup
+/login → Login
+/signup → Signup
+/family-setup → FamilySetup (protected)
+/add-child → AddChild (protected)
+/dashboard → Dashboard (protected)
+/dashboard/budget → Budget (protected)
+/dashboard/budget-setup → BudgetSetup (protected)
+/articles → Articles
+/calendar → Calendar
+```
+
+---
+
+## Environment Variables
+
+Create a `.env` file in the `frontend/` directory:
+
+```env
+VITE_BACKEND_URL=http://localhost:5000
+# Or your production backend URL
+```
+
+---
+
+## Development Setup
+
+### Installation
+```bash
+cd frontend
+npm install
+```
+
+### Run Development Server
+```bash
+npm run dev
+```
+
+### Build for Production
+```bash
+npm run build
+```
+
+### Lint Code
+```bash
+npm run lint
+```
+
+---
+
+## Notable Features
+
+### Authentication Flow
+1. User logs in → receives JWT token
+2. Token stored in localStorage
+3. `AuthGuard` validates token on protected routes
+4. All API requests include `Authorization: Bearer <token>` header
+
+### Global Fetch Interceptor
+- Located in `App.jsx`
+- Automatically attaches JWT token to all fetch requests
+- Handles 401/403 responses by clearing tokens and redirecting to login
+
+### State Management
+- React Context API (`ChildContext`) for global state (selected child, user data)
+- Local component state with `useState` hook
+
+### Styling Approach
+- TailwindCSS utility classes for styling
+- Custom CSS in `App.css` and `styles/articles.css`
+- Responsive design with Tailwind breakpoints
+
+---
+
+## For Developers
+
+### Adding New Features
+1. Create component in `src/components/` or `src/pages/`
+2. Add route in `src/App.jsx` if it's a new page
+3. Use `AuthGuard` wrapper for protected routes
+4. Follow existing patterns for API calls (use fetch with global interceptor)
+
+### Loading States
+- Use `useState` for loading state: `const [loading, setLoading] = useState(false)`
+- Show spinner pattern:
+  ```jsx
+  {loading ? (
+    <div className="flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#238D88]"></div>
+    </div>
+  ) : (
+    <Content />
+  )}
+  ```
+
+### API Calls
+- Use `window.fetch` (global interceptor handles auth headers)
+- Base URL from `import.meta.env.VITE_BACKEND_URL`
+- Include credentials: `credentials: "include"`
+- Handle errors with try-catch blocks
+
+---
+
+## Version Information
+
+- **Node Version:** Compatible with Node 16+
+- **Package Manager:** npm
+- **Build Tool:** Vite 7.1.7
+- **React Version:** 18.3.1
+
+---
+
+## Notes for Development Team
+
+- All developers should track package installations and updates in this file
+- When adding new dependencies, update this documentation
+- Follow existing code patterns for consistency
+- Use TailwindCSS classes instead of custom CSS when possible
+- Always include loading states for async operations
+- Test authentication flows after making changes
+

@@ -185,7 +185,7 @@ exports.uploadReceipt = async (req, res) => {
 
       for (const [category, data] of Object.entries(grouped)) {
         expenses.push({
-          date: receiptData.date || new Date().toISOString().split('T')[0],
+          date: receiptData.date || new Date().toISOString().split("T")[0],
           description: data.items.join(", "),
           category: category,
           quantity: data.quantity,
@@ -194,7 +194,7 @@ exports.uploadReceipt = async (req, res) => {
       }
     } else {
       expenses.push({
-        date: receiptData.date || new Date().toISOString().split('T')[0],
+        date: receiptData.date || new Date().toISOString().split("T")[0],
         description: `Purchase at ${receiptData.merchantName || "Unknown"}`,
         category: receiptData.suggestedCategory || "Other",
         quantity: 1,
@@ -212,7 +212,6 @@ exports.uploadReceipt = async (req, res) => {
         expenses: expenses,
       },
     });
-
   } catch (error) {
     console.error("Error processing receipt:", error);
     res.status(500).json({
@@ -240,7 +239,9 @@ exports.addManualExpense = async (req, res) => {
     const { amount, category, description, date, quantity } = req.body;
 
     if (!amount || !category) {
-      return res.status(400).json({ message: "Amount and category are required" });
+      return res
+        .status(400)
+        .json({ message: "Amount and category are required" });
     }
 
     // Parse date properly
@@ -320,10 +321,12 @@ exports.addManualExpense = async (req, res) => {
 exports.getBudgetOverview = async (req, res) => {
   try {
     const rawUserId = getUserId(req);
-    if (!rawUserId) return res.status(400).json({ message: "User ID required" });
+    if (!rawUserId)
+      return res.status(400).json({ message: "User ID required" });
 
     const userId = toObjectId(rawUserId);
-    if (!userId) return res.status(400).json({ message: "Invalid User ID format" });
+    if (!userId)
+      return res.status(400).json({ message: "Invalid User ID format" });
 
     // Get period
     const period = req.query.month && req.query.year 
@@ -546,8 +549,12 @@ exports.setBudget = async (req, res) => {
     const { total, categories } = req.body;
     const rawUserId = getUserId(req);
 
-    if (!rawUserId) return res.status(400).json({ message: "User ID required" });
-    if (total === undefined || isNaN(total)) return res.status(400).json({ message: "Provide a valid total budget amount." });
+    if (!rawUserId)
+      return res.status(400).json({ message: "User ID required" });
+    if (total === undefined || isNaN(total))
+      return res
+        .status(400)
+        .json({ message: "Provide a valid total budget amount." });
 
     const userId = toObjectId(rawUserId);
     if (!userId) return res.status(400).json({ message: "Invalid User ID format" });
@@ -605,7 +612,7 @@ exports.setBudget = async (req, res) => {
       allocatedAmount: parseFloat(cat.allocated) || 0,
       percentage: parseFloat(cat.percentage) || 0,
     }));
-    
+
     await CategoryAllocation.insertMany(allocations);
 
     const savedAllocations = await CategoryAllocation.find({ userId, budget: budget._id });
@@ -636,16 +643,16 @@ exports.setBudget = async (req, res) => {
       categories: savedAllocations.map(a => {
         const spentEntry = expensesByCategory.find(e => e._id === a.category);
         const spentAmount = spentEntry ? spentEntry.spent : 0;
-        
+
         return {
           name: a.category,
           allocated: a.allocatedAmount,
-          percentage: a.percentage || ((a.allocatedAmount / total) * 100).toFixed(2),
+          percentage:
+            a.percentage || ((a.allocatedAmount / total) * 100).toFixed(2),
           spent: spentAmount,
         };
       }),
     });
-
   } catch (error) {
     console.error("Error saving budget:", error);
     res.status(500).json({ message: error.message });

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import AvatarDropUpload from "../../components/AvatarDropUpload";
+import personIcon from "../../icons/person_icon.png";
 
 export default function ChildDashboard() {
   const { childId } = useParams();
@@ -28,6 +29,46 @@ export default function ChildDashboard() {
       age--;
     }
     return age;
+  };
+
+  const calculateMonth = (dateOfBirth) => {
+    if (!dateOfBirth) {
+      return null;
+    }
+    const birth = new Date(dateOfBirth);
+    const today = new Date();
+    const month = today.getMonth() - birth.getMonth();
+    return month;
+  };
+
+  const formatEventDate = (iso) => {
+    if (!iso || isNaN(new Date(iso))) {
+      return "";
+    }
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formatTimeRange = (startIso, endIso) => {
+    const start = startIso ? new Date(startIso) : null;
+    const end = endIso ? new Date(endIso) : null;
+    const t = (d) =>
+      d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    if (start && end) {
+      return `${t(start)} ~ ${t(end)}`;
+    }
+    if (start) {
+      return `${t(start)}`;
+    }
+    if (end) {
+      return `~ ${t(end)}`;
+    }
+    return "";
   };
 
   useEffect(() => {
@@ -147,11 +188,12 @@ export default function ChildDashboard() {
   }
 
   const age = calculateAge(child.dateOfBirth);
+  const month = calculateMonth(child.dateOfBirth);
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-[30px] text-white text-center">Child Dashboard</h1>
+    <div className="page-surface space-y-6">
+      <div className="flex items-center justify-center">
+        <h1 className="text-[30px] text-black text-center">Child Dashboard</h1>
       </div>
       <hr className="mt-3 mb-10 border-black/20" />
 
@@ -181,7 +223,9 @@ export default function ChildDashboard() {
           {age !== null ? `${age} years` : ""}
           {child.dateOfBirth ? " " : ""}
           {child.dateOfBirth
-            ? new Date(child.dateOfBirth).toLocaleDateString()
+            ? month == 1
+              ? `${month} month`
+              : `${month} months`
             : ""}
         </div>
       </div>
@@ -196,34 +240,48 @@ export default function ChildDashboard() {
             {eventErr ? eventErr : "No upcoming events"}
           </div>
         ) : (
-          events.map((ev) => (
-            <div
-              key={ev._id}
-              className="rounded-2xl bg-black/5 px-6 py-5 shadow-sm"
-            >
-              <div className="flex items-start justify-between text-sm text-black/60">
-                <span>
-                  {new Date(ev.startDate).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  ~{" "}
-                  {new Date(ev.endDate || ev.startDate).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
+          events.map((ev) => {
+            const headerDate = formatEventDate(
+              ev.startDate || ev.date || ev.start
+            );
+            const headerTime = formatTimeRange(
+              ev.startDate || ev.start,
+              ev.endDate || ev.end
+            );
+            const title =
+              ev?.title || ev?.name || ev?.name || "Untiltled Event";
+            const notes = ev?.notes || ev?.description || "";
+
+            return (
+              <div
+                key={ev._id}
+                className="rounded-2xl bg-black/5 px-6 py-5 shadow-sm"
+              >
+                <div className="flex items-center justify-between text-sm text-black/60">
+                  <span className="font-medium">{headerDate}</span>
+                  <span>{headerTime}</span>
+                </div>
+
+                <div className="mt-3 flex items-start gap-3">
+                  <div
+                    className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center"
+                    aria-hidden="true"
+                  >
+                    <img src={personIcon} alt="person icon" />
+                  </div>
+                </div>
+
+                <div className="flex-1">
+                  <div className="font-semibold text-black/90">{title}</div>
+                  {notes && (
+                    <p className="mt-1 text-sm text-black/60 line-blamp-2">
+                      {notes}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="mt-2 font-semibold text-black/90">
-                {ev.type || ev.title || ev.name || "Untitled Event"}
-              </div>
-              {ev.notes && (
-                <p className="mt-1 text-sm text-black/60 line-clamp-2">
-                  {ev.notes}
-                </p>
-              )}
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
