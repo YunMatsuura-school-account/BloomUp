@@ -371,12 +371,12 @@ export default function Settings() {
       <section className="rounded-2xl bg-gray-200/80 p-6 md:p-8 max-w-3xl mx-auto space-y-5 mt-6">
         <h2 className="text-center text-sm text-black/70">Notification</h2>
 
-        <ToggleRow
+        {/* <ToggleRow
           title="Email Notifications"
           description="Receive important updates"
           checked={emailNotification}
           onChange={setEmailNotification}
-        />
+        /> */}
         <ToggleRow
           title="Reminders"
           description="Get reminders for events"
