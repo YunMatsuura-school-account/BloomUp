@@ -21,17 +21,28 @@ const UpcomingEvents = ({ selectedChild }) => {
           localStorage.getItem("authToken") ||
           localStorage.getItem("accessToken");
 
+        console.log("Fetching events with params:", params.toString()); // Debug log
+
         const resp = await fetch(`${base}/api/calendar?${params.toString()}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
           credentials: "include",
         });
 
+        console.log("Response status:", resp.status); // Debug log
+
+
         let json = {};
         try {
           json = await resp.json();
-        } catch {}
+          console.log("Response data:", json); // Debug log
+        } catch (parseError) {
+          console.error("Failed to parse JSON:", parseError);
+        }
 
-        if (!resp.ok) throw new Error(json?.message || "Failed to load events");
+        if (!resp.ok) {
+          console.error("API Error:", json);
+          throw new Error(json?.message || `HTTP ${resp.status}: Failed to load events`);
+        }
 
         const future = (json.events || [])
           .filter((e) => e?.startDate && new Date(e.startDate) >= now)
@@ -39,7 +50,9 @@ const UpcomingEvents = ({ selectedChild }) => {
           .slice(0, 3);
         setEvents(future);
       } catch (e) {
+
         console.error('Error fetching upcoming events:', e);
+
         setEvents([]);
       } finally {
         setLoading(false);
@@ -53,7 +66,7 @@ const UpcomingEvents = ({ selectedChild }) => {
     if (!startISO) return "";
     const s = new Date(startISO);
     const e = endISO ? new Date(endISO) : null;
-    
+
     const formatDateTime = (d) => {
       const month = d.toLocaleString("en-US", { month: "short" });
       const day = String(d.getDate()).padStart(2, "0");
@@ -61,10 +74,10 @@ const UpcomingEvents = ({ selectedChild }) => {
       const minutes = String(d.getMinutes()).padStart(2, "0");
       const ampm = hours >= 12 ? 'PM' : 'AM';
       const displayHours = hours % 12 || 12;
-      
+
       return `${month} ${day} ${displayHours}:${minutes} ${ampm}`;
     };
-    
+
     return e ? `${formatDateTime(s)} ~ ${formatDateTime(e)}` : formatDateTime(s);
   };
 

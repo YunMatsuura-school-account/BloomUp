@@ -27,6 +27,7 @@ const vaccinationRoutes = require("./routes/vaccinationRoutes");
 const path = require("path");
 const uploadImageRoutes = require("./routes/uploadImageRoutes");
 
+
 app.use(express.json());
 
 app.use(
@@ -38,6 +39,7 @@ app.use(
 
 app.use("/api/calendar", calendarRoutes);
 app.use("/api", vaccinationRoutes);
+
 
 
 // COMMENTED OUT - STARTING FRESH
@@ -68,19 +70,23 @@ app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/users/:userId/children", childProfileRoutes);
-app.use("/api/calendar", calendarRoutes);
 app.use("/api/articles", articleRoutes);
 
+//For Reminders
 app.use('/api/reminders', reminderRoutes);
 
-app.use("/api/calendar", childrenRoutes);
+//
+//app.use("/api/calendar", childrenRoutes);
 
 // New budget route
 app.use("/api/budget", budgetRoutes);
-
-app.use("/api/user", userRoutes); 
-
+app.use("/api/user", userRoutes);
 app.use("/api/children", childrenRoutes);
+app.use("/api/calendar", calendarRoutes);
+
+// For Category
+const categoryRoutes = require('./routes/categoryRoutes');
+app.use('/api/categories', categoryRoutes);
 
 
 const PORT = process.env.PORT || 8888; // Form env file

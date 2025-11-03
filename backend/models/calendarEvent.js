@@ -1,7 +1,6 @@
 // backend/models/calendarEvent.js
 const mongoose = require('mongoose');
 
-
 const CalendarEventSchema = new mongoose.Schema({
   children: {
     type: [{
@@ -18,8 +17,6 @@ const CalendarEventSchema = new mongoose.Schema({
     index: true
   },
 
-
-
   title: {
     type: String,
     required: true,
@@ -28,7 +25,7 @@ const CalendarEventSchema = new mongoose.Schema({
 
   color: {
     type: String,
-    default: '#006F69'
+    default: '#006F69' // Keep default but don't require
   },
 
   category: {
@@ -79,4 +76,3 @@ const CalendarEventSchema = new mongoose.Schema({
 CalendarEventSchema.index({ startDate: 1 });
 
 module.exports = mongoose.model('CalendarEvent', CalendarEventSchema, 'CalendarEvents');
-
