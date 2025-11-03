@@ -14,14 +14,35 @@ const ArticleSingle = () => {
   const location = useLocation();
   const { id } = useParams();
 
-  const categories = ['Health', 'Education', 'Finances', 'Routines', 'Parenting'];
+  const categories = ['Health', 'Education', 'Finances', 'Routines', 'Parenting', 'Saved'];
+
+  const fromPage = location.state?.fromPage;
+  const fromCategory = location.state?.fromCategory;
+
+  const handleCategoryChange = (category) => {
+    if (category === 'Saved') {
+      navigate('/articles', { state: { filter: 'Saved' } });
+    } else {
+      navigate(`/articles/category/${category}`, { state: { category } });
+    }
+  };
 
   useEffect(() => {
     if (location.state?.article) {
-      setArticle(location.state.article);
-      setLoading(false);
-      fetchRelatedArticles(location.state.article._id);
-      checkIfSaved(location.state.article._id);
+      const stateArticle = location.state.article;
+      
+      // Check if we have full article data (has content) or just preview data
+      if (stateArticle.content) {
+        // Full article data available, use it
+        setArticle(stateArticle);
+        setLoading(false);
+        fetchRelatedArticles(stateArticle._id);
+        checkIfSaved(stateArticle._id);
+      } else {
+        // Only preview data (from related articles), fetch full data
+        console.log('Preview data only, fetching full article...');
+        fetchArticle(stateArticle._id);
+      }
     } else if (id) {
       fetchArticle(id);
     } else {
@@ -139,14 +160,48 @@ const ArticleSingle = () => {
   };
 
   const viewArticle = (selectedArticle) => {
-    navigate(`/articles/${selectedArticle._id}`, { state: { article: selectedArticle } });
+    // Pass complete article data with category context
+    navigate(`/articles/${selectedArticle._id}`, { 
+      state: { 
+        article: selectedArticle,
+        fromCategory: article?.category // Use current article's category
+      } 
+    });
     window.scrollTo(0, 0);
+  };
+
+  const handleGoBack = () => {
+    if (fromPage === 'saved') {
+      navigate('/articles', { state: { filter: 'Saved' } });
+    } else if (fromCategory) {
+      navigate(`/articles/category/${fromCategory}`, { 
+        state: { category: fromCategory },
+        replace: false
+      });
+    } else if (article && article.category) {
+      navigate(`/articles/category/${article.category}`, { 
+        state: { category: article.category },
+        replace: false
+      });
+    } else {
+      navigate(-1);
+    }
+  };
+
+  const getCurrentFilter = () => {
+    if (fromPage === 'saved') return 'Saved';
+    if (fromCategory) return fromCategory;
+    return article?.category;
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <ArticleHeader categories={categories} />
+        <ArticleHeader 
+          categories={categories}
+          currentFilter={getCurrentFilter()}
+          onFilterChange={handleCategoryChange}
+        />
         <div className="flex items-center justify-center h-96">
           <div className="text-gray-600 text-lg">Loading article...</div>
         </div>
@@ -157,7 +212,10 @@ const ArticleSingle = () => {
   if (!article) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <ArticleHeader categories={categories} />
+        <ArticleHeader 
+          categories={categories}
+          onFilterChange={handleCategoryChange}
+        />
         <div className="flex items-center justify-center h-96">
           <div className="text-gray-600 text-lg">Article not found</div>
         </div>
@@ -167,35 +225,48 @@ const ArticleSingle = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ArticleHeader categories={categories} />
+      <ArticleHeader 
+        categories={categories}
+        currentFilter={getCurrentFilter()}
+        onFilterChange={handleCategoryChange}
+      />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Category Header */}
-        <div className="mb-12 -mx-4 sm:-mx-6 lg:-mx-8">
-          <div 
-            className="relative h-64 sm:h-80 bg-cover bg-center"
-            style={{ backgroundImage: `url('${article.image}')` }}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-12">
+        <div className="flex gap-6 items-start">
+          {/* Go Back Button - Hidden on mobile, positioned to the left */}
+          <button
+            onClick={handleGoBack}
+            className="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg hover:bg-gray-100 transition-all duration-200 flex-shrink-0"
           >
-            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-              <h2 className="text-4xl sm:text-5xl font-bold text-white text-center">
-                {article.category}
-              </h2>
-            </div>
-          </div>
-        </div>
+            <svg 
+              className="w-5 h-5" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth="2" 
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Go Back
+          </button>
 
-        {/* Article Content */}
-        <article className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 sm:p-8">
-            <div className="flex items-center gap-3 mb-4">
-              <p className="text-sm text-gray-600 font-semibold uppercase">{article.category}</p>
-              {isSaved && <p className="text-sm text-amber-600 font-semibold uppercase">Saved</p>}
-            </div>
+          {/* Article Content */}
+          <article className="bg-white rounded-lg shadow-sm flex-1">
+            <div className="p-6 sm:p-8">
+              {/* Category and Saved Status */}
+              <div className="flex items-center gap-3 mb-4">
+                <p className="text-sm text-gray-600 font-semibold uppercase">{article.category}</p>
+                {isSaved && <p className="text-sm text-amber-600 font-semibold uppercase">Saved</p>}
+              </div>
 
             <div className="mb-6 pb-6 border-b border-gray-200">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex-1">
-                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 leading-tight">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 leading-tight">
                     {article.link ? (
                       <a href={article.link} target="_blank" rel="noopener noreferrer" className="hover:text-gray-700">
                         {article.title}
@@ -204,7 +275,7 @@ const ArticleSingle = () => {
                       article.title
                     )}
                   </h1>
-                  <p className="text-gray-700 leading-relaxed text-base">
+                  <p className="text-gray-700 leading-relaxed text-sm">
                     {article.description}
                   </p>
                 </div>
@@ -228,7 +299,7 @@ const ArticleSingle = () => {
                   </svg>
                 </button>
               </div>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-4 text-xs text-gray-600">
                 <span>By: {article.author || 'Staff Writer'}</span>
                 <span>•</span>
                 <span>{new Date(article.createdAt).toLocaleDateString('en-US', { 
@@ -254,7 +325,7 @@ const ArticleSingle = () => {
             </div>
 
             <div className="prose max-w-none">
-              <div className="text-gray-700 leading-relaxed text-base whitespace-pre-line">
+              <div className="text-gray-700 leading-relaxed text-sm whitespace-pre-line">
                 {article.content}
               </div>
             </div>
@@ -270,6 +341,7 @@ const ArticleSingle = () => {
             )}
           </div>
         </article>
+        </div>
 
         {/* Related Articles */}
         {relatedArticles.length > 0 && (

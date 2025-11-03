@@ -11,6 +11,7 @@ const budgetRoutes = require("./routes/budgetRoutes");
 const calendarRoutes = require("./routes/calendarRoutes");
 const articleRoutes = require("./routes/articleRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const reminderRoutes = require('./routes/reminderRoutes');
 
 const childrenRoutes = require("./routes/childrenRoutes");
 
@@ -69,6 +70,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/users/:userId/children", childProfileRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/articles", articleRoutes);
+
+app.use('/api/reminders', reminderRoutes);
 
 app.use("/api/calendar", childrenRoutes);
 
