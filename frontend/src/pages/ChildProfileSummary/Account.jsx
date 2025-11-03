@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import personIcon from "../../icons/person_icon.png";
 import pencilIcon from "../../icons/pencil_icon.png";
 import plusIcon from "../../icons/plus_icon.png";
-import Header from "../../components/Header";
 
 export default function Account() {
   const BASE = import.meta.env.VITE_BACKEND_URL;
@@ -80,7 +79,6 @@ export default function Account() {
 
   return (
     <div className=" page-surface">
-      <Header />
       <div className="p-6">
         {/**
          * Legacy top bar (bell + user buttons) kept commented for reference.
