@@ -29,10 +29,20 @@ const ArticleSingle = () => {
 
   useEffect(() => {
     if (location.state?.article) {
-      setArticle(location.state.article);
-      setLoading(false);
-      fetchRelatedArticles(location.state.article._id);
-      checkIfSaved(location.state.article._id);
+      const stateArticle = location.state.article;
+      
+      // Check if we have full article data (has content) or just preview data
+      if (stateArticle.content) {
+        // Full article data available, use it
+        setArticle(stateArticle);
+        setLoading(false);
+        fetchRelatedArticles(stateArticle._id);
+        checkIfSaved(stateArticle._id);
+      } else {
+        // Only preview data (from related articles), fetch full data
+        console.log('Preview data only, fetching full article...');
+        fetchArticle(stateArticle._id);
+      }
     } else if (id) {
       fetchArticle(id);
     } else {
@@ -150,7 +160,13 @@ const ArticleSingle = () => {
   };
 
   const viewArticle = (selectedArticle) => {
-    navigate(`/articles/${selectedArticle._id}`, { state: { article: selectedArticle } });
+    // Pass complete article data with category context
+    navigate(`/articles/${selectedArticle._id}`, { 
+      state: { 
+        article: selectedArticle,
+        fromCategory: article?.category // Use current article's category
+      } 
+    });
     window.scrollTo(0, 0);
   };
 

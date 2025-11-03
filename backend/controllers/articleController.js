@@ -221,7 +221,7 @@ exports.getRelatedArticles = async (req, res) => {
       status: 'published'
     })
       .limit(3)
-      .select('-content -__v')
+      .select('title description image category author viewCount createdAt')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
