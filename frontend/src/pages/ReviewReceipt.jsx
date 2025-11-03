@@ -151,9 +151,9 @@ export default function ReviewReceipt() {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-2xl font-semibold m-0 mb-2">Review and Edit Receipt</h2>
+                <h2 className="text-2xl font-semibold m-0 mb-2 font-sans">Review and Edit Receipt</h2>
                 {receiptInfo && (
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 font-sans">
                     <span className="font-medium">{receiptInfo.merchantName || "Unknown Merchant"}</span>
                     {receiptInfo.date && <span className="ml-3">• {receiptInfo.date}</span>}
                     {receiptInfo.totalAmount && (
@@ -171,7 +171,7 @@ export default function ReviewReceipt() {
             </div>
 
             {/* Table Header */}
-            <div className="grid grid-cols-[120px_2fr_140px_100px_120px_80px] gap-4 px-4 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600">
+            <div className="grid grid-cols-[120px_2fr_140px_100px_120px_80px] gap-4 px-4 py-3 bg-[#1a6d69] border-b border-gray-200 text-xs font-semibold text-white font-sans">
               <div>Date</div>
               <div>Description</div>
               <div>Category</div>
@@ -192,7 +192,7 @@ export default function ReviewReceipt() {
                     type="date"
                     value={expense.date}
                     onChange={(e) => handleChange(expense.id, "date", e.target.value)}
-                    className="px-3 py-2  text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="px-3 py-2  rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   />
 
                   {/* Description */}
@@ -201,14 +201,14 @@ export default function ReviewReceipt() {
                     value={expense.description}
                     onChange={(e) => handleChange(expense.id, "description", e.target.value)}
                     placeholder="Description"
-                    className="px-3 py-2  text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="px-3 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   />
 
                   {/* Category */}
                   <select
                     value={expense.category}
                     onChange={(e) => handleChange(expense.id, "category", e.target.value)}
-                    className="px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="px-3 py-2  rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   >
                     {categories.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -221,7 +221,7 @@ export default function ReviewReceipt() {
                     value={expense.quantity}
                     onChange={(e) => handleChange(expense.id, "quantity", e.target.value)}
                     min="1"
-                    className="px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="px-3 py-2 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   />
 
                   {/* Amount */}
@@ -231,7 +231,7 @@ export default function ReviewReceipt() {
                     value={expense.amount}
                     onChange={(e) => handleChange(expense.id, "amount", e.target.value)}
                     placeholder="0.00"
-                    className="px-3 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="px-3 py-2  rounded text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-numbers"
                   />
 
                   {/* Action Buttons */}
@@ -255,7 +255,7 @@ export default function ReviewReceipt() {
             <div className="px-4 py-3 border-b border-gray-200">
               <button
                 onClick={handleAddExpense}
-                className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center gap-2 bg-transparent border-none cursor-pointer"
+                className="text-[#238D88] hover:text-[#1a6d69] text-sm font-medium flex items-center gap-2 bg-transparent border-none cursor-pointer font-sans"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 5v14M5 12h14"/>
@@ -266,10 +266,10 @@ export default function ReviewReceipt() {
 
             {/* Summary */}
             <div className="px-4 py-4 bg-gray-50 rounded-lg mt-4 flex justify-between items-center">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 font-sans">
                 Total Items: <span className="font-semibold">{expenses.length}</span>
               </div>
-              <div className="text-lg font-semibold text-gray-800">
+              <div className="text-lg font-semibold text-gray-800 font-numbers">
                 Total: ${totalAmount.toFixed(2)}
               </div>
             </div>
@@ -279,14 +279,14 @@ export default function ReviewReceipt() {
               <button
                 onClick={() => navigate("/dashboard/budget")}
                 disabled={loading}
-                className="py-3 px-8 bg-gray-100 text-gray-700 border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+                className="py-3 px-8 bg-gray-100 text-gray-700 border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 font-sans"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={loading || expenses.every(exp => exp.amount === 0)}
-                className="py-3 px-8 bg-teal-500 text-white border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-teal-600 disabled:cursor-not-allowed disabled:bg-gray-400"
+                className="py-3 px-8 bg-[#238D88] text-white border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-[#1a6d69] disabled:cursor-not-allowed disabled:bg-gray-400 font-sans"
               >
                 {loading ? "Saving..." : `Save ${expenses.filter(e => e.amount > 0).length} Expense(s)`}
               </button>

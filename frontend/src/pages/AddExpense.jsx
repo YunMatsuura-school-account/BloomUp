@@ -129,7 +129,7 @@ export default function AddExpense() {
         />
         <div className="fixed inset-0 flex items-center justify-center z-[9999]">
           <div className="bg-white rounded-2xl p-8 shadow-2xl">
-            <p className="text-gray-600">Loading...</p>
+            <p className="text-gray-600 font-sans">Loading...</p>
           </div>
         </div>
       </>
@@ -144,11 +144,14 @@ export default function AddExpense() {
         onClick={() => navigate("/dashboard/budget")} 
       />
       
-      <div className="fixed inset-0 flex items-center justify-center z-[9999] p-5 pointer-events-none">
-        <div className="pointer-events-auto bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-8">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-semibold m-0">Add Expense</h2>
+      <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none">
+        <div className="pointer-events-auto bg-white rounded-2xl shadow-2xl w-full max-w-[901px] max-h-[90vh] overflow-y-auto">
+          {/* Mobile: 24px padding, Desktop: 48px vertical, 218px horizontal */}
+          <div className="flex flex-col items-center w-full px-6 py-8 md:px-[218px] md:py-12">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center w-full mb-8 md:mb-12">
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 font-sans">Add Expense</h2>
               <button
                 onClick={() => navigate("/dashboard/budget")}
                 className="bg-transparent border-none text-2xl cursor-pointer p-1 text-gray-600 hover:text-gray-800"
@@ -157,9 +160,10 @@ export default function AddExpense() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+            <form onSubmit={handleSubmit} className="w-full space-y-6 md:space-y-8">
+              {/* Date Field */}
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2 font-sans">
                   Date
                 </label>
                 <input
@@ -167,19 +171,20 @@ export default function AddExpense() {
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              {/* Category Field */}
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2 font-sans">
                   Category
                 </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                 >
                   {categories.length === 0 ? (
                     <option value="">No categories available</option>
@@ -194,12 +199,13 @@ export default function AddExpense() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              {/* Amount Field */}
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2 font-sans">
                   Amount
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-sans">
                     $
                   </span>
                   <input
@@ -209,13 +215,14 @@ export default function AddExpense() {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     required
-                    className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-numbers"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              {/* Quantity Field */}
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2 font-sans">
                   Quantity
                 </label>
                 <input
@@ -224,12 +231,13 @@ export default function AddExpense() {
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              {/* Description Field */}
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2 font-sans">
                   Description
                 </label>
                 <textarea
@@ -238,26 +246,27 @@ export default function AddExpense() {
                   onChange={(e) => setDescription(e.target.value)}
                   rows="3"
                   maxLength="100"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                 />
-                <div className="text-right text-xs text-gray-400 mt-1">
+                <div className="text-right text-xs text-gray-400 mt-1 font-sans">
                   {description.length}/100 characters
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-6 md:pt-8 w-full">
                 <button
                   type="button"
                   onClick={() => navigate("/dashboard/budget")}
                   disabled={loading}
-                  className="flex-1 py-3 px-6 bg-gray-100 text-gray-700 border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex-1 py-3 px-6 bg-gray-100 text-gray-700 border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 font-sans"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading || categories.length === 0}
-                  className="flex-1 py-3 px-6 bg-[#238D88] text-white border-none rounded-lg cursor-pointer text-sm font-medium disabled:cursor-not-allowed disabled:bg-gray-400"
+                  className="flex-1 py-3 px-6 bg-[#238D88] text-white border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-[#1a6d69] disabled:cursor-not-allowed disabled:bg-gray-400 font-sans"
                 >
                   {loading ? "Saving..." : "Save"}
                 </button>

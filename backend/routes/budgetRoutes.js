@@ -14,5 +14,6 @@ router.get('/expenses', verifyToken, budgetController.getAllExpenses); // NOW AF
 
 router.post('/upload-receipt', verifyToken, budgetController.uploadMiddleware, budgetController.uploadReceipt);
 router.post("/add-manual", verifyToken, budgetController.addManualExpense);
+router.get("/ai-insights", verifyToken, budgetController.getAIInsights);
 
 module.exports = router;

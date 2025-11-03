@@ -149,6 +149,21 @@ exports.uploadReceipt = async (req, res) => {
       max_tokens: 1000,
       temperature: 0.2,
     });
+    const usage = response.usage;
+console.log('\n TOKEN USAGE:');
+console.log('Prompt tokens:', usage.prompt_tokens);
+console.log('Completion tokens:', usage.completion_tokens);
+console.log('Total tokens:', usage.total_tokens);
+const inputCost = (usage.prompt_tokens / 1000000) * 0.150;
+const outputCost = (usage.completion_tokens / 1000000) * 0.600;
+const totalCost = inputCost + outputCost;
+console.log('Estimated cost: $' + totalCost.toFixed(6));
+// TOKEN USAGE:
+// Prompt tokens: 36978
+// Completion tokens: 406
+// Total tokens: 37384
+// Estimated cost: $0.005790
+    
 
     const content = response.choices[0].message.content;
     let receiptData;
@@ -794,7 +809,173 @@ exports.getWeeklySpending = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+// Get AI Insights & Suggestions
+exports.getAIInsights = async (req, res) => {
+  try {
+    const rawUserId = getUserId(req);
+    if (!rawUserId) {
+      return res.status(400).json({ message: "User ID required" });
+    }
 
+    const userId = toObjectId(rawUserId);
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid User ID format" });
+    }
+
+    const period = getCurrentPeriod();
+    const { startDate, endDate } = getPeriodDateRange(period.month, period.year);
+
+    // Get budget
+    const budget = await Budget.findOne({ 
+      userId, 
+      'period.month': period.month,
+      'period.year': period.year 
+    });
+
+    // Get expenses
+    const expenses = await Expense.find({ 
+      userId,
+      date: { $gte: startDate, $lte: endDate }
+    });
+
+    // Get allocations
+    const allocations = budget ? await CategoryAllocation.find({ userId, budget: budget._id }) : [];
+
+    // Calculate category spending
+    const categorySpending = {};
+    expenses.forEach(exp => {
+      if (!categorySpending[exp.category]) {
+        categorySpending[exp.category] = 0;
+      }
+      categorySpending[exp.category] += exp.amount;
+    });
+
+    // Prepare data for AI
+    const budgetData = {
+      totalBudget: budget ? budget.total : 0,
+      totalSpent: expenses.reduce((sum, exp) => sum + exp.amount, 0),
+      categories: allocations.map(alloc => {
+        const spent = categorySpending[alloc.category] || 0;
+        return {
+          name: alloc.category,
+          allocated: alloc.allocatedAmount,
+          spent: spent,
+          percentage: alloc.allocatedAmount > 0 ? ((spent / alloc.allocatedAmount) * 100).toFixed(1) : 0
+        };
+      }),
+      recentExpenses: expenses.slice(0, 10).map(exp => ({
+        category: exp.category,
+        amount: exp.amount,
+        description: exp.merchantName,
+        date: exp.date
+      }))
+    };
+
+    // Create prompt for OpenAI
+    const prompt = `Analyze this user's budget and spending data and provide actionable insights:
+
+Budget Overview:
+- Total Budget: $${budgetData.totalBudget}
+- Total Spent: $${budgetData.totalSpent}
+- Remaining: $${budgetData.totalBudget - budgetData.totalSpent}
+
+Category Breakdown:
+${budgetData.categories.map(cat => 
+  `- ${cat.name}: Allocated $${cat.allocated}, Spent $${cat.spent} (${cat.percentage}%)`
+).join('\n')}
+
+Recent Expenses:
+${budgetData.recentExpenses.map(exp => 
+  `- ${exp.category}: $${exp.amount} at ${exp.description}`
+).join('\n')}
+
+Provide insights in this exact JSON format:
+{
+  "immediateAlerts": [
+    {
+      "title": "Alert title",
+      "message": "Main alert message",
+      "suggestion": "Actionable suggestion"
+    }
+  ],
+  "budgetAlerts": [
+    {
+      "title": "Budget alert title",
+      "message": "Budget status message",
+      "suggestion": "What to do"
+    }
+  ],
+  "predictiveAlerts": [
+    {
+      "title": "Prediction title",
+      "message": "Future cost prediction",
+      "suggestion": "How to prepare"
+    }
+  ],
+  "smartShopping": [
+    {
+      "title": "Shopping tip title",
+      "message": "Shopping opportunity or advice",
+      "suggestion": "Action to take"
+    }
+  ]
+}
+
+Rules:
+- Only include alerts/suggestions that are relevant and actionable
+- Be specific with amounts and categories from the data
+- If a category is over budget, include it in immediateAlerts
+- If a category is at 80%+ of budget, include it in budgetAlerts
+- Provide practical, money-saving suggestions
+- If everything is good, provide 1-2 positive reinforcement messages
+- Keep messages concise and clear`;
+
+    // Call OpenAI
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a financial advisor AI that provides clear, actionable budget insights. Always respond with valid JSON only."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      max_tokens: 1500,
+      temperature: 0.7,
+      response_format: { type: "json_object" }
+    });
+
+    // Log token usage
+    const usage = response.usage;
+    console.log('\n📊 AI INSIGHTS TOKEN USAGE:');
+    console.log('Prompt tokens:', usage.prompt_tokens);
+    console.log('Completion tokens:', usage.completion_tokens);
+    console.log('Total tokens:', usage.total_tokens);
+    const inputCost = (usage.prompt_tokens / 1000000) * 0.150;
+    const outputCost = (usage.completion_tokens / 1000000) * 0.600;
+    const totalCost = inputCost + outputCost;
+    console.log('Estimated cost: $' + totalCost.toFixed(6));
+    console.log('---\n');
+
+    const insights = JSON.parse(response.choices[0].message.content);
+
+    res.json({
+      insights: insights,
+      hasData: budget !== null && expenses.length > 0,
+      generatedAt: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error("Error generating AI insights:", error);
+    res.status(500).json({ 
+      message: "Failed to generate insights",
+      error: error.message 
+    });
+  }
+};
 // Middleware export
 exports.uploadMiddleware = upload.single("receipt");
 
@@ -810,4 +991,5 @@ module.exports = {
   getWeeklySpending: exports.getWeeklySpending,
   uploadMiddleware: exports.uploadMiddleware,
   getExpensesByYear: exports.getExpensesByYear,
+   getAIInsights: exports.getAIInsights, 
 };

@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 function BudgetSetup({ onClose }) {
   const [totalBudget, setTotalBudget] = useState("");
   const [mode, setMode] = useState("dollar");
   const [categories, setCategories] = useState([
-    { id: 1, name: "Medical", allocated: 0, percentage: 0, spent: 0, color: "#4CAF50" },
+    { id: 1, name: "Medical", allocated: 0, percentage: 0, spent: 0, color: "#6CC31F" },
     { id: 2, name: "Education", allocated: 0, percentage: 0, spent: 0, color: "#2196F3" },
-    { id: 3, name: "Consumable", allocated: 0, percentage: 0, spent: 0, color: "#FF9800" },
-    { id: 4, name: "Other", allocated: 0, percentage: 0, spent: 0, color: "#9E9E9E" }
+    { id: 3, name: "Consumable", allocated: 0, percentage: 0, spent: 0, color: "#F39D08" },
+    { id: 4, name: "Other", allocated: 0, percentage: 0, spent: 0, color: "#A3A3A3" }
   ]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -18,9 +18,6 @@ function BudgetSetup({ onClose }) {
   
   const API_URL = "http://localhost:8888/api/budget";
   const getToken = () => localStorage.getItem("accessToken");
-
-  // Custom brand color
-  const brandColor = "#238D88";
 
   useEffect(() => {
     const fetchExistingBudget = async () => {
@@ -269,11 +266,11 @@ function BudgetSetup({ onClose }) {
 
   if (fetching) {
     return (
-      <div className="fixed inset-0 z-[100] flex" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div className="fixed inset-0 z-[100] flex font-['DM_Sans']">
         <div className="hidden md:block md:w-[300px]" />
         <div className="flex-1 bg-black bg-opacity-50 overflow-y-auto flex items-center justify-center p-4">
           <div className="bg-white rounded-xl p-8 text-center">
-            <div className="text-gray-600">Loading budget data...</div>
+            <div className="text-[#737373] text-[14px]">Loading budget data...</div>
           </div>
         </div>
       </div>
@@ -281,45 +278,41 @@ function BudgetSetup({ onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="fixed inset-0 z-[100] flex font-['DM_Sans']">
       <div className="hidden md:block md:w-[300px]" />
       
       <div className="flex-1 bg-black bg-opacity-50 overflow-y-auto flex items-start justify-center p-4">
-        <div className="bg-white flex flex-col items-start gap-5 p-[48px_46px] w-[1034px] rounded-[10px] shadow-md">
+        <div className="bg-white flex flex-col items-start gap-5 p-12 w-full max-w-[1034px] rounded-[10px] shadow-lg">
 
-          <h2 className="text-xl font-semibold text-gray-800 mb-1">Set your overall Budget</h2>
-          <p className="text-gray-600 text-sm mb-5">
+          <h2 className="text-[20px] font-semibold text-[#262626] mb-1">Set your overall Budget</h2>
+          <p className="text-[#525252] text-[14px] mb-5">
             Enter the total amount you want to set budget for this period
           </p>
 
           {error && (
-            <div className="px-4 py-3 rounded-lg mb-4 text-sm bg-red-50 text-red-600 border border-red-200">
+            <div className="px-4 py-3 rounded-lg mb-4 text-[14px] bg-red-50 text-red-600 border border-red-200 w-full">
               {error}
             </div>
           )}
 
-          <div>
+          <div className="w-full">
             <div className="mb-6">
-              <div className="relative flex items-center gap-4">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base text-gray-600 z-10">
-                  $
-                </span>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  value={totalBudget}
-                  onChange={(e) => setTotalBudget(e.target.value)}
-                  step="0.01"
-                  min="0"
-                  disabled={loading}
-                  className="flex w-[665px] items-center px-[30px] pr-[561px] py-[11px] rounded-[15px] border border-gray-300 text-[20px] font-[500] leading-[26px] text-black outline-none"
-                  style={{ 
-                    fontFamily: 'Inter, system-ui, sans-serif',
-                    boxShadow: 'none'
-                  }}
-                  onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${brandColor}`}
-                  onBlur={(e) => e.target.style.boxShadow = 'none'}
-                />
+              <div className="relative flex items-center gap-4 flex-wrap">
+                <div className="relative flex-1 min-w-[300px]">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-[#525252] z-10 font-['Urbanist']">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    value={totalBudget}
+                    onChange={(e) => setTotalBudget(e.target.value)}
+                    step="0.01"
+                    min="0"
+                    disabled={loading}
+                    className="w-full pl-8 pr-4 py-3 rounded-[15px] border border-[#D4D4D4] text-[20px] font-medium text-black outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-['Urbanist']"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -328,13 +321,7 @@ function BudgetSetup({ onClose }) {
                       setTimeout(() => setError(null), 3000);
                     }
                   }}
-                  className="flex justify-center items-center w-[172px] h-[48px] px-[136px] py-[15px] gap-[10px] rounded-[15px] text-white text-[16px] font-[600] leading-[22.4px] cursor-pointer transition-opacity"
-                  style={{ 
-                    backgroundColor: brandColor,
-                    fontFamily: 'Inter, system-ui, sans-serif'
-                  }}
-                  onMouseEnter={(e) => e.target.style.opacity = '0.9'}
-                  onMouseLeave={(e) => e.target.style.opacity = '1'}
+                  className="flex justify-center items-center px-8 py-3 rounded-[15px] bg-[#238D88] hover:bg-[#1a6d69] text-white text-[16px] font-semibold cursor-pointer transition-colors border-none"
                 >
                   Set Budget
                 </button>
@@ -343,7 +330,7 @@ function BudgetSetup({ onClose }) {
 
             <div className="mb-5">
               <div className="flex justify-end items-center gap-4">
-                <span className="text-sm font-medium text-gray-600">Mode:</span>
+                <span className="text-[14px] font-medium text-[#525252]">Mode:</span>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input
                     type="radio"
@@ -351,10 +338,9 @@ function BudgetSetup({ onClose }) {
                     value="dollar"
                     checked={mode === "dollar"}
                     onChange={(e) => setMode(e.target.value)}
-                    className="cursor-pointer"
-                    style={{ accentColor: brandColor }}
+                    className="cursor-pointer accent-[#238D88]"
                   />
-                  <span className="text-sm text-gray-800">$</span>
+                  <span className="text-[14px] text-[#262626] font-['Urbanist']">$</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input
@@ -363,52 +349,48 @@ function BudgetSetup({ onClose }) {
                     value="percentage"
                     checked={mode === "percentage"}
                     onChange={(e) => setMode(e.target.value)}
-                    className="cursor-pointer"
-                    style={{ accentColor: brandColor }}
+                    className="cursor-pointer accent-[#238D88]"
                   />
-                  <span className="text-sm text-gray-800">%</span>
+                  <span className="text-[14px] text-[#262626]">%</span>
                 </label>
               </div>
             </div>
 
             <div className="mb-6">
-              <h3 className="text-base font-semibold text-gray-800 mb-4">
+              <h3 className="text-[16px] font-semibold text-[#262626] mb-4">
                 Define your budget by category
               </h3>
 
               <div className="mb-5">
                 <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-800">Total assigned</span>
-                  <span className="text-sm font-semibold text-gray-800">
+                  <span className="text-[14px] font-medium text-[#262626]">Total assigned</span>
+                  <span className="text-[14px] font-semibold text-[#262626] font-['Urbanist']">
                     ${parseFloat(totalBudget || 0).toFixed(2)}
                   </span>
                 </div>
-                <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
+                <div className="w-full h-2 bg-[#E5E5E5] rounded overflow-hidden">
                   <div 
-                    className="h-full transition-all duration-300 rounded"
-                    style={{ 
-                      width: `${Math.min(totalPercentage, 100)}%`,
-                      backgroundColor: brandColor
-                    }}
+                    className="h-full transition-all duration-300 rounded bg-[#238D88]"
+                    style={{ width: `${Math.min(totalPercentage, 100)}%` }}
                   />
                 </div>
                 <div className="flex justify-between items-center mt-1">
-                  <div className="text-xs text-gray-600">
+                  <div className="text-[12px] text-[#525252]">
                     {totalPercentage >= 100 ? (
                       <>
-                        <span className="font-medium">Assigned:</span> {totalPercentage.toFixed(1)}%
+                        <span className="font-medium">Assigned:</span> <span className="font-['Urbanist']">{totalPercentage.toFixed(1)}%</span>
                       </>
                     ) : (
                       <>
-                        <span className="font-medium">Remaining:</span> {(100 - totalPercentage).toFixed(1)}%
+                        <span className="font-medium">Remaining:</span> <span className="font-['Urbanist']">{(100 - totalPercentage).toFixed(1)}%</span>
                       </>
                     )}
                   </div>
-                  <div className="text-xs font-semibold">
+                  <div className="text-[12px] font-semibold">
                     {totalPercentage > 100 ? (
                       <span className="text-red-500">Over Budget</span>
                     ) : totalPercentage === 100 ? (
-                      <span className="text-green-500 flex items-center gap-1">
+                      <span className="text-[#6CC31F] flex items-center gap-1">
                         ✓ All Budget Assigned
                       </span>
                     ) : null}
@@ -420,13 +402,7 @@ function BudgetSetup({ onClose }) {
                 <button
                   type="button"
                   onClick={() => setShowAddCategory(true)}
-                  className="w-full py-2.5 bg-gray-100 rounded-lg text-sm font-medium mb-4 border border-dashed transition-colors"
-                  style={{ 
-                    color: brandColor,
-                    borderColor: brandColor
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f9fafb'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                  className="w-full py-2.5 bg-[#F5F5F5] hover:bg-[#FAFAFA] rounded-lg text-[14px] font-medium mb-4 border border-dashed border-[#238D88] text-[#238D88] transition-colors cursor-pointer"
                 >
                   + Add New Category
                 </button>
@@ -445,18 +421,12 @@ function BudgetSetup({ onClose }) {
                         addCategory(e);
                       }
                     }}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm outline-none"
-                    style={{ boxShadow: 'none' }}
-                    onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${brandColor}`}
-                    onBlur={(e) => e.target.style.boxShadow = 'none'}
+                    className="flex-1 px-3 py-2 border border-[#D4D4D4] rounded-md text-[14px] outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent"
                   />
                   <button 
                     type="button" 
                     onClick={addCategory}
-                    className="px-4 py-2 text-white rounded-md text-sm font-medium transition-opacity"
-                    style={{ backgroundColor: brandColor }}
-                    onMouseEnter={(e) => e.target.style.opacity = '0.9'}
-                    onMouseLeave={(e) => e.target.style.opacity = '1'}
+                    className="px-4 py-2 bg-[#238D88] hover:bg-[#1a6d69] text-white rounded-md text-[14px] font-medium transition-colors border-none cursor-pointer"
                   >
                     Add
                   </button>
@@ -466,7 +436,7 @@ function BudgetSetup({ onClose }) {
                       setShowAddCategory(false);
                       setNewCategoryName("");
                     }}
-                    className="px-4 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
+                    className="px-4 py-2 bg-[#525252] hover:bg-[#404040] text-white rounded-md text-[14px] font-medium transition-colors border-none cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -475,33 +445,31 @@ function BudgetSetup({ onClose }) {
 
               <div className="flex flex-col gap-3">
                 {categories.map((category) => {
-                  const spentPercentage = category.allocated > 0 ? (category.spent / category.allocated) * 100 : 0;
                   const allocationPercentage = category.percentage;
 
                   return (
-                    <div key={category.id} className="bg-gray-100 rounded-lg p-3 border border-gray-200">
-                      <div className="flex items-center gap-3">
+                    <div key={category.id} className="bg-[#F5F5F5] rounded-lg p-3 border border-[#E5E5E5]">
+                      <div className="flex items-center gap-3 flex-wrap">
                         
-                        <div className="flex-1">
-                          <div className="text-sm font-semibold text-gray-800 mb-0.5">
+                        <div className="flex-1 min-w-[150px]">
+                          <div className="text-[14px] font-semibold text-[#262626] mb-0.5">
                             {category.name}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-[12px] text-[#737373] font-['Urbanist']">
                             ${category.allocated.toFixed(2)} allocated
                           </div>
                         </div>
 
                         <div 
-                          className="flex-1 h-3 bg-gray-200 rounded overflow-hidden relative mt-1 cursor-pointer"
+                          className="flex-1 h-3 bg-[#E5E5E5] rounded overflow-hidden relative cursor-pointer min-w-[120px]"
                           onMouseDown={(e) => startDragging(category.id, e, e.currentTarget)}
                           style={{ userSelect: 'none' }}
                           title="Drag to allocate budget"
                         >
                           <div
-                            className="h-full rounded transition-all duration-150"
+                            className="h-full rounded transition-all duration-150 bg-[#238D88]"
                             style={{ 
-                              width: `${Math.min(allocationPercentage, 100)}%`, 
-                              backgroundColor: brandColor,
+                              width: `${Math.min(allocationPercentage, 100)}%`,
                               opacity: draggingCategory === category.id ? 0.8 : 1
                             }}
                           />
@@ -517,12 +485,9 @@ function BudgetSetup({ onClose }) {
                               step={mode === "dollar" ? "0.01" : "0.1"}
                               min="0"
                               max={mode === "percentage" ? "100" : undefined}
-                              className="w-full pr-6 pl-2 py-1.5 border border-gray-300 rounded-md text-sm text-right outline-none"
-                              style={{ boxShadow: 'none' }}
-                              onFocus={(e) => e.target.style.boxShadow = `0 0 0 2px ${brandColor}`}
-                              onBlur={(e) => e.target.style.boxShadow = 'none'}
+                              className="w-full pr-6 pl-2 py-1.5 border border-[#D4D4D4] rounded-md text-[14px] text-right outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-['Urbanist']"
                             />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-600">
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[12px] text-[#525252]">
                               {mode === "percentage" ? "%" : "$"}
                             </span>
                           </div>
@@ -531,9 +496,9 @@ function BudgetSetup({ onClose }) {
                             type="button"
                             onClick={() => removeCategory(category.id)}
                             disabled={category.id <= 4}
-                            className={`w-8 h-8 rounded-md flex items-center justify-center ${
+                            className={`w-8 h-8 rounded-md flex items-center justify-center border-none transition-colors ${
                               category.id <= 4 
-                                ? 'bg-gray-100 cursor-not-allowed opacity-40' 
+                                ? 'bg-[#F5F5F5] cursor-not-allowed opacity-40' 
                                 : 'bg-red-50 hover:bg-red-100 cursor-pointer'
                             }`}
                           >
@@ -553,7 +518,7 @@ function BudgetSetup({ onClose }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-3 bg-gray-200 text-gray-600 rounded-lg text-base font-medium hover:bg-gray-300 transition-colors"
+                className="flex-1 py-3 bg-[#E5E5E5] hover:bg-[#D4D4D4] text-[#525252] rounded-lg text-[16px] font-medium transition-colors border-none cursor-pointer"
               >
                 Cancel
               </button>
@@ -561,18 +526,7 @@ function BudgetSetup({ onClose }) {
                 type="button"
                 onClick={handleSubmit}
                 disabled={loading || !totalBudget || totalAssigned > parseFloat(totalBudget)}
-                className="flex-1 py-3 rounded-lg text-base font-medium transition-opacity"
-                style={{
-                  backgroundColor: (loading || !totalBudget || totalAssigned > parseFloat(totalBudget)) ? '#d1d5db' : brandColor,
-                  color: 'white',
-                  cursor: (loading || !totalBudget || totalAssigned > parseFloat(totalBudget)) ? 'not-allowed' : 'pointer'
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading && totalBudget && totalAssigned <= parseFloat(totalBudget)) {
-                    e.target.style.opacity = '0.9';
-                  }
-                }}
-                onMouseLeave={(e) => e.target.style.opacity = '1'}
+                className="flex-1 py-3 rounded-lg text-[16px] font-medium transition-colors border-none text-white disabled:bg-[#D4D4D4] disabled:cursor-not-allowed enabled:bg-[#238D88] enabled:hover:bg-[#1a6d69] enabled:cursor-pointer"
               >
                 {loading ? "Saving..." : "Save"}
               </button>
