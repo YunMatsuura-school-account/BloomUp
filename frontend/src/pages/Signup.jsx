@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogoBloomUpWhite } from "../icons";
+import { NewLogoBloomUpWhite } from "../icons";
 // require("dotenv").config();
 // import dotenv from "dotenv";
 export default function Signup() {
@@ -38,7 +38,14 @@ export default function Signup() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, name, password, country, state, familyName: lastName }),
+          body: JSON.stringify({
+            email,
+            name,
+            password,
+            country,
+            state,
+            familyName: lastName,
+          }),
         }
       );
       const data = await res.json();
@@ -75,7 +82,7 @@ export default function Signup() {
 
         {/* Logo */}
         <div className="absolute left-[40px] top-[50px] z-10">
-          <LogoBloomUpWhite width={132} height={64} />
+          <NewLogoBloomUpWhite width={220} height={88} />
         </div>
 
         {/* Marketing Text */}

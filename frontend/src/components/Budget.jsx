@@ -1,23 +1,39 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
+import Header from "./Header";
 
 // Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 function Budget() {
   const [overview, setOverview] = useState({
     total: 0,
     spent: 0,
     remaining: 0,
-    categories: []
+    categories: [],
   });
   const [expenses, setExpenses] = useState([]);
   const [monthlySpending, setMonthlySpending] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
-  const [selectedTimeframe, setSelectedTimeframe] = useState('Monthly');
+  const [selectedTimeframe, setSelectedTimeframe] = useState("Monthly");
   const [showTimeframeMenu, setShowTimeframeMenu] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,15 +60,25 @@ function Budget() {
       calculateMonthlySpending();
     } else {
       // Set empty data if no expenses
-      setMonthlySpending(Array(12).fill(0).map((_, index) => ({
-        month: index,
-        spent: 0,
-        withinBudget: 0,
-        overBudget: 0,
-        monthlyBudget: overview.total || 0
-      })));
+      setMonthlySpending(
+        Array(12)
+          .fill(0)
+          .map((_, index) => ({
+            month: index,
+            spent: 0,
+            withinBudget: 0,
+            overBudget: 0,
+            monthlyBudget: overview.total || 0,
+          }))
+      );
     }
-  }, [expenses, overview.total, overview.categories, selectedCategory, selectedTimeframe]);
+  }, [
+    expenses,
+    overview.total,
+    overview.categories,
+    selectedCategory,
+    selectedTimeframe,
+  ]);
 
   const fetchBudgetOverview = async () => {
     try {
@@ -60,7 +86,7 @@ function Budget() {
       setError(null);
 
       const token = getToken();
-      
+
       if (!token) {
         navigate("/login");
         return;
@@ -69,9 +95,9 @@ function Budget() {
       const response = await fetch(`${API_URL}/overview`, {
         method: "GET",
         headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
@@ -101,7 +127,7 @@ function Budget() {
   const fetchExpenses = async () => {
     try {
       const token = getToken();
-      
+
       if (!token) {
         return;
       }
@@ -109,9 +135,9 @@ function Budget() {
       const response = await fetch(`${API_URL}/expenses`, {
         method: "GET",
         headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (response.ok) {
@@ -125,7 +151,7 @@ function Budget() {
 
   // Calculate monthly spending for the current year
   const calculateMonthlySpending = () => {
-    if (selectedTimeframe === 'Weekly') {
+    if (selectedTimeframe === "Weekly") {
       calculateWeeklySpending();
     } else {
       calculateMonthlySpendingData();
@@ -134,47 +160,56 @@ function Budget() {
 
   const calculateMonthlySpendingData = () => {
     const currentYear = new Date().getFullYear();
-    
+
     // Get allocated budget for selected category or total budget for 'All'
     let monthlyBudget = overview.total || 0;
-    if (selectedCategory !== 'All' && overview.categories && overview.categories.length > 0) {
-      const categoryData = overview.categories.find(cat => cat.name === selectedCategory);
-      monthlyBudget = categoryData ? (categoryData.allocated || 0) : 0;
+    if (
+      selectedCategory !== "All" &&
+      overview.categories &&
+      overview.categories.length > 0
+    ) {
+      const categoryData = overview.categories.find(
+        (cat) => cat.name === selectedCategory
+      );
+      monthlyBudget = categoryData ? categoryData.allocated || 0 : 0;
     }
-    
+
     // Initialize 12 months with 0 spending
     const months = Array(12).fill(0);
-    
+
     // Filter expenses by category if not 'All'
-    const filteredExpenses = selectedCategory === 'All' 
-      ? expenses 
-      : expenses.filter(exp => exp.category === selectedCategory);
-    
+    const filteredExpenses =
+      selectedCategory === "All"
+        ? expenses
+        : expenses.filter((exp) => exp.category === selectedCategory);
+
     // Sum up expenses by month
-    filteredExpenses.forEach(expense => {
+    filteredExpenses.forEach((expense) => {
       const expenseDate = new Date(expense.date);
       const expenseYear = expenseDate.getFullYear();
-      
+
       if (expenseYear === currentYear) {
         const monthIndex = expenseDate.getMonth();
         months[monthIndex] += expense.amount || 0;
       }
     });
-    
+
     // Create monthly data with budget comparison
     const monthlyData = months.map((spent, index) => {
-      const withinBudget = monthlyBudget > 0 ? Math.min(spent, monthlyBudget) : spent;
-      const overBudget = monthlyBudget > 0 ? Math.max(0, spent - monthlyBudget) : 0;
-      
+      const withinBudget =
+        monthlyBudget > 0 ? Math.min(spent, monthlyBudget) : spent;
+      const overBudget =
+        monthlyBudget > 0 ? Math.max(0, spent - monthlyBudget) : 0;
+
       return {
         month: index,
         spent,
         withinBudget,
         overBudget,
-        monthlyBudget
+        monthlyBudget,
       };
     });
-    
+
     setMonthlySpending(monthlyData);
   };
 
@@ -182,169 +217,202 @@ function Budget() {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth();
-    
+
     // Get allocated budget for selected category or total budget for 'All'
     let totalBudget = overview.total || 0;
-    if (selectedCategory !== 'All' && overview.categories && overview.categories.length > 0) {
-      const categoryData = overview.categories.find(cat => cat.name === selectedCategory);
-      totalBudget = categoryData ? (categoryData.allocated || 0) : 0;
+    if (
+      selectedCategory !== "All" &&
+      overview.categories &&
+      overview.categories.length > 0
+    ) {
+      const categoryData = overview.categories.find(
+        (cat) => cat.name === selectedCategory
+      );
+      totalBudget = categoryData ? categoryData.allocated || 0 : 0;
     }
-    
+
     // Weekly budget (divide monthly budget by ~4 weeks)
     const weeklyBudget = totalBudget / 4;
-    
+
     // Initialize 4 weeks with 0 spending
     const weeks = Array(4).fill(0);
-    
+
     // Filter expenses by category if not 'All'
-    const filteredExpenses = selectedCategory === 'All' 
-      ? expenses 
-      : expenses.filter(exp => exp.category === selectedCategory);
-    
+    const filteredExpenses =
+      selectedCategory === "All"
+        ? expenses
+        : expenses.filter((exp) => exp.category === selectedCategory);
+
     // Sum up expenses by week for current month
-    filteredExpenses.forEach(expense => {
+    filteredExpenses.forEach((expense) => {
       const expenseDate = new Date(expense.date);
-      
-      if (expenseDate.getFullYear() === currentYear && expenseDate.getMonth() === currentMonth) {
+
+      if (
+        expenseDate.getFullYear() === currentYear &&
+        expenseDate.getMonth() === currentMonth
+      ) {
         const dayOfMonth = expenseDate.getDate();
         const weekIndex = Math.min(Math.floor((dayOfMonth - 1) / 7), 3); // 0-3 weeks
         weeks[weekIndex] += expense.amount || 0;
       }
     });
-    
+
     // Create weekly data with budget comparison
     const weeklyData = weeks.map((spent, index) => {
-      const withinBudget = weeklyBudget > 0 ? Math.min(spent, weeklyBudget) : spent;
-      const overBudget = weeklyBudget > 0 ? Math.max(0, spent - weeklyBudget) : 0;
-      
+      const withinBudget =
+        weeklyBudget > 0 ? Math.min(spent, weeklyBudget) : spent;
+      const overBudget =
+        weeklyBudget > 0 ? Math.max(0, spent - weeklyBudget) : 0;
+
       return {
         week: index,
         spent,
         withinBudget,
         overBudget,
-        weeklyBudget
+        weeklyBudget,
       };
     });
-    
+
     setMonthlySpending(weeklyData);
   };
 
   // Prepare Chart Data for monthly spending
   const getChartData = () => {
-    if (selectedTimeframe === 'Weekly') {
-      const weekLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-      
+    if (selectedTimeframe === "Weekly") {
+      const weekLabels = ["Week 1", "Week 2", "Week 3", "Week 4"];
+
       if (monthlySpending.length === 0) {
         return {
           labels: weekLabels,
           datasets: [
             {
-              label: 'Within Budget',
+              label: "Within Budget",
               data: Array(4).fill(0),
-              backgroundColor: 'rgba(34, 197, 94, 0.8)',
+              backgroundColor: "rgba(34, 197, 94, 0.8)",
               borderRadius: 6,
               borderSkipped: false,
             },
             {
-              label: 'Over Budget',
+              label: "Over Budget",
               data: Array(4).fill(0),
-              backgroundColor: 'rgba(251, 146, 60, 0.8)',
+              backgroundColor: "rgba(251, 146, 60, 0.8)",
               borderRadius: 6,
               borderSkipped: false,
-            }
-          ]
+            },
+          ],
         };
       }
 
-      const withinBudgetData = monthlySpending.map(w => w.withinBudget);
-      const overBudgetData = monthlySpending.map(w => w.overBudget);
+      const withinBudgetData = monthlySpending.map((w) => w.withinBudget);
+      const overBudgetData = monthlySpending.map((w) => w.overBudget);
 
       return {
         labels: weekLabels,
         datasets: [
           {
-            label: 'Within Budget',
+            label: "Within Budget",
             data: withinBudgetData,
-            backgroundColor: 'rgba(34, 197, 94, 0.8)',
+            backgroundColor: "rgba(34, 197, 94, 0.8)",
             borderRadius: 6,
             borderSkipped: false,
           },
           {
-            label: 'Over Budget',
+            label: "Over Budget",
             data: overBudgetData,
-            backgroundColor: 'rgba(251, 146, 60, 0.8)',
+            backgroundColor: "rgba(251, 146, 60, 0.8)",
             borderRadius: 6,
             borderSkipped: false,
-          }
-        ]
+          },
+        ],
       };
     }
-    
+
     // Monthly view
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
     if (monthlySpending.length === 0) {
       return {
         labels: monthNames,
         datasets: [
           {
-            label: 'Within Budget',
+            label: "Within Budget",
             data: Array(12).fill(0),
-            backgroundColor: 'rgba(34, 197, 94, 0.8)',
+            backgroundColor: "rgba(34, 197, 94, 0.8)",
             borderRadius: 6,
             borderSkipped: false,
           },
           {
-            label: 'Over Budget',
+            label: "Over Budget",
             data: Array(12).fill(0),
-            backgroundColor: 'rgba(251, 146, 60, 0.8)',
+            backgroundColor: "rgba(251, 146, 60, 0.8)",
             borderRadius: 6,
             borderSkipped: false,
-          }
-        ]
+          },
+        ],
       };
     }
 
-    const withinBudgetData = monthlySpending.map(m => m.withinBudget);
-    const overBudgetData = monthlySpending.map(m => m.overBudget);
+    const withinBudgetData = monthlySpending.map((m) => m.withinBudget);
+    const overBudgetData = monthlySpending.map((m) => m.overBudget);
 
     return {
       labels: monthNames,
       datasets: [
         {
-          label: 'Within Budget',
+          label: "Within Budget",
           data: withinBudgetData,
-          backgroundColor: 'rgba(34, 197, 94, 0.8)',
+          backgroundColor: "rgba(34, 197, 94, 0.8)",
           borderRadius: 6,
           borderSkipped: false,
         },
         {
-          label: 'Over Budget',
+          label: "Over Budget",
           data: overBudgetData,
-          backgroundColor: 'rgba(251, 146, 60, 0.8)',
+          backgroundColor: "rgba(251, 146, 60, 0.8)",
           borderRadius: 6,
           borderSkipped: false,
-        }
-      ]
+        },
+      ],
     };
   };
 
   // Get available categories from database
   const getAvailableCategories = () => {
-    const categories = ['All'];
-    
+    const categories = ["All"];
+
     // Add categories from database (overview.categories)
     if (overview.categories && overview.categories.length > 0) {
-      overview.categories.forEach(cat => {
+      overview.categories.forEach((cat) => {
         if (cat.name && !categories.includes(cat.name)) {
           categories.push(cat.name);
         }
       });
     } else {
       // Fallback to default categories if no data from database
-      categories.push('Medical', 'Education', 'Consumable', 'Clothes', 'Entertainment', 'Transport', 'Other');
+      categories.push(
+        "Medical",
+        "Education",
+        "Consumable",
+        "Clothes",
+        "Entertainment",
+        "Transport",
+        "Other"
+      );
     }
-    
+
     return categories;
   };
 
@@ -353,52 +421,54 @@ function Budget() {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
+        position: "top",
         labels: {
           font: {
             size: 12,
-            family: 'Inter, system-ui, sans-serif'
+            family: "Inter, system-ui, sans-serif",
           },
           padding: 15,
           usePointStyle: true,
-          pointStyle: 'circle'
-        }
+          pointStyle: "circle",
+        },
       },
       title: {
         display: false,
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
         padding: 12,
         titleFont: {
           size: 13,
-          weight: 'bold'
+          weight: "bold",
         },
         bodyFont: {
-          size: 12
+          size: 12,
         },
         callbacks: {
-          label: function(context) {
-            let label = context.dataset.label || '';
+          label: function (context) {
+            let label = context.dataset.label || "";
             if (label) {
-              label += ': ';
+              label += ": ";
             }
-            label += '$' + context.parsed.y.toFixed(2);
+            label += "$" + context.parsed.y.toFixed(2);
             return label;
           },
-          afterBody: function(context) {
+          afterBody: function (context) {
             const monthIndex = context[0].dataIndex;
             if (monthlySpending && monthlySpending[monthIndex]) {
               const monthData = monthlySpending[monthIndex];
               return [
                 `Total Spent: $${monthData.spent.toFixed(2)}`,
-                `Budget: $${monthData.monthlyBudget || monthData.weeklyBudget || 0}`
+                `Budget: $${
+                  monthData.monthlyBudget || monthData.weeklyBudget || 0
+                }`,
               ];
             }
             return [];
-          }
-        }
-      }
+          },
+        },
+      },
     },
     scales: {
       x: {
@@ -409,41 +479,43 @@ function Budget() {
         ticks: {
           font: {
             size: 11,
-            family: 'Inter, system-ui, sans-serif'
+            family: "Inter, system-ui, sans-serif",
           },
-          color: '#6b7280'
-        }
+          color: "#6b7280",
+        },
       },
       y: {
         stacked: true,
         beginAtZero: true,
         grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
+          color: "rgba(0, 0, 0, 0.05)",
         },
-        suggestedMax: function(context) {
-          const maxValue = Math.max(...context.chart.data.datasets.flatMap(d => d.data));
+        suggestedMax: function (context) {
+          const maxValue = Math.max(
+            ...context.chart.data.datasets.flatMap((d) => d.data)
+          );
           const roundedMax = Math.ceil(maxValue / 2000) * 2000;
           return Math.max(roundedMax, 2000);
         },
         ticks: {
           font: {
             size: 11,
-            family: 'Inter, system-ui, sans-serif'
+            family: "Inter, system-ui, sans-serif",
           },
-          color: '#6b7280',
+          color: "#6b7280",
           stepSize: 2000,
-          callback: function(value) {
-            if (value === 0) return '0';
+          callback: function (value) {
+            if (value === 0) return "0";
             return value.toLocaleString();
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   };
 
   const handleDragOver = (e) => {
@@ -459,7 +531,7 @@ function Budget() {
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile && droppedFile.type.startsWith("image/")) {
       setFile(droppedFile);
@@ -513,13 +585,12 @@ function Budget() {
 
       const data = await response.json();
       console.log("Receipt uploaded successfully:", data);
-      
+
       setShowUploadModal(false);
       setFile(null);
-      navigate("/dashboard/budget/review-receipt", { 
-        state: { receiptData: data } 
+      navigate("/dashboard/budget/review-receipt", {
+        state: { receiptData: data },
       });
-      
     } catch (err) {
       console.error("Upload error:", err);
       setUploadError(err.message || "Network/server error");
@@ -547,12 +618,8 @@ function Budget() {
     return (
       <div className="bg-gray-100 min-h-screen flex items-center justify-center">
         <div className="bg-white p-6 rounded-xl max-w-md text-center">
-          <div className="text-lg text-red-600 mb-4">
-            Error loading budget
-          </div>
-          <div className="text-sm text-gray-600 mb-4">
-            {error}
-          </div>
+          <div className="text-lg text-red-600 mb-4">Error loading budget</div>
+          <div className="text-sm text-gray-600 mb-4">{error}</div>
           <button
             onClick={fetchBudgetOverview}
             className="px-5 py-2.5 bg-gray-600 text-white border-none rounded-md cursor-pointer text-sm font-medium hover:bg-gray-700"
@@ -566,24 +633,8 @@ function Budget() {
 
   return (
     <div className="bg-gray-100 min-h-screen font-sans">
-      {/* Header */}
-      <div className="bg-gray-200 px-5 py-4 flex items-center justify-between border-b border-gray-300">
-        <h1 className="text-lg font-semibold m-0 text-gray-800">
-          Budget overview
-        </h1>
-        
-        <div className="flex gap-3 items-center">
-          <button 
-            onClick={() => navigate("/dashboard")}
-            className="bg-transparent border-none cursor-pointer p-1 text-xl text-gray-600 hover:text-gray-800"
-          >
-            🏠
-          </button>
-          <button className="bg-transparent border-none cursor-pointer p-1 text-xl text-gray-600 hover:text-gray-800">
-            ⚙️
-          </button>
-        </div>
-      </div>
+      {/* Header Component */}
+      <Header />
 
       {/* Content */}
       <div className="p-5">
@@ -625,11 +676,13 @@ function Budget() {
               ${overview.remaining?.toFixed(2) || "0.00"}
             </div>
             {overview.total > 0 && (
-              <div className={`text-xs text-center mt-2 font-medium ${
-                overview.status === "Over budget" 
-                  ? "text-red-600" 
-                  : "text-green-600"
-              }`}>
+              <div
+                className={`text-xs text-center mt-2 font-medium ${
+                  overview.status === "Over budget"
+                    ? "text-red-600"
+                    : "text-green-600"
+                }`}
+              >
                 {overview.status}
               </div>
             )}
@@ -643,43 +696,59 @@ function Budget() {
               <h2 className="text-base font-semibold text-gray-800 m-0">
                 Spending Overview
               </h2>
-              
+
               {/* Timeframe Dropdown (Weekly/Monthly) */}
               <div className="relative">
-                <button 
+                <button
                   onClick={() => setShowTimeframeMenu(!showTimeframeMenu)}
                   className="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded-md cursor-pointer text-sm text-gray-700"
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 9L12 15L18 9" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6 9L12 15L18 9"
+                      stroke="black"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </button>
-                
+
                 {showTimeframeMenu && (
                   <>
-                    <div 
-                      className="fixed inset-0 z-10" 
+                    <div
+                      className="fixed inset-0 z-10"
                       onClick={() => setShowTimeframeMenu(false)}
                     />
                     <div className="absolute left-0 top-10 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20 min-w-[140px]">
                       <button
                         onClick={() => {
-                          setSelectedTimeframe('Weekly');
+                          setSelectedTimeframe("Weekly");
                           setShowTimeframeMenu(false);
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-none bg-transparent cursor-pointer ${
-                          selectedTimeframe === 'Weekly' ? 'text-teal-600 font-medium bg-teal-50' : 'text-gray-700'
+                          selectedTimeframe === "Weekly"
+                            ? "text-teal-600 font-medium bg-teal-50"
+                            : "text-gray-700"
                         }`}
                       >
                         Weekly
                       </button>
                       <button
                         onClick={() => {
-                          setSelectedTimeframe('Monthly');
+                          setSelectedTimeframe("Monthly");
                           setShowTimeframeMenu(false);
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-none bg-transparent cursor-pointer ${
-                          selectedTimeframe === 'Monthly' ? 'text-teal-600 font-medium bg-teal-50' : 'text-gray-700'
+                          selectedTimeframe === "Monthly"
+                            ? "text-teal-600 font-medium bg-teal-50"
+                            : "text-gray-700"
                         }`}
                       >
                         Monthly
@@ -689,20 +758,20 @@ function Budget() {
                 )}
               </div>
             </div>
-            
+
             {/* Three dots menu for Categories */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setShowCategoryMenu(!showCategoryMenu)}
                 className="bg-transparent border-none cursor-pointer text-gray-600 hover:text-gray-800 p-2"
               >
                 ⋮
               </button>
-              
+
               {showCategoryMenu && (
                 <>
-                  <div 
-                    className="fixed inset-0 z-10" 
+                  <div
+                    className="fixed inset-0 z-10"
                     onClick={() => setShowCategoryMenu(false)}
                   />
                   <div className="absolute right-0 top-10 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20 min-w-[180px] max-h-[300px] overflow-y-auto">
@@ -714,7 +783,9 @@ function Budget() {
                           setShowCategoryMenu(false);
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-none bg-transparent cursor-pointer ${
-                          selectedCategory === category ? 'text-teal-600 font-medium bg-teal-50' : 'text-gray-700'
+                          selectedCategory === category
+                            ? "text-teal-600 font-medium bg-teal-50"
+                            : "text-gray-700"
                         }`}
                       >
                         {category}
@@ -725,22 +796,29 @@ function Budget() {
               )}
             </div>
           </div>
-          
+
           <div className="h-80">
             <Bar data={getChartData()} options={chartOptions} />
           </div>
-          
+
           {/* Legend Info */}
           <div className="mt-4 flex items-center justify-center gap-6 text-xs text-gray-600">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
               <span>
                 Within budget
-                {selectedCategory !== 'All' && overview.categories && (() => {
-                  const catData = overview.categories.find(c => c.name === selectedCategory);
-                  return catData ? ` ($${catData.allocated?.toFixed(2) || "0.00"})` : '';
-                })()}
-                {selectedCategory === 'All' && ` ($${overview.total?.toFixed(2) || "0.00"})`}
+                {selectedCategory !== "All" &&
+                  overview.categories &&
+                  (() => {
+                    const catData = overview.categories.find(
+                      (c) => c.name === selectedCategory
+                    );
+                    return catData
+                      ? ` ($${catData.allocated?.toFixed(2) || "0.00"})`
+                      : "";
+                  })()}
+                {selectedCategory === "All" &&
+                  ` ($${overview.total?.toFixed(2) || "0.00"})`}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -776,7 +854,14 @@ function Budget() {
           {expenses.length === 0 ? (
             <div className="text-center py-10">
               <div className="w-12 h-12 border-2 border-gray-800 rounded-lg inline-flex items-center justify-center mb-4">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#333"
+                  strokeWidth="2"
+                >
                   <rect x="3" y="3" width="18" height="18" rx="2" />
                   <path d="M9 3v18M15 3v18" />
                 </svg>
@@ -793,37 +878,52 @@ function Budget() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">Date</th>
-                    <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">Description</th>
-                    <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">Category</th>
-                    <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">Quantity</th>
-                    <th className="text-right py-3 px-2 text-sm font-medium text-gray-600">Amount</th>
-                    <th className="text-center py-3 px-2 text-sm font-medium text-gray-600">Action</th>
+                    <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">
+                      Date
+                    </th>
+                    <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">
+                      Description
+                    </th>
+                    <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">
+                      Category
+                    </th>
+                    <th className="text-left py-3 px-2 text-sm font-medium text-gray-600">
+                      Quantity
+                    </th>
+                    <th className="text-right py-3 px-2 text-sm font-medium text-gray-600">
+                      Amount
+                    </th>
+                    <th className="text-center py-3 px-2 text-sm font-medium text-gray-600">
+                      Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {expenses.map((expense) => (
-                    <tr key={expense._id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <tr
+                      key={expense._id}
+                      className="border-b border-gray-100 hover:bg-gray-50"
+                    >
                       <td className="py-3 px-2 text-sm text-gray-800">
                         {formatDate(expense.date)}
                       </td>
                       <td className="py-3 px-2 text-sm text-gray-800">
-                        {expense.merchantName || '-'}
+                        {expense.merchantName || "-"}
                       </td>
                       <td className="py-3 px-2 text-sm text-gray-800">
-                        {expense.category || 'Other'}
+                        {expense.category || "Other"}
                       </td>
                       <td className="py-3 px-2 text-sm text-gray-800 text-center">
-                        {expense.quantity || '-'}
+                        {expense.quantity || "-"}
                       </td>
                       <td className="py-3 px-2 text-sm text-gray-800 text-right font-medium">
-                        ${expense.amount?.toFixed(2) || '0.00'}
+                        ${expense.amount?.toFixed(2) || "0.00"}
                       </td>
                       <td className="py-3 px-2 text-center">
-                        <button 
+                        <button
                           className="text-gray-600 hover:text-gray-800 cursor-pointer bg-transparent border-none"
                           onClick={() => {
-                            console.log('Edit expense:', expense._id);
+                            console.log("Edit expense:", expense._id);
                           }}
                         >
                           ✏️
@@ -840,7 +940,14 @@ function Budget() {
         {/* AI Insights Section */}
         <div className="bg-white rounded-xl p-6">
           <div className="flex items-center gap-2 mb-3">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#666"
+              strokeWidth="2"
+            >
               <path d="M12 2L2 7l10 5 10-5-10-5z" />
               <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
@@ -849,7 +956,8 @@ function Budget() {
             </h3>
           </div>
           <p className="text-sm text-gray-400 m-0 leading-relaxed">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec maximus fringilla tempor
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+            maximus fringilla tempor
           </p>
         </div>
       </div>
@@ -857,12 +965,15 @@ function Budget() {
       {/* Upload Receipt Modal */}
       {showUploadModal && (
         <>
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-[9998]" 
-            style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-            onClick={closeModal} 
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-[9998]"
+            style={{
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+            }}
+            onClick={closeModal}
           />
-          
+
           <div className="fixed inset-0 flex items-center justify-center z-[9999] p-5 pointer-events-none">
             <div className="pointer-events-auto bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-8">
@@ -887,29 +998,29 @@ function Budget() {
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                   className={`border-2 border-dashed rounded-xl py-16 px-10 text-center mb-5 transition-all ${
-                    isDragging 
-                      ? "border-teal-500 bg-teal-50" 
+                    isDragging
+                      ? "border-teal-500 bg-teal-50"
                       : "border-gray-300 bg-gray-50"
                   }`}
                 >
                   <div className="mb-5">
-                    <svg 
-                      width="48" 
-                      height="48" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="#9ca3af" 
+                    <svg
+                      width="48"
+                      height="48"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#9ca3af"
                       strokeWidth="2"
                       className="mx-auto"
                     >
-                      <path d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                      <path d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4M17 8l-5-5-5 5M12 3v12" />
                     </svg>
                   </div>
 
                   <p className="text-base text-gray-700 mb-2 font-medium">
                     {file ? file.name : "Drag & Drop your Receipt here"}
                   </p>
-                  
+
                   <p className="text-sm text-gray-400 mb-5">or</p>
 
                   <label className="inline-block py-2.5 px-6 bg-teal-500 text-white rounded-lg cursor-pointer text-sm font-medium hover:bg-teal-600">

@@ -1,23 +1,71 @@
 // frontend/components/AuthGuard.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { logout } from "../utils/auth";
 
 const AuthGuard = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const checkInProgress = useRef(false);
 
+  // Check auth on mount and on every route change
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [location.pathname]);
+
+  // Prevent back navigation to protected routes after logout
+  useEffect(() => {
+    const handlePopState = (event) => {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        // If no token, prevent accessing protected routes via back button
+        const protectedRoutes = [
+          "/dashboard",
+          "/user-dashboard",
+          "/account",
+          "/settings",
+          "/calendar",
+          "/articles",
+          "/family",
+          "/child-dashboard",
+        ];
+        
+        const currentPath = window.location.pathname;
+        const isProtectedRoute = protectedRoutes.some((route) =>
+          currentPath.startsWith(route)
+        );
+
+        if (isProtectedRoute) {
+          // Replace current history entry with login
+          window.history.replaceState(null, "", "/login");
+          navigate("/login", { replace: true });
+        }
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [navigate]);
 
   const checkAuth = async () => {
+    // Prevent multiple simultaneous auth checks
+    if (checkInProgress.current) {
+      return;
+    }
+
+    checkInProgress.current = true;
+    setLoading(true);
+
     try {
       const token = localStorage.getItem("accessToken");
 
       if (!token) {
-        navigate("/login");
+        // Use replace to prevent back navigation
+        navigate("/login", { replace: true });
+        checkInProgress.current = false;
+        setLoading(false);
         return;
       }
 
@@ -35,15 +83,18 @@ const AuthGuard = ({ children }) => {
         // Handle different error status codes
         if (response.status === 401 || response.status === 403) {
           console.log("Token expired or invalid, redirecting to login");
-          localStorage.removeItem("accessToken");
-          navigate("/login");
+          // Use logout utility for proper cleanup
+          logout(navigate);
+          checkInProgress.current = false;
+          setLoading(false);
           return;
         }
 
         // For other errors, still redirect but log the error
         console.error("Auth check failed with status:", response.status);
-        localStorage.removeItem("accessToken");
-        navigate("/login");
+        logout(navigate);
+        checkInProgress.current = false;
+        setLoading(false);
         return;
       }
 
@@ -84,9 +135,9 @@ const AuthGuard = ({ children }) => {
       }
     } catch (error) {
       console.error("Auth check failed:", error);
-      localStorage.removeItem("accessToken");
-      navigate("/login");
+      logout(navigate);
     } finally {
+      checkInProgress.current = false;
       setLoading(false);
     }
   };

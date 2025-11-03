@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   DashboardIcon,
   BudgetIcon,
   CalendarIcon,
   ArticlesIcon,
   FamilyIcon,
-  LogoBloomUpGreen,
+  NewLogoBloomUpGreen,
 } from "../icons";
 import { useChild } from "../contexts/ChildContext";
+import { logout } from "../utils/auth";
 
 /**
  * Reusable Sidebar component aligned to Figma specs (compact scale)
@@ -26,9 +27,18 @@ export default function Sidebar({
   onLogout,
   logoutLabel = "Sign out",
 }) {
+  const navigate = useNavigate();
   const [displayName, setDisplayName] = useState(headerTitle || "BloomUp");
   const { children, selectedChild, selectChild } = useChild();
   const [showDropdown, setShowDropdown] = useState(false);
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    if (onLogout) {
+      onLogout();
+    }
+    logout(navigate);
+  };
 
   // Debug logging
   console.log("Sidebar - children:", children);
@@ -129,7 +139,7 @@ export default function Sidebar({
         <div className="pt-5">
           {/* Logo row */}
           <div className="px-6 select-none">
-            <LogoBloomUpGreen width={110} height={54} />
+            <NewLogoBloomUpGreen width={180} height={70} />
           </div>
 
           {/* Chips row: compact */}
@@ -202,9 +212,9 @@ export default function Sidebar({
 
         {/* Bottom Sign out - sticky to bottom */}
         <div className="flex-shrink-0 px-6 py-5 border-t border-gray-200">
-          <Link
-            to="/login"
-            className="w-full flex items-center gap-3 justify-start rounded-[12px] px-0 text-[#636363]"
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 justify-start rounded-[12px] px-0 text-[#636363] hover:text-[#238D88] transition-colors"
           >
             <svg
               width="20"
@@ -222,7 +232,7 @@ export default function Sidebar({
               <path d="M21 12H9" />
             </svg>
             <span className="text-[16px] font-medium">{logoutLabel}</span>
-          </Link>
+          </button>
         </div>
       </aside>
     </>

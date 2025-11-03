@@ -5,6 +5,7 @@ import AIInsights from "./AIInsights";
 import ScheduleCalendar from "./ScheduleCalendar";
 import UpcomingEvents from "./UpcomingEvents";
 import RecommendedArticles from "./RecommendedArticles";
+import Header from "./Header";
 import { useChild } from "../contexts/ChildContext";
 
 const Dashboard = () => {
@@ -55,31 +56,36 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#EFEFEF] px-6 py-5">
-      <div className="w-full max-w-[95%] 2xl:max-w-[1600px] mx-auto space-y-8">
-        {/* Row 1: Budget (left) + AI Insights (right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <BudgetSummary />
-          </div>
-          <div>
-            <AIInsights />
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#EFEFEF]">
+      {/* Header Component */}
+      <Header />
 
-        {/* Row 2: Calendar (left) + Upcoming Events (right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <ScheduleCalendar events={calendarEvents} />
+      <div className="px-6 py-5">
+        <div className="w-full max-w-[95%] 2xl:max-w-[1600px] mx-auto space-y-8">
+          {/* Row 1: Budget (left) + AI Insights (right) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <BudgetSummary />
+            </div>
+            <div>
+              <AIInsights />
+            </div>
           </div>
-          <div>
-            <UpcomingEvents selectedChild={selectedChild} />
-          </div>
-        </div>
 
-        {/* Row 3: Articles full width */}
-        <div>
-          <RecommendedArticles />
+          {/* Row 2: Calendar (left) + Upcoming Events (right) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <ScheduleCalendar events={calendarEvents} />
+            </div>
+            <div>
+              <UpcomingEvents selectedChild={selectedChild} />
+            </div>
+          </div>
+
+          {/* Row 3: Articles full width */}
+          <div>
+            <RecommendedArticles />
+          </div>
         </div>
       </div>
     </div>
