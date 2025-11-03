@@ -170,6 +170,7 @@ export default function Account() {
                         childId: child._id,
                         child: child,
                         userId: userId,
+                        returnPath: "/account"
                       },
                     });
                   }}

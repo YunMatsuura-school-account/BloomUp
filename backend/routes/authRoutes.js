@@ -8,10 +8,12 @@ const {
   signup,
   login,
   getCurrentUser,
+  changePassword,
 } = require("../controllers/authController");
 
 router.post("/login", login);
 router.post("/signup", signup);
+router.post("/change-password", verifyToken, changePassword);
 
 // To Validate User Data and we will use this route in the Frontend to validate the user data before signing up or logging in.
 router.get("/me", verifyToken, getCurrentUser);
