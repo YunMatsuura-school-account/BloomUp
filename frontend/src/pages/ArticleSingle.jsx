@@ -16,12 +16,14 @@ const ArticleSingle = () => {
 
   const categories = ['Health', 'Education', 'Finances', 'Routines', 'Parenting', 'Saved'];
 
-  // Handler for category changes
+  const fromPage = location.state?.fromPage;
+  const fromCategory = location.state?.fromCategory;
+
   const handleCategoryChange = (category) => {
     if (category === 'Saved') {
       navigate('/articles', { state: { filter: 'Saved' } });
     } else {
-      navigate(`/articles/category/${category}`);
+      navigate(`/articles/category/${category}`, { state: { category } });
     }
   };
 
@@ -153,7 +155,27 @@ const ArticleSingle = () => {
   };
 
   const handleGoBack = () => {
-    navigate(-1);
+    if (fromPage === 'saved') {
+      navigate('/articles', { state: { filter: 'Saved' } });
+    } else if (fromCategory) {
+      navigate(`/articles/category/${fromCategory}`, { 
+        state: { category: fromCategory },
+        replace: false
+      });
+    } else if (article && article.category) {
+      navigate(`/articles/category/${article.category}`, { 
+        state: { category: article.category },
+        replace: false
+      });
+    } else {
+      navigate(-1);
+    }
+  };
+
+  const getCurrentFilter = () => {
+    if (fromPage === 'saved') return 'Saved';
+    if (fromCategory) return fromCategory;
+    return article?.category;
   };
 
   if (loading) {
@@ -161,6 +183,7 @@ const ArticleSingle = () => {
       <div className="min-h-screen bg-gray-50">
         <ArticleHeader 
           categories={categories}
+          currentFilter={getCurrentFilter()}
           onFilterChange={handleCategoryChange}
         />
         <div className="flex items-center justify-center h-96">
@@ -188,6 +211,7 @@ const ArticleSingle = () => {
     <div className="min-h-screen bg-gray-50">
       <ArticleHeader 
         categories={categories}
+        currentFilter={getCurrentFilter()}
         onFilterChange={handleCategoryChange}
       />
 

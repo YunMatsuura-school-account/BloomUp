@@ -102,25 +102,87 @@ exports.getArticlesByCategory = async (req, res) => {
 
     const validCategories = ['Health', 'Education', 'Finances', 'Routines', 'Parenting'];
     
+    // DEBUG LOGGING
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔍 GET ARTICLES BY CATEGORY');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📥 Requested category:', category);
+    console.log('📋 Valid categories:', validCategories);
+    
     if (!validCategories.includes(category)) {
+      console.log('❌ Invalid category provided:', category);
       return res.status(400).json({
         success: false,
-        message: 'Invalid category'
+        message: 'Invalid category',
+        requestedCategory: category,
+        validCategories: validCategories
       });
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const articles = await Article.find({ 
-      category, 
+    // EXACT MATCH QUERY - CRITICAL!
+    const query = { 
+      category: category,  // Must match EXACTLY
       status: 'published' 
-    })
+    };
+    
+    console.log('🔎 MongoDB Query:', JSON.stringify(query, null, 2));
+
+    // Execute query
+    const articles = await Article.find(query)
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
       .skip(skip)
       .select('-__v');
 
-    const total = await Article.countDocuments({ category, status: 'published' });
+    const total = await Article.countDocuments(query);
+    
+    console.log('📊 Query Results:');
+    console.log('   - Found:', articles.length, 'articles');
+    console.log('   - Total:', total);
+    
+    // CRITICAL VERIFICATION - Check if returned articles match category
+    if (articles.length > 0) {
+      console.log('📄 First article details:');
+      console.log('   - Title:', articles[0].title);
+      console.log('   - Category:', articles[0].category);
+      console.log('   - Status:', articles[0].status);
+      
+      // Check for any mismatched articles
+      const mismatchedArticles = articles.filter(a => a.category !== category);
+      
+      if (mismatchedArticles.length > 0) {
+        console.error('🚨 CRITICAL ERROR: Found articles with WRONG category!');
+        console.error('🚨 Expected category:', category);
+        console.error('🚨 Wrong articles:', mismatchedArticles.map(a => ({
+          id: a._id,
+          title: a.title,
+          category: a.category
+        })));
+        console.error('🚨 This should NEVER happen! Database integrity issue!');
+      } else {
+        console.log('✅ All articles match requested category');
+      }
+      
+      // Log all categories found
+      const categoriesFound = [...new Set(articles.map(a => a.category))];
+      console.log('📂 Unique categories in results:', categoriesFound);
+    } else {
+      console.log('⚠️ No articles found for category:', category);
+      
+      // Check if ANY articles exist at all
+      const anyArticles = await Article.countDocuments({ status: 'published' });
+      console.log('ℹ️ Total published articles in database:', anyArticles);
+      
+      if (anyArticles > 0) {
+        // Show what categories DO exist
+        const existingCategories = await Article.distinct('category', { status: 'published' });
+        console.log('ℹ️ Categories that exist:', existingCategories);
+      }
+    }
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     res.status(200).json({
       success: true,
@@ -130,7 +192,7 @@ exports.getArticlesByCategory = async (req, res) => {
       data: articles
     });
   } catch (error) {
-    console.error('Error fetching articles by category:', error);
+    console.error('❌ ERROR in getArticlesByCategory:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch articles',
