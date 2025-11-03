@@ -8,7 +8,7 @@ import '../styles/articles.css';
 const Articles = () => {
   const [articles, setArticles] = useState([]);
   const [savedArticles, setSavedArticles] = useState([]);
-  const [currentFilter, setCurrentFilter] = useState('Health');
+  const [currentFilter, setCurrentFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -20,6 +20,9 @@ const Articles = () => {
     // Check if navigated here with a filter state
     if (location.state?.filter) {
       setCurrentFilter(location.state.filter);
+    } else {
+      // Default to 'All' when visiting /articles directly
+      setCurrentFilter('All');
     }
   }, [location.state]);
 
@@ -82,8 +85,14 @@ const Articles = () => {
     }
   };
 
-  const viewArticle = (article) => {
-    navigate(`/articles/${article._id}`, { state: { article } });
+  const viewArticle = (article, fromSaved = false) => {
+    // FIXED: Pass fromPage info so ArticleSingle knows where to return
+    navigate(`/articles/${article._id}`, { 
+      state: { 
+        article,
+        fromPage: fromSaved ? 'saved' : null
+      } 
+    });
   };
 
   const getFilteredArticles = () => {
@@ -174,7 +183,7 @@ const Articles = () => {
                     <div 
                       key={article._id}
                       className="horizontal-card fade-in cursor-pointer"
-                      onClick={() => viewArticle(article)}
+                      onClick={() => viewArticle(article, true)} // Pass true for fromSaved
                     >
                       <img 
                         src={article.image} 
@@ -276,7 +285,7 @@ const Articles = () => {
                     <div 
                       key={article._id}
                       className="saved-article-card-wireframe fade-in cursor-pointer"
-                      onClick={() => viewArticle(article)}
+                      onClick={() => viewArticle(article, true)} // Pass true for fromSaved
                     >
                       <img src={article.image} alt={article.title} loading="lazy" />
                       <div className="saved-article-card-content">

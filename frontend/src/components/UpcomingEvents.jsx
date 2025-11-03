@@ -1,6 +1,6 @@
+// frontend/src/components/UpcomingEvents.jsx
 import React, { useEffect, useMemo, useState } from "react";
 
-// Fetch and display next 3 upcoming events for the selected child
 const UpcomingEvents = ({ selectedChild }) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -14,7 +14,6 @@ const UpcomingEvents = ({ selectedChild }) => {
         const start = now.toISOString();
         const params = new URLSearchParams();
         params.set("start", start);
-        // Include child filter if available
         if (selectedChild?._id) params.set("child", selectedChild._id);
 
         const token =
@@ -34,13 +33,13 @@ const UpcomingEvents = ({ selectedChild }) => {
 
         if (!resp.ok) throw new Error(json?.message || "Failed to load events");
 
-        // Sort future events and take next 3
         const future = (json.events || [])
           .filter((e) => e?.startDate && new Date(e.startDate) >= now)
           .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
           .slice(0, 3);
         setEvents(future);
       } catch (e) {
+        console.error('Error fetching upcoming events:', e);
         setEvents([]);
       } finally {
         setLoading(false);
@@ -54,29 +53,33 @@ const UpcomingEvents = ({ selectedChild }) => {
     if (!startISO) return "";
     const s = new Date(startISO);
     const e = endISO ? new Date(endISO) : null;
-    const fmt = (d) =>
-      `${d.toLocaleString("en-US", { month: "short" })} ${String(
-        d.getDate()
-      ).padStart(2, "0")} ${d.getHours().toString().padStart(2, "0")}:${d
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}`;
-    return e ? `${fmt(s)} ~ ${fmt(e)}` : fmt(s);
+    
+    const formatDateTime = (d) => {
+      const month = d.toLocaleString("en-US", { month: "short" });
+      const day = String(d.getDate()).padStart(2, "0");
+      const hours = d.getHours();
+      const minutes = String(d.getMinutes()).padStart(2, "0");
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      
+      return `${month} ${day} ${displayHours}:${minutes} ${ampm}`;
+    };
+    
+    return e ? `${formatDateTime(s)} ~ ${formatDateTime(e)}` : formatDateTime(s);
   };
 
   const derived = useMemo(() => {
     return (events || []).map((ev) => {
-      const initial = (ev.type || "E").trim().charAt(0).toUpperCase();
-      // Color priority: explicit color -> by type
+      const initial = (ev.type || ev.title || "E").trim().charAt(0).toUpperCase();
       let color = ev.color || "#F3BE08";
       if (!ev.color && typeof ev.type === "string") {
         const t = ev.type.toLowerCase();
-        if (t.includes("vaccination")) color = "#006F69"; // vaccination green
-        else color = "#F3BE08"; // default/school yellow
+        if (t.includes("vaccination")) color = "#006F69";
+        else color = "#F3BE08";
       }
       return {
         id: ev._id,
-        titleTop: ev.type || "Event",
+        titleTop: ev.title || ev.type || "Event",
         titleBottom: ev.category || "",
         description: ev.notes || "",
         rangeText: formatRange(ev.startDate, ev.endDate),
@@ -105,14 +108,14 @@ const UpcomingEvents = ({ selectedChild }) => {
 
         {!loading &&
           derived.map((event) => (
-            <div key={event.id} className="bg-white rounded-xl p-3">
+            <div key={event.id} className="bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex flex-col gap-1">
                 <p className="text-xs font-semibold text-black text-right">
                   {event.rangeText}
                 </p>
                 <div className="flex gap-3">
                   <div
-                    className="w-[40px] h-[40px] rounded-full flex items-center justify-center text-white font-medium text-sm"
+                    className="w-[40px] h-[40px] rounded-full flex items-center justify-center text-white font-medium text-sm flex-shrink-0"
                     style={{ backgroundColor: event.color }}
                   >
                     {event.initial}
@@ -120,8 +123,12 @@ const UpcomingEvents = ({ selectedChild }) => {
                   <div className="flex-1">
                     <h3 className="text-sm font-semibold text-black leading-[18px]">
                       {event.titleTop}
-                      <br />
-                      {event.titleBottom}
+                      {event.titleBottom && (
+                        <>
+                          <br />
+                          {event.titleBottom}
+                        </>
+                      )}
                     </h3>
                     {event.description && (
                       <p className="text-xs font-normal text-black leading-4 mt-1">

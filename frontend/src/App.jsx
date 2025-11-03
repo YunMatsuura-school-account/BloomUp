@@ -128,8 +128,9 @@ function App() {
 
           <Route path="/calendar" element={<CalendarPage />} />
 
+          {/* Articles Routes - ORDER MATTERS! */}
           <Route path="/articles" element={<Articles />} />
-          <Route path="/articles/category" element={<ArticleCategory />} />
+          <Route path="/articles/category/:category" element={<ArticleCategory />} /> {/* FIXED: Added :category */}
           <Route path="/articles/:id" element={<ArticleSingle />} />
 
           <Route path="/family" element={<FamilySetup />} />

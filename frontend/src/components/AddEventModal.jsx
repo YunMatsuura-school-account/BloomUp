@@ -1,7 +1,6 @@
-// // // // frontend/src/components/AddEventModal.jsx
 // frontend/src/components/AddEventModal.jsx
 import React, { useState, useEffect } from 'react';
-// color and category options kept the same
+
 const COLOR_OPTIONS = [
   '#006F69', '#6CC31F', '#02955F', '#8CD8AC', '#0CC6B0',
   '#F3BE08', '#F39D08', '#F35E08', '#C5A70C', '#8D4900'
@@ -9,11 +8,9 @@ const COLOR_OPTIONS = [
 const CATEGORY_OPTIONS = ['General', 'Shopping', 'School Function', 'Others'];
 
 export default function AddEventModal({ isOpen, onClose, onSaved, initialData = null }) {
-  // variable names
   const [title, setTitle] = useState(initialData?.title || '');
-  const [children, setChildren] = useState(initialData?.children || []); // array of strings
+  const [children, setChildren] = useState(initialData?.children || []);
   const [selectedChild, setSelectedChild] = useState(
-
     initialData?.children && initialData.children.length === 1 ? initialData.children[0] : (initialData?.children && initialData.children.includes('All') ? 'All' : '')
   );
   const [color, setColor] = useState(initialData?.color || COLOR_OPTIONS[0]);
@@ -26,7 +23,6 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [saving, setSaving] = useState(false);
-
   const [childrenList, setChildrenList] = useState([]);
 
   useEffect(() => {
@@ -40,7 +36,6 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
           return;
         }
 
-        // Alternative: Get user data which includes children
         const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
           method: "GET",
           headers: {
@@ -56,11 +51,9 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         }
 
         const userData = await res.json();
-        console.log('User data received:', userData); // Debug log
+        console.log('User data received:', userData);
 
-        // If children are stored as IDs in the user object, you need to fetch child details
         if (userData.children && userData.children.length > 0) {
-          // Fetch child profiles using the child IDs
           const childDetailsPromises = userData.children.map(async (childId) => {
             try {
               const childRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/${userData.id}/children/${childId}`, {
@@ -92,14 +85,11 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
   }, [isOpen]);
 
   useEffect(() => {
-    // reset when initialData changes or modal is closed/opened
     if (initialData) {
       setTitle(initialData.title || '');
       setChildren(initialData.children || []);
 
-      // Handle selectedChild logic for initial data
       if (initialData.children && initialData.children.length > 0) {
-        // If event has all children, show "All"
         const hasAllChildren = childrenList.length > 0 &&
           initialData.children.length === childrenList.length &&
           initialData.children.every(childId =>
@@ -111,11 +101,10 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         } else if (initialData.children.length === 1) {
           setSelectedChild(initialData.children[0]);
         } else {
-          // For multiple but not all children, you might want different logic
-          setSelectedChild(initialData.children[0]); // or handle multiple selection
+          setSelectedChild(initialData.children[0]);
         }
       } else {
-        setSelectedChild('All'); // default to All
+        setSelectedChild('All');
       }
 
       setColor(initialData.color || COLOR_OPTIONS[0]);
@@ -126,10 +115,9 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       setNotes(initialData.notes || '');
       setUrl(initialData.url || '');
     } else if (isOpen) {
-      // Reset to defaults for new event
       setTitle('');
       setChildren([]);
-      setSelectedChild('All'); // default to All for new events
+      setSelectedChild('All');
       setColor(COLOR_OPTIONS[0]);
       setCategory(CATEGORY_OPTIONS[0]);
       setStartDate('');
@@ -138,9 +126,79 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       setNotes('');
       setUrl('');
     }
-  }, [initialData, isOpen, childrenList]); // Added childrenList dependency
+  }, [initialData, isOpen, childrenList]);
 
   if (!isOpen) return null;
+
+  // Function to map event alert to reminder alert and create reminder
+  const createReminderForEvent = async (eventId, eventData) => {
+    try {
+      // Don't create reminder if alert is "At time of event"
+      if (eventData.alert === 'At time of event') {
+        console.log('⚠️ No reminder needed - alert is "At time of event"');
+        return;
+      }
+
+      // Map all event alerts to custom reminders with specific days/hours
+      let reminderAlert = 'Custom';
+      let customDays = null;
+
+      switch (eventData.alert) {
+        case '5 minutes before':
+          customDays = 0.0035; // ~5 minutes in days (5/1440)
+          break;
+        case '15 minutes before':
+          customDays = 0.0104; // ~15 minutes in days (15/1440)
+          break;
+        case '1 hour before':
+          customDays = 0.0417; // ~1 hour in days (1/24)
+          break;
+        case '1 day before':
+          reminderAlert = '1 day before';
+          customDays = null;
+          break;
+        default:
+          console.log('⚠️ Unknown alert type:', eventData.alert);
+          return;
+      }
+
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        console.error('❌ No access token - cannot create reminder');
+        return;
+      }
+
+      const reminderData = {
+        eventId: eventId,
+        eventTitle: eventData.title,
+        eventDate: eventData.startDate,
+        alert: reminderAlert,
+        customAlert: reminderAlert === 'Custom',
+        customDays: customDays
+      };
+
+      console.log('🔔 Creating reminder for all alert types:', reminderData);
+
+      const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reminders`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(reminderData)
+      });
+
+      const data = await resp.json();
+      
+      if (resp.ok) {
+        console.log('✅ Reminder created successfully:', data);
+      } else {
+        console.error('❌ Failed to create reminder:', data);
+      }
+    } catch (err) {
+      console.error('❌ Error creating reminder:', err);
+    }
+  };
 
   async function handleSave() {
     if (!title || !startDate) {
@@ -150,23 +208,20 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
     let childrenPayload = [];
 
-    // Handle child selection
     if (selectedChild) {
       if (selectedChild === 'All') {
-        // When "All" is selected, save all children IDs
         childrenPayload = childrenList.map(child => child._id);
       } else {
-        // When a specific child is selected, save only that child ID
         childrenPayload = [selectedChild];
       }
     }
 
-    // If no child selected but we have children in initial data, preserve them
     if (childrenPayload.length === 0 && children && children.length > 0) {
       childrenPayload = children;
     }
 
-    console.log('Saving event with children:', childrenPayload); // Debug log
+    console.log('💾 Saving event with children:', childrenPayload);
+    console.log('💾 Alert time selected:', alertTime);
 
     const payload = {
       title,
@@ -208,10 +263,54 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         throw new Error(data?.message || `HTTP ${resp.status}`);
       }
 
-      if (onSaved) onSaved(data.event || data);
+      const savedEvent = data.event || data;
+      console.log('✅ Event saved:', savedEvent);
+      
+      // Always create or update reminder if alert is set (backend will update existing)
+      if (savedEvent._id && alertTime !== 'At time of event') {
+        console.log('🔔 Alert is set, creating/updating reminder...');
+        console.log('   Alert type:', alertTime);
+        console.log('   Event ID:', savedEvent._id);
+        await createReminderForEvent(savedEvent._id, {
+          title: savedEvent.title,
+          startDate: savedEvent.startDate,
+          alert: alertTime
+        });
+      } else if (savedEvent._id && alertTime === 'At time of event' && initialData) {
+        // If editing and removing alert, try to delete reminder
+        console.log('🗑️ Alert removed, attempting to delete reminder...');
+        try {
+          const token = localStorage.getItem('accessToken');
+          const remindersResp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reminders`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+          });
+          if (remindersResp.ok) {
+            const remindersData = await remindersResp.json();
+            const existingReminder = remindersData.reminders?.find(r => r.eventId === savedEvent._id);
+            if (existingReminder) {
+              await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reminders/${existingReminder._id}`, {
+                method: 'DELETE',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+              console.log('✅ Reminder deleted');
+            }
+          }
+        } catch (err) {
+          console.error('❌ Error deleting reminder:', err);
+        }
+      } else {
+        console.log('⚠️ No reminder action needed');
+      }
+
+      if (onSaved) onSaved(savedEvent);
       onClose();
     } catch (err) {
-      console.error('Save error', err);
+      console.error('❌ Save error', err);
       window.alert('Could not save event: ' + err.message);
     } finally {
       setSaving(false);
@@ -220,7 +319,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-lg max-w-xl w-full p-5">
+      <div className="bg-white rounded-lg shadow-lg max-w-xl w-full p-5 max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-semibold mb-3">{initialData ? 'Edit Event' : 'Add Event'}</h3>
 
         <label className="block text-sm">Title</label>
@@ -243,7 +342,6 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                 </option>
               ))}
             </select>
-            {/* show a small preview of selected child */}
             <div className="mt-2 flex items-center gap-2">
               {selectedChild === 'All' ? (
                 <div className="text-sm text-gray-600">
@@ -323,14 +421,28 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         </div>
 
         <div className="mb-3">
-          <label className="block text-sm">Alert</label>
-          <select value={alertTime} onChange={e => setAlertTime(e.target.value)} className="border rounded px-2 py-1">
+          <label className="block text-sm font-medium mb-1">Alert</label>
+          <select 
+            value={alertTime} 
+            onChange={e => setAlertTime(e.target.value)} 
+            className="w-full border rounded px-2 py-1.5"
+          >
             <option>At time of event</option>
             <option>5 minutes before</option>
             <option>15 minutes before</option>
             <option>1 hour before</option>
             <option>1 day before</option>
           </select>
+          {alertTime === '1 day before' && (
+            <p className="text-xs text-teal-600 mt-1.5 font-medium">
+              ✓ A reminder will be automatically created
+            </p>
+          )}
+          {(alertTime === '5 minutes before' || alertTime === '15 minutes before' || alertTime === '1 hour before') && (
+            <p className="text-xs text-teal-600 mt-1.5 font-medium">
+              ✓ A reminder will be automatically created
+            </p>
+          )}
         </div>
 
         <div className="mb-3">
