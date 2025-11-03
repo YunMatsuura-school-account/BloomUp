@@ -71,12 +71,30 @@ export default function Header() {
   return (
     <>
       <header
-        className="w-full bg-[#F5F5F5] flex items-center justify-end"
+        className="w-full bg-[#F5F5F5] flex items-center justify-between md:justify-end"
         style={{
           height: "95px",
           padding: "29px 59px",
         }}
       >
+        {/* Mobile hamburger (opens sidebar via global hook set in layout) */}
+        <button
+          className="md:hidden p-2 rounded-md hover:bg-gray-200/60"
+          aria-label="Open Menu"
+          onClick={() => {
+            if (
+              typeof window !== "undefined" &&
+              typeof window.__openSidebar === "function"
+            ) {
+              window.__openSidebar();
+            }
+          }}
+        >
+          <span className="block w-6 h-0.5 bg-[#232527] mb-1"></span>
+          <span className="block w-6 h-0.5 bg-[#232527] mb-1"></span>
+          <span className="block w-6 h-0.5 bg-[#232527]"></span>
+        </button>
+
         <div className="flex items-center gap-[25px]">
           {/* Bell Icon */}
           <button
