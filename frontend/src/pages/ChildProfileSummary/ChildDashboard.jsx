@@ -172,7 +172,7 @@ export default function ChildDashboard() {
 
   const onEdit = () => {
     navigate("/add-child", {
-      state: { child, childId: child?._id, userId: meId },
+      state: { child, childId: child?._id, userId: meId, returnPath: `/child-dashboard/${childId}` },
     });
   };
 
