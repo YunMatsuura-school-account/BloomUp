@@ -8,7 +8,7 @@ import '../styles/articles.css';
 const ArticleCategory = () => {
   const [articles, setArticles] = useState([]);
   const [displayedArticles, setDisplayedArticles] = useState([]);
-  const [currentCategory, setCurrentCategory] = useState('Health');
+  const [currentCategory, setCurrentCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
@@ -17,37 +17,39 @@ const ArticleCategory = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
-  const { category } = useParams();
+  const { category } = useParams(); // Get category from URL
 
   const categories = ['Health', 'Education', 'Finances', 'Routines', 'Parenting', 'Saved'];
   const ARTICLES_PER_PAGE = 5;
 
+  // CRITICAL FIX: Set category from URL params immediately
   useEffect(() => {
+    console.log('📍 URL category changed:', category);
     if (category) {
       setCurrentCategory(category);
-      setArticles([]);
-      setDisplayedArticles([]);
-      setPage(1);
-    } else if (location.state?.category) {
-      setCurrentCategory(location.state.category);
-      setArticles([]);
-      setDisplayedArticles([]);
-      setPage(1);
     }
-  }, [category, location.state?.category]);
+  }, [category]); // Re-run whenever URL category changes
 
+  // CRITICAL FIX: Fetch articles when currentCategory changes
   useEffect(() => {
-    fetchArticles();
-  }, [currentCategory]);
+    if (currentCategory) {
+      console.log('🔄 Current category changed, fetching articles for:', currentCategory);
+      fetchArticles();
+    }
+  }, [currentCategory]); // Re-fetch when category changes
 
   const fetchArticles = async () => {
     try {
       setLoading(true);
       setError(null);
       
+      console.log('🌐 Fetching articles for category:', currentCategory);
+      
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/api/articles/category/${currentCategory}`
       );
+      
+      console.log('📦 Response received:', response.data);
       
       if (response.data.success) {
         // Client-side filter as safety net
@@ -55,18 +57,21 @@ const ArticleCategory = () => {
           article => article.category === currentCategory
         );
         
+        console.log('✅ Filtered articles:', filteredArticles.length);
+        
         setArticles(filteredArticles);
         // Show first 5 articles initially
         setDisplayedArticles(filteredArticles.slice(0, ARTICLES_PER_PAGE));
         setHasMore(filteredArticles.length > ARTICLES_PER_PAGE);
         setPage(1);
       } else {
+        console.log('❌ No articles in response');
         setArticles([]);
         setDisplayedArticles([]);
         setHasMore(false);
       }
     } catch (error) {
-      console.error('Error fetching articles:', error);
+      console.error('❌ Error fetching articles:', error);
       setError('Failed to load articles');
       setArticles([]);
       setDisplayedArticles([]);
@@ -94,7 +99,15 @@ const ArticleCategory = () => {
   };
 
   const handleCategoryChange = (newCategory) => {
-    setCurrentCategory(newCategory);
+    console.log('🔀 Category change requested:', newCategory);
+    // The navigation will trigger the useEffect hooks above
+    if (newCategory === 'Saved') {
+      navigate('/articles', { state: { filter: 'Saved' } });
+    } else if (newCategory === 'All') {
+      navigate('/articles', { state: { filter: 'All' } });
+    } else {
+      navigate(`/articles/category/${newCategory}`);
+    }
   };
 
   const viewArticle = (article) => {
