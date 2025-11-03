@@ -12,14 +12,14 @@ export const logout = (navigate) => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("token");
   localStorage.removeItem("authToken");
-  
+
   // Clear any other potential auth data
   localStorage.removeItem("user");
   localStorage.removeItem("userData");
-  
+
   // Clear sessionStorage as well
   sessionStorage.clear();
-  
+
   // If navigate function is provided, use React Router navigation
   if (navigate) {
     // Replace current history entry to prevent back navigation
@@ -76,4 +76,3 @@ export const validateToken = async () => {
     return false;
   }
 };
-
