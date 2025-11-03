@@ -5,20 +5,27 @@ import { Bar } from 'react-chartjs-2';
 import BudgetSetup from "./BudgetSetup";
 import UploadReceipt from "../pages/UploadReceipt";
 // Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 function Budget() {
   const [overview, setOverview] = useState({
     total: 0,
     spent: 0,
     remaining: 0,
-    categories: []
+    categories: [],
   });
   const [expenses, setExpenses] = useState([]);
   const [monthlySpending, setMonthlySpending] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
-  const [selectedTimeframe, setSelectedTimeframe] = useState('Monthly');
+  const [selectedTimeframe, setSelectedTimeframe] = useState("Monthly");
   const [showTimeframeMenu, setShowTimeframeMenu] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,7 +48,7 @@ const [aiInsights, setAiInsights] = useState(null);
       setError(null);
 
       const token = getToken();
-      
+
       if (!token) {
         navigate("/login");
         return;
@@ -50,9 +57,9 @@ const [aiInsights, setAiInsights] = useState(null);
       const response = await fetch(`${API_URL}/overview`, {
         method: "GET",
         headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
@@ -82,7 +89,7 @@ const [aiInsights, setAiInsights] = useState(null);
   const fetchExpenses = async () => {
     try {
       const token = getToken();
-      
+
       if (!token) {
         return;
       }
@@ -95,9 +102,9 @@ const [aiInsights, setAiInsights] = useState(null);
       const response = await fetch(`${API_URL}/expenses/year/${currentYear}`, {
         method: "GET",
         headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (response.ok) {
@@ -174,7 +181,7 @@ const fetchAIInsights = async () => {
   }, [expenses, overview]);
 
   const calculateMonthlySpending = () => {
-    if (selectedTimeframe === 'Weekly') {
+    if (selectedTimeframe === "Weekly") {
       calculateWeeklySpending();
     } else {
       calculateMonthlySpendingData();
@@ -185,9 +192,15 @@ const fetchAIInsights = async () => {
     const currentYear = new Date().getFullYear();
     
     let monthlyBudget = overview.total || 0;
-    if (selectedCategory !== 'All' && overview.categories && overview.categories.length > 0) {
-      const categoryData = overview.categories.find(cat => cat.name === selectedCategory);
-      monthlyBudget = categoryData ? (categoryData.allocated || 0) : 0;
+    if (
+      selectedCategory !== "All" &&
+      overview.categories &&
+      overview.categories.length > 0
+    ) {
+      const categoryData = overview.categories.find(
+        (cat) => cat.name === selectedCategory
+      );
+      monthlyBudget = categoryData ? categoryData.allocated || 0 : 0;
     }
     
     const months = Array(12).fill(0);
@@ -207,18 +220,20 @@ const fetchAIInsights = async () => {
     });
     
     const monthlyData = months.map((spent, index) => {
-      const withinBudget = monthlyBudget > 0 ? Math.min(spent, monthlyBudget) : spent;
-      const overBudget = monthlyBudget > 0 ? Math.max(0, spent - monthlyBudget) : 0;
-      
+      const withinBudget =
+        monthlyBudget > 0 ? Math.min(spent, monthlyBudget) : spent;
+      const overBudget =
+        monthlyBudget > 0 ? Math.max(0, spent - monthlyBudget) : 0;
+
       return {
         month: index,
         spent,
         withinBudget,
         overBudget,
-        monthlyBudget
+        monthlyBudget,
       };
     });
-    
+
     setMonthlySpending(monthlyData);
   };
 
@@ -228,9 +243,15 @@ const fetchAIInsights = async () => {
     const currentMonth = currentDate.getUTCMonth();
     
     let totalBudget = overview.total || 0;
-    if (selectedCategory !== 'All' && overview.categories && overview.categories.length > 0) {
-      const categoryData = overview.categories.find(cat => cat.name === selectedCategory);
-      totalBudget = categoryData ? (categoryData.allocated || 0) : 0;
+    if (
+      selectedCategory !== "All" &&
+      overview.categories &&
+      overview.categories.length > 0
+    ) {
+      const categoryData = overview.categories.find(
+        (cat) => cat.name === selectedCategory
+      );
+      totalBudget = categoryData ? categoryData.allocated || 0 : 0;
     }
     
     const weeklyBudget = totalBudget / 4;
@@ -251,18 +272,20 @@ const fetchAIInsights = async () => {
     });
     
     const weeklyData = weeks.map((spent, index) => {
-      const withinBudget = weeklyBudget > 0 ? Math.min(spent, weeklyBudget) : spent;
-      const overBudget = weeklyBudget > 0 ? Math.max(0, spent - weeklyBudget) : 0;
-      
+      const withinBudget =
+        weeklyBudget > 0 ? Math.min(spent, weeklyBudget) : spent;
+      const overBudget =
+        weeklyBudget > 0 ? Math.max(0, spent - weeklyBudget) : 0;
+
       return {
         week: index,
         spent,
         withinBudget,
         overBudget,
-        weeklyBudget
+        weeklyBudget,
       };
     });
-    
+
     setMonthlySpending(weeklyData);
   };
 
@@ -294,8 +317,8 @@ const fetchAIInsights = async () => {
             backgroundColor: '#F39D08',
             borderRadius: { topLeft: 8, topRight: 8 },
             borderSkipped: false,
-          }
-        ]
+          },
+        ],
       };
     }
 
@@ -348,13 +371,13 @@ const fetchAIInsights = async () => {
           borderSkipped: false,
         },
         {
-          label: 'Over Budget',
+          label: "Over Budget",
           data: overBudgetData,
           backgroundColor: '#F39D08',
           borderRadius: { topLeft: 8, topRight: 8 },
           borderSkipped: false,
-        }
-      ]
+        },
+      ],
     };
   }
   
@@ -453,7 +476,7 @@ const fetchAIInsights = async () => {
     const categories = ['All'];
     
     if (overview.categories && overview.categories.length > 0) {
-      overview.categories.forEach(cat => {
+      overview.categories.forEach((cat) => {
         if (cat.name && !categories.includes(cat.name)) {
           categories.push(cat.name);
         }
@@ -461,7 +484,7 @@ const fetchAIInsights = async () => {
     } else {
       categories.push('Medical', 'Education', 'Consumable', 'Clothes', 'Entertainment', 'Transport', 'Other');
     }
-    
+
     return categories;
   };
 
@@ -497,9 +520,9 @@ const fetchAIInsights = async () => {
               ];
             }
             return [];
-          }
-        }
-      }
+          },
+        },
+      },
     },
     scales: {
       x: {
@@ -642,7 +665,7 @@ const fetchAIInsights = async () => {
               )}
             </div>
           </div>
-          
+
           <div className="h-80">
             <Bar data={getChartData()} options={chartOptions} />
           </div>

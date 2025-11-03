@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogoBloomUpWhite } from "../icons";
+import { NewLogoBloomUpWhite } from "../icons";
 // import "../assets/css/login.css";
 
 export default function Login() {
@@ -9,6 +9,45 @@ export default function Login() {
   const [message, setMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  // Prevent accessing login page if already authenticated
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      // User is already logged in, redirect to dashboard
+      navigate("/dashboard", { replace: true });
+    }
+
+    // Prevent back navigation to protected routes after logout
+    const handlePopState = (event) => {
+      const currentToken = localStorage.getItem("accessToken");
+      if (!currentToken) {
+        const protectedRoutes = [
+          "/dashboard",
+          "/user-dashboard",
+          "/account",
+          "/settings",
+          "/calendar",
+          "/articles",
+          "/family",
+          "/child-dashboard",
+        ];
+
+        const currentPath = window.location.pathname;
+        const isProtectedRoute = protectedRoutes.some((route) =>
+          currentPath.startsWith(route)
+        );
+
+        if (isProtectedRoute) {
+          window.history.replaceState(null, "", "/login");
+          navigate("/login", { replace: true });
+        }
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,7 +64,7 @@ export default function Login() {
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem("accessToken", data.accessToken);
-         //localStorage.setItem("accessToken", data.token);
+        //localStorage.setItem("accessToken", data.token);
 
         setMessage("Login successful!");
         // Let AuthGuard handle the routing based on user state
@@ -60,7 +99,7 @@ export default function Login() {
 
         {/* Logo */}
         <div className="absolute left-[40px] top-[50px] z-10">
-          <LogoBloomUpWhite width={132} height={64} />
+          <NewLogoBloomUpWhite width={220} height={88} />
         </div>
 
         {/* Marketing Text */}
@@ -254,4 +293,3 @@ export default function Login() {
     </div>
   );
 }
-

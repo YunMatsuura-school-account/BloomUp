@@ -10,6 +10,7 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import DashboardLayout from "./layout/DashboardLayout";
 import AuthGuard from "./components/AuthGuard";
+import { logout } from "./utils/auth";
 
 import Dashboard from "./components/Dashboard";
 import Budget from "./components/Budget";
@@ -58,12 +59,9 @@ function App() {
           credentials: init?.credentials || "include",
         });
         if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("token");
-          localStorage.removeItem("authToken");
-          // Hard redirect to login so app state resets cleanly
+          // Use logout utility for consistent cleanup
           if (!window.location.pathname.startsWith("/login")) {
-            window.location.href = "/login";
+            logout(null); // Pass null since we're doing hard redirect
           }
         }
         return response;
