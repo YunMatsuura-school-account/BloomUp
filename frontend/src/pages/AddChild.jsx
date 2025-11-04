@@ -61,7 +61,7 @@ export default function AddChild() {
         body: JSON.stringify(form),
       });
       if (res.ok) {
-        if (isEdit && returnPath){
+        if (isEdit && returnPath) {
           navigate(returnPath); // returns to the previous page
         } else {
           navigate("/family-setup"); // returns to FamilySetup; it will re-fetch
@@ -174,10 +174,9 @@ export default function AddChild() {
           {isEdit ? "Edit child" : "Add child"}
         </h2>
 
-        <div 
-        className="mx-auto mb-6 w-20 h-20 rounded-full overflow-hidden flex items-center justify-center"
-        onClick={pickFile}
-        
+        <div
+          className="mx-auto mb-6 w-20 h-20 rounded-full overflow-hidden flex items-center justify-center"
+          onClick={pickFile}
         >
           {preview ? (
             <img
