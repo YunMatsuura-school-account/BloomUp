@@ -110,6 +110,15 @@ const AuthGuard = ({ children }) => {
         Array.isArray(userData.children) && userData.children.length > 0;
       const currentPath = location.pathname;
 
+      // If user has children and is on /family-setup, redirect to dashboard
+      // (This handles the case when login redirects to /family-setup)
+      if (hasChildren && currentPath === "/family-setup") {
+        navigate("/dashboard", { replace: true });
+        checkInProgress.current = false;
+        setLoading(false);
+        return;
+      }
+
       // Routes that are always allowed (for adding children during onboarding or later)
       const alwaysAllowedRoutes = ["/add-child", "/family-setup"];
       const isOnAlwaysAllowedRoute = alwaysAllowedRoutes.some((route) =>
