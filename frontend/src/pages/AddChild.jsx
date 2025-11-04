@@ -46,6 +46,14 @@ export default function AddChild() {
     e.preventDefault();
     try {
       const token = localStorage.getItem("accessToken");
+      if (!token) {
+        alert("Authentication required. Please login again.");
+        return;
+      }
+      if (!userId) {
+        alert("User ID is missing. Please try again.");
+        return;
+      }
       const url = isEdit
         ? `${
             import.meta.env.VITE_BACKEND_URL
@@ -68,9 +76,13 @@ export default function AddChild() {
         } else {
           navigate("/dashboard"); // returns to Dashboard for new child without returnPath
         }
+      } else {
+        const errorData = await res.json().catch(() => ({ message: "Unknown error" }));
+        alert(`Failed to save: ${errorData.message || "Unknown error"}`);
       }
     } catch (e) {
       console.error(e);
+      alert(`Error: ${e.message || "Unknown error occurred"}`);
     }
   };
 
