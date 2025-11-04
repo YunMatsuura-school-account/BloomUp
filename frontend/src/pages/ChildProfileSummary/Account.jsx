@@ -102,8 +102,12 @@ export default function Account() {
           // </div>
           null}
         <h2 className="text-[40px] font-bold text-black/100 text-center mb-8">
-          {familyName || "Your Family"}
+          Your Family
         </h2>
+
+        <div className=" mb-2 text-black/100 font-semibold text-lg">
+          {familyName}
+        </div>
         {/* </div> */}
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
