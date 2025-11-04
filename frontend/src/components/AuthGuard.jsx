@@ -109,9 +109,15 @@ const AuthGuard = ({ children }) => {
       const hasChildren = Array.isArray(userData.children) && userData.children.length > 0;
       const currentPath = location.pathname;
 
+      // Allow access to /add-child and /family-setup regardless of children status
+      const onboardingRoutes = ["/add-child", "/family-setup"];
+
       if (!hasChildren) {
         console.log("AuthGuard - Redirecting to family-setup (no children)");
-        navigate("/family-setup");
+        // If user is already on onboarding routes, don't redirect
+        if (!onboardingRoutes.includes(currentPath)) {
+          navigate("/family-setup");
+        }
       } else {
         // If user already on a protected route, keep them there; otherwise go to dashboard
         const protectedRoutes = [
@@ -122,6 +128,8 @@ const AuthGuard = ({ children }) => {
           "/calendar",
           "/articles",
           "/family",
+          "/add-child",
+          "/child-dashboard",
         ];
 
         const isOnProtectedRoute = protectedRoutes.some((route) => currentPath.startsWith(route));
@@ -129,7 +137,7 @@ const AuthGuard = ({ children }) => {
         // Special-case: if the user is on /family-setup but has children, redirect to dashboard
         if (currentPath === "/family-setup") {
           navigate("/dashboard");
-        } else if (!isOnProtectedRoute) {
+        } else if (!isOnProtectedRoute && !onboardingRoutes.includes(currentPath)) {
           navigate("/dashboard");
         }
       }
