@@ -102,12 +102,8 @@ export default function Account() {
           // </div>
           null}
         <h2 className="text-[40px] font-bold text-black/100 text-center mb-8">
-          Your Family
+          {familyName || "Your Family"}
         </h2>
-
-        <div className=" mb-2 text-black/100 font-semibold text-lg">
-          {familyName}
-        </div>
         {/* </div> */}
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
@@ -186,7 +182,12 @@ export default function Account() {
              text-gray-600 flex items-center justify-between"
             onClick={() => {
               if (userId) {
-                navigate("/add-child", { state: { userId: userId } });
+                navigate("/add-child", { 
+                  state: { 
+                    userId: userId,
+                    returnPath: "/account"
+                  } 
+                });
               } else {
                 console.error("User ID not available. Please wait for page to load.");
               }

@@ -61,10 +61,12 @@ export default function AddChild() {
         body: JSON.stringify(form),
       });
       if (res.ok) {
-        if (isEdit && returnPath) {
-          navigate(returnPath); // returns to the previous page
+        if (returnPath) {
+          navigate(returnPath); // returns to the previous page if returnPath is provided
+        } else if (isEdit) {
+          navigate("/family-setup"); // returns to FamilySetup for edit without returnPath
         } else {
-          navigate("/family-setup"); // returns to FamilySetup; it will re-fetch
+          navigate("/dashboard"); // returns to Dashboard for new child without returnPath
         }
       }
     } catch (e) {
