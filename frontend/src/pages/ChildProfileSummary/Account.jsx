@@ -102,12 +102,8 @@ export default function Account() {
           // </div>
           null}
         <h2 className="text-[40px] font-bold text-black/100 text-center mb-8">
-          Your Family
+          {familyName || "Your Family"}
         </h2>
-
-        <div className=" mb-2 text-black/100 font-semibold text-lg">
-          {familyName}
-        </div>
         {/* </div> */}
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
@@ -184,9 +180,18 @@ export default function Account() {
             className="rounded-2xl border-2 border-dashed border-gray-400/60 
              bg-gray-200/60 min-h-[135px] p-4 text-left hover:bg-gray-200/80 
              text-gray-600 flex items-center justify-between"
-            onClick={() =>
-              navigate("/add-child", { state: { userId: userId } })
-            }
+            onClick={() => {
+              if (userId) {
+                navigate("/add-child", { 
+                  state: { 
+                    userId: userId,
+                    returnPath: "/account"
+                  } 
+                });
+              } else {
+                console.error("User ID not available. Please wait for page to load.");
+              }
+            }}
             aria-label="Add your child here"
           >
             <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
