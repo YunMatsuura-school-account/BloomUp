@@ -186,9 +186,13 @@ export default function Account() {
             className="rounded-2xl border-2 border-dashed border-gray-400/60 
              bg-gray-200/60 min-h-[135px] p-4 text-left hover:bg-gray-200/80 
              text-gray-600 flex items-center justify-between"
-            onClick={() =>
-              navigate("/add-child", { state: { userId: userId } })
-            }
+            onClick={() => {
+              if (userId) {
+                navigate("/add-child", { state: { userId: userId } });
+              } else {
+                console.error("User ID not available. Please wait for page to load.");
+              }
+            }}
             aria-label="Add your child here"
           >
             <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
