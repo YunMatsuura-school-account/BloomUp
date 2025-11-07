@@ -111,8 +111,9 @@ const AuthGuard = ({ children }) => {
       const currentPath = location.pathname;
 
       // If user has children and is on /family-setup, redirect to dashboard
-      // (This handles the case when login redirects to /family-setup)
-      if (hasChildren && currentPath === "/family-setup") {
+      // UNLESS they're in onboarding mode (coming from login/adding children)
+      const isOnboarding = sessionStorage.getItem("onboardingMode") === "true";
+      if (hasChildren && currentPath === "/family-setup" && !isOnboarding) {
         navigate("/dashboard", { replace: true });
         checkInProgress.current = false;
         setLoading(false);
@@ -120,7 +121,11 @@ const AuthGuard = ({ children }) => {
       }
 
       // Routes that are always allowed (for adding children during onboarding or later)
-      const alwaysAllowedRoutes = ["/add-child", "/family-setup"];
+      const alwaysAllowedRoutes = [
+        "/add-child",
+        "/family-add-child",
+        "/family-setup",
+      ];
       const isOnAlwaysAllowedRoute = alwaysAllowedRoutes.some((route) =>
         currentPath.startsWith(route)
       );
@@ -134,12 +139,15 @@ const AuthGuard = ({ children }) => {
 
       if (!hasChildren) {
         console.log("AuthGuard - Redirecting to family-setup (no children)");
+        // Set onboarding mode so user can add multiple children
+        sessionStorage.setItem("onboardingMode", "true");
         navigate("/family-setup");
       } else {
         // If user already on a protected route, keep them there; otherwise go to dashboard
         const protectedRoutes = [
           "/dashboard",
           "/user-dashboard",
+          "/child-dashboard",
           "/account",
           "/settings",
           "/calendar",

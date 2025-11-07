@@ -27,6 +27,7 @@ import "./styles/articles.css";
 
 import FamilySetup from "./pages/FamilySetup";
 import AddChild from "./pages/AddChild";
+import FamilyAddChild from "./pages/FamilyAddChild";
 
 import Account from "./pages/ChildProfileSummary/Account";
 import ChildDashboard from "./pages/ChildProfileSummary/ChildDashboard";
@@ -101,6 +102,14 @@ function App() {
             </AuthGuard>
           }
         />
+        <Route
+          path="/family-add-child"
+          element={
+            <AuthGuard>
+              <FamilyAddChild />
+            </AuthGuard>
+          }
+        />
 
         {/* App layout with independent top-level routes */}
         <Route
@@ -125,16 +134,16 @@ function App() {
             path="/dashboard/budget/review-receipt"
             element={<ReviewReceipt />}
           />
-
           <Route path="/calendar" element={<CalendarPage />} />
-
           {/* Articles Routes - ORDER MATTERS! */}
           <Route path="/articles" element={<Articles />} />
-          <Route path="/articles/category/:category" element={<ArticleCategory />} /> {/* FIXED: Added :category */}
+          <Route
+            path="/articles/category/:category"
+            element={<ArticleCategory />}
+          />{" "}
+          {/* FIXED: Added :category */}
           <Route path="/articles/:id" element={<ArticleSingle />} />
-
           <Route path="/family" element={<FamilySetup />} />
-
           {/* Child Profile Summary */}
           <Route path="/account" element={<Account />} />
           <Route

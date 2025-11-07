@@ -51,7 +51,10 @@ export default function Signup() {
       const data = await res.json();
       if (res.ok) {
         setMessage("Signup successful!");
-        setTimeout(() => navigate("/login"), 1500);
+        setTimeout(
+          () => navigate("/login", { state: { fromSignup: true } }),
+          1500
+        );
       } else {
         setMessage(data?.message || "Signup failed");
       }
