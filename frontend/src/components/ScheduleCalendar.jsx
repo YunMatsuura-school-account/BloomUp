@@ -4,6 +4,8 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
   const [currentDate, setCurrentDate] = useState(
     initialDate ? new Date(initialDate) : new Date()
   );
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Calendar data
   const daysOfWeek = ["Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"];
@@ -101,6 +103,11 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
         const entry = {
           title: ev.title || ev.name || "Event",
           color: ev.color || derivedColor,
+          type: ev.type,
+          date: ev.date,
+          _id: ev._id,
+          endDate: ev.endDate,
+          notes: ev.notes,
         };
         if (!map[day]) map[day] = [entry];
         else map[day].push(entry);
@@ -108,6 +115,58 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
     });
     return map;
   }, [events, currentDate]);
+
+  // Handle date click - show modal with events for that day
+  const handleDateClick = (day) => {
+    if (!day || !day.isCurrentMonth) return;
+
+    const clickedDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      day.day
+    );
+    setSelectedDate(clickedDate);
+    setIsModalOpen(true);
+  };
+
+  // Get events for selected date
+  const getEventsForDate = (date) => {
+    if (!date) return [];
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+
+    return (events || []).filter((ev) => {
+      if (!ev || !ev.date) return false;
+      const evDate = new Date(ev.date);
+      return (
+        evDate.getFullYear() === year &&
+        evDate.getMonth() === month &&
+        evDate.getDate() === day
+      );
+    });
+  };
+
+  // Format date for display
+  const formatDate = (date) => {
+    if (!date) return "";
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  // Format time for display
+  const formatTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   return (
     <div className="space-y-5 h-full flex flex-col">
@@ -212,7 +271,12 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
           {calendarDays.map((dayObj, index) => (
             <div
               key={index}
-              className="border border-[rgba(218,220,224,0.6)] p-0.5 min-h-[78px] flex flex-col justify-between"
+              onClick={() => handleDateClick(dayObj)}
+              className={`border border-[rgba(218,220,224,0.6)] p-0.5 min-h-[78px] flex flex-col justify-between ${
+                dayObj.isCurrentMonth
+                  ? "cursor-pointer hover:bg-gray-50 transition-colors"
+                  : ""
+              }`}
             >
               {dayObj.isCurrentMonth && (
                 <>
@@ -266,7 +330,112 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
         </div>
       </div>
 
-      {/* Upcoming Schedule Details */}
+      {/* Events Modal */}
+      {isModalOpen && selectedDate && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg max-w-md w-full mx-4 max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-800">
+                {formatDate(selectedDate)}
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 overflow-y-auto flex-1">
+              {(() => {
+                const dayEvents = getEventsForDate(selectedDate);
+                if (dayEvents.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-gray-500">
+                      <p className="text-lg mb-2">No events scheduled</p>
+                      <p className="text-sm">This day is free!</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-3">
+                    {dayEvents.map((event, idx) => (
+                      <div
+                        key={idx}
+                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Color Indicator */}
+                          <div
+                            className="w-4 h-4 rounded-full flex-shrink-0 mt-1"
+                            style={{
+                              backgroundColor: event.color || "#F3BE08",
+                            }}
+                          ></div>
+
+                          {/* Event Details */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-800 mb-1">
+                              {event.title || "Event"}
+                            </h4>
+                            <div className="space-y-1">
+                              <p className="text-sm text-gray-600">
+                                <span className="font-medium">Time:</span>{" "}
+                                {formatTime(event.date)}
+                                {event.endDate &&
+                                  ` - ${formatTime(event.endDate)}`}
+                              </p>
+                              {event.type && (
+                                <p className="text-xs text-gray-500">
+                                  <span className="font-medium">Type:</span>{" "}
+                                  {event.type === "vaccination"
+                                    ? "Vaccination"
+                                    : event.type === "event"
+                                    ? "Custom Event"
+                                    : event.type.charAt(0).toUpperCase() +
+                                      event.type.slice(1)}
+                                </p>
+                              )}
+                              {event.notes && (
+                                <p className="text-sm text-gray-600 mt-2">
+                                  <span className="font-medium">Notes:</span>{" "}
+                                  {event.notes}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -11,38 +11,96 @@ const Dashboard = () => {
   const { selectedChild, user, loading } = useChild();
   const [calendarEvents, setCalendarEvents] = useState([]);
 
-  // Fetch vaccination recommendations to feed calendar events
+  // Fetch both vaccination recommendations AND calendar events
   useEffect(() => {
-    const fetchRecommendations = async () => {
-      if (!selectedChild || !user?.id) {
+    const fetchAllEvents = async () => {
+      if (!user?.id) {
         setCalendarEvents([]);
         return;
       }
+
       try {
         const base = import.meta.env.VITE_BACKEND_URL || "";
-        const url = `${base}/api/users/${user.id}/children/${
-          selectedChild._id
-        }/vaccinations/recommendations${
-          selectedChild.dateOfBirth
-            ? `?birthDate=${encodeURIComponent(selectedChild.dateOfBirth)}`
-            : ""
-        }`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Failed to fetch recommendations");
-        const data = await res.json();
-        const mapped = (data?.recommendations || [])
-          .filter((r) => r?.recommendedDate)
-          .map((r) => ({
-            title: `${r.name} vaccination`,
-            date: r.recommendedDate,
-            type: "vaccination",
-          }));
-        setCalendarEvents(mapped);
+        const token =
+          localStorage.getItem("token") ||
+          localStorage.getItem("authToken") ||
+          localStorage.getItem("accessToken");
+
+        // Fetch vaccination recommendations (if child is selected)
+        let vaccinationEvents = [];
+        if (selectedChild?._id) {
+          try {
+            const vaccUrl = `${base}/api/users/${user.id}/children/${
+              selectedChild._id
+            }/vaccinations/recommendations${
+              selectedChild.dateOfBirth
+                ? `?birthDate=${encodeURIComponent(selectedChild.dateOfBirth)}`
+                : ""
+            }`;
+            const vaccRes = await fetch(vaccUrl);
+            if (vaccRes.ok) {
+              const vaccData = await vaccRes.json();
+              vaccinationEvents = (vaccData?.recommendations || [])
+                .filter((r) => r?.recommendedDate)
+                .map((r) => ({
+                  title: `${r.name} vaccination`,
+                  date: r.recommendedDate,
+                  type: "vaccination",
+                  color: "#006F69", // Vaccination color
+                }));
+            }
+          } catch (e) {
+            console.error("Error fetching vaccinations:", e);
+          }
+        }
+
+        // Fetch calendar events (all event types: custom events, appointments, etc.)
+        let calendarEventList = [];
+        try {
+          // Calculate date range: 2 months back to 3 months ahead for calendar navigation
+          const now = new Date();
+          const startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+          const endDate = new Date(now.getFullYear(), now.getMonth() + 3, 0);
+
+          const params = new URLSearchParams();
+          params.set("start", startDate.toISOString());
+          params.set("end", endDate.toISOString());
+          if (selectedChild?._id) {
+            params.set("child", selectedChild._id);
+          }
+
+          const calendarUrl = `${base}/api/calendar?${params.toString()}`;
+          const calendarRes = await fetch(calendarUrl, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            credentials: "include",
+          });
+
+          if (calendarRes.ok) {
+            const calendarData = await calendarRes.json();
+            calendarEventList = (calendarData.events || []).map((ev) => ({
+              title: ev.title || "Event",
+              date: ev.startDate, // ScheduleCalendar expects 'date' field
+              type: ev.category || "event",
+              color: ev.color || "#F3BE08", // Default color for custom events
+              _id: ev._id,
+              endDate: ev.endDate,
+              notes: ev.notes,
+            }));
+          }
+        } catch (e) {
+          console.error("Error fetching calendar events:", e);
+        }
+
+        // Combine both event types
+        const allEvents = [...vaccinationEvents, ...calendarEventList];
+        setCalendarEvents(allEvents);
       } catch (e) {
+        console.error("Error fetching events:", e);
         setCalendarEvents([]);
       }
     };
-    fetchRecommendations();
+
+    fetchAllEvents();
   }, [selectedChild, user?.id]);
 
   if (loading) {
