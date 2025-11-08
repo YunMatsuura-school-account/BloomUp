@@ -17,7 +17,7 @@ export default function AddChild() {
   const userId = state?.userId;
   const editChild = state?.child || null;
   const childId = state?.childId || null;
-  const returnPath = state?.returnPath || null;
+  let returnPath = state?.returnPath || null;
   const isEdit = !!editChild && !!childId;
 
   const [form, setForm] = useState({
@@ -203,11 +203,8 @@ export default function AddChild() {
       );
 
       if (res.ok) {
-        if (returnPath) {
-          navigate(returnPath);
-        } else {
-          navigate("/child-dashboard");
-        }
+        // Always return to /account after deleting a child
+        navigate("/account");
       } else {
         throw new Error("Failed to delete child");
       }
