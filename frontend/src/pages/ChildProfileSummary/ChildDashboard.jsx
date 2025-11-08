@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import AvatarDropUpload from "../../components/AvatarDropUpload";
 import personIcon from "../../icons/person_icon.png";
+import AddEventModal from "../../components/AddEventModal";
 
 export default function ChildDashboard() {
   const { childId } = useParams();
@@ -14,6 +15,8 @@ export default function ChildDashboard() {
   const [err, setErr] = useState("");
   const [events, setEvents] = useState([]);
   const [eventErr, setEventErr] = useState("");
+  const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) {
@@ -255,7 +258,11 @@ export default function ChildDashboard() {
             return (
               <div
                 key={ev._id}
-                className="rounded-2xl bg-black/5 px-6 py-5 shadow-sm"
+                className="rounded-2xl bg-black/5 px-6 py-5 shadow-sm cursor-pointer hover:bg-black/10 transition-colors"
+                onClick={() => {
+                  setSelectedEvent(ev);
+                  setIsAddEventModalOpen(true);
+                }}
               >
                 <div className="flex items-center justify-between text-sm text-black/60">
                   <span className="font-medium">{headerDate}</span>
@@ -284,6 +291,35 @@ export default function ChildDashboard() {
           })
         )}
       </div>
+
+      {/* Event Modal */}
+      {isAddEventModalOpen && (
+        <AddEventModal
+          isOpen={isAddEventModalOpen}
+          onClose={() => {
+            setIsAddEventModalOpen(false);
+            setSelectedEvent(null);
+          }}
+          onSaved={() => {
+            setIsAddEventModalOpen(false);
+            setSelectedEvent(null);
+            // Optionally reload events here if needed
+            // You can trigger a re-fetch by updating a dependency or calling the fetch logic again
+          }}
+          initialData={selectedEvent ? {
+            _id: selectedEvent._id,
+            title: selectedEvent.title || selectedEvent.name,
+            children: selectedEvent.children || [],
+            category: selectedEvent.category || 'Others',
+            startDate: selectedEvent.startDate || selectedEvent.start,
+            endDate: selectedEvent.endDate || selectedEvent.end,
+            alert: selectedEvent.alert,
+            notes: selectedEvent.notes || selectedEvent.description,
+            url: selectedEvent.url,
+            attachments: selectedEvent.attachments
+          } : null}
+        />
+      )}
     </div>
   );
 }
