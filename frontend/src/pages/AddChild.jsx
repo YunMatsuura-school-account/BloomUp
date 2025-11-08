@@ -178,6 +178,45 @@ export default function AddChild() {
       : `${BASE}/static/child-images/${editChild.imageUrl}`
     : null;
 
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this child?")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token){
+        alert("Authentication required. Please login again.");
+        return; //redirect to login page
+      }
+      if (!userId || !childId) {
+        alert("User ID or Child ID is missing. Please try again.");
+        return; //redirect to add child page
+      }
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/${userId}/children/${childId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.ok) {
+        if (returnPath) {
+          navigate(returnPath);
+        } else {
+          navigate("/child-dashboard");
+        }
+      } else {
+        throw new Error("Failed to delete child");
+      }
+    } catch (e) {
+      console.error(e);
+      alert(`Error: ${e.message || "Unknown error occurred"}`);
+    }
+  };
+
   return (
     <div className="min-h-screen w-full grid place-items-center bg-gray-100 p-4">
       <form
@@ -254,6 +293,13 @@ export default function AddChild() {
         <button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded">
           Save
         </button>
+        { isEdit && (
+          <button 
+          type="button"
+          className="w-full bg-[#F3BE08] hover:bg-orange-700 text-black font-semibold mt-4 py-2 rounded" onClick={handleDelete}>
+            Delete Profile
+          </button>
+        )}
       </form>
     </div>
   );
