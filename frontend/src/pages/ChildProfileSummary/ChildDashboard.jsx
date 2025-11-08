@@ -74,6 +74,52 @@ export default function ChildDashboard() {
     return "";
   };
 
+  const fetchEvents = async (userId, token) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const fromIso = today.toISOString();
+    const urls = [
+      `${BASE}/api/calendar?childId=${childId}&from=${fromIso}`,
+      `${BASE}/api/calendar?child=${childId}&start=${fromIso}`,
+      `${BASE}/api/calendar`,
+    ];
+
+    let raw = [];
+
+    for (const url of urls) {
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok || res.status === 204) continue;
+
+      const body = await res.json().catch(() => null);
+      const arr = Array.isArray(body)
+        ? body
+        : body?.events || body?.data || [];
+
+      if (!Array.isArray(arr) || arr.length === 0) continue;
+
+      raw = arr;
+      break;
+    }
+
+    const cid = String(childId);
+    const upcoming = (raw || [])
+      .filter((e) => {
+        const kids = Array.isArray(e.children)
+          ? e.children.map((x) =>
+              typeof x === "string" ? x : x && (x._id || String(x))
+            )
+          : [];
+        const hasChild = kids.map(String).includes(cid);
+        const start = e.startDate ? new Date(e.startDate) : null;
+        return hasChild && start && start >= today;
+      })
+      .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    setEvents(upcoming);
+  };
+
   useEffect(() => {
     let aborted = false; // avoid setState() to be called
     (async () => {
@@ -113,51 +159,9 @@ export default function ChildDashboard() {
           setChild(childData);
         }
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const fromIso = today.toISOString();
-        const urls = [
-          `${BASE}/api/calendar?childId=${childId}&from=${fromIso}`,
-          `${BASE}/api/calendar?child=${childId}&start=${fromIso}`,
-          `${BASE}/api/calendar`,
-        ];
-
-        let raw = [];
-        let usedUrl = "";
-
-        for (const url of urls) {
-          const res = await fetch(url, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (!res.ok || res.status === 204) continue;
-
-          const body = await res.json().catch(() => null);
-          const arr = Array.isArray(body)
-            ? body
-            : body?.events || body?.data || [];
-
-          if (!Array.isArray(arr) || arr.length === 0) continue;
-
-          raw = arr;
-          usedUrl = res.url;
-          break;
+        if (!aborted) {
+          await fetchEvents(me.id, token);
         }
-
-        const cid = String(childId);
-        const upcoming = (raw || [])
-          .filter((e) => {
-            const kids = Array.isArray(e.children)
-              ? e.children.map((x) =>
-                  typeof x === "string" ? x : x && (x._id || String(x))
-                )
-              : [];
-            const hasChild = kids.map(String).includes(cid);
-            const start = e.startDate ? new Date(e.startDate) : null;
-            return hasChild && start && start >= today;
-          })
-          .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-        if (!aborted) setEvents(upcoming);
       } catch (e) {
         if (!aborted) {
           setErr("Failed to load child");
@@ -300,23 +304,32 @@ export default function ChildDashboard() {
             setIsAddEventModalOpen(false);
             setSelectedEvent(null);
           }}
-          onSaved={() => {
+          onSaved={async () => {
             setIsAddEventModalOpen(false);
             setSelectedEvent(null);
-            // Optionally reload events here if needed
-            // You can trigger a re-fetch by updating a dependency or calling the fetch logic again
+            // Reload events after saving
+            const token = localStorage.getItem("accessToken");
+            if (token && meId) {
+              await fetchEvents(meId, token);
+            }
           }}
           initialData={selectedEvent ? {
             _id: selectedEvent._id,
             title: selectedEvent.title || selectedEvent.name,
-            children: selectedEvent.children || [],
+            children: Array.isArray(selectedEvent.children) 
+              ? selectedEvent.children.map(child => 
+                  typeof child === 'string' ? child : (child?._id || String(child))
+                )
+              : [],
             category: selectedEvent.category || 'Others',
             startDate: selectedEvent.startDate || selectedEvent.start,
             endDate: selectedEvent.endDate || selectedEvent.end,
             alert: selectedEvent.alert,
             notes: selectedEvent.notes || selectedEvent.description,
             url: selectedEvent.url,
-            attachments: selectedEvent.attachments
+            attachments: Array.isArray(selectedEvent.attachments) 
+              ? selectedEvent.attachments.join(', ') 
+              : (selectedEvent.attachments || '')
           } : null}
         />
       )}
