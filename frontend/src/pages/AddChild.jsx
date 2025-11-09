@@ -287,9 +287,29 @@ export default function AddChild() {
           className="w-full border rounded px-3 py-2 mb-6"
         />
 
-        <button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded">
-          Save
-        </button>
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={() => {
+              if (returnPath) {
+                navigate(returnPath);
+              } else if (isEdit) {
+                navigate("/family-setup");
+              } else {
+                navigate("/dashboard");
+              }
+            }}
+            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded"
+          >
+            Save
+          </button>
+        </div>
         { isEdit && (
           <button 
           type="button"
