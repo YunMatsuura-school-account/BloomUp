@@ -6,46 +6,102 @@ const AIInsights = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
 
-  useEffect(() => {
-    const run = async () => {
-      if (!user?.id) return;
-      setLoading(true);
-      try {
-        const base = import.meta.env.VITE_BACKEND_URL || "";
-        const now = new Date();
-        const start = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          1
-        ).toISOString();
-        const end = new Date(
-          now.getFullYear(),
-          now.getMonth() + 1,
-          0
-        ).toISOString();
-        const token =
-          localStorage.getItem("token") ||
-          localStorage.getItem("authToken") ||
-          localStorage.getItem("accessToken");
-        const res = await fetch(
-          `${base}/api/ai/insights/budget?userId=${
-            user.id
-          }&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
-          {
-            credentials: "include",
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          }
-        );
-        const json = await res.json();
-        setData(json);
-      } catch (e) {
-        setData(null);
-      } finally {
-        setLoading(false);
+  // Check if AI insights have been shown for this session
+  const hasShownInsights = () => {
+    return sessionStorage.getItem("aiInsightsShown") === "true";
+  };
+
+  // Mark AI insights as shown
+  const markInsightsShown = () => {
+    sessionStorage.setItem("aiInsightsShown", "true");
+  };
+
+  // Load cached insights from sessionStorage
+  const loadCachedInsights = () => {
+    try {
+      const cached = sessionStorage.getItem("aiInsightsData");
+      if (cached) {
+        return JSON.parse(cached);
       }
-    };
-    run();
+    } catch (e) {
+      console.error("Error loading cached insights:", e);
+    }
+    return null;
+  };
+
+  // Store insights in sessionStorage
+  const cacheInsights = (insightsData) => {
+    try {
+      sessionStorage.setItem("aiInsightsData", JSON.stringify(insightsData));
+    } catch (e) {
+      console.error("Error caching insights:", e);
+    }
+  };
+
+  // Fetch AI insights
+  const fetchInsights = async (forceRefresh = false) => {
+    if (!user?.id) return;
+    setLoading(true);
+    try {
+      const base = import.meta.env.VITE_BACKEND_URL || "";
+      const now = new Date();
+      const start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1
+      ).toISOString();
+      const end = new Date(
+        now.getFullYear(),
+        now.getMonth() + 1,
+        0
+      ).toISOString();
+      const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("authToken") ||
+        localStorage.getItem("accessToken");
+      const res = await fetch(
+        `${base}/api/ai/insights/budget?userId=${
+          user.id
+        }&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
+        {
+          credentials: "include",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }
+      );
+      const json = await res.json();
+      setData(json);
+      // Cache the insights
+      cacheInsights(json);
+      // Mark insights as shown after successful fetch
+      markInsightsShown();
+    } catch (e) {
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    // Check if insights have been shown before
+    if (hasShownInsights()) {
+      // Load from cache instead of fetching
+      const cached = loadCachedInsights();
+      if (cached) {
+        setData(cached);
+      }
+    } else {
+      // First time - fetch insights
+      fetchInsights();
+    }
   }, [user?.id]);
+
+  // Handle Adjust Budget button click - refresh AI insights
+  const handleAdjustBudget = () => {
+    // Fetch fresh insights (force refresh)
+    fetchInsights(true);
+  };
 
   const top = data?.insights?.topSpending;
   const suggestions = data?.insights?.suggestions || [];
@@ -136,7 +192,10 @@ const AIInsights = () => {
             </div>
 
             {/* Adjust Budget Button - Figma: 461x54px, padding 15px 136px */}
-            <button className="bg-[#238D88] text-white font-semibold text-base leading-[22.4px] py-[15px] px-[136px] rounded-[15px] hover:bg-[#1a6d68] transition-colors">
+            <button 
+              onClick={handleAdjustBudget}
+              className="bg-[#238D88] text-white font-semibold text-base leading-[22.4px] py-[15px] px-[136px] rounded-[15px] hover:bg-[#1a6d68] transition-colors"
+            >
               Adjust Budget
             </button>
           </div>

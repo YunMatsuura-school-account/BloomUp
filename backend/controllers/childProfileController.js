@@ -24,6 +24,8 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
+const CalendarEvent = require("../models/calendarEvent");
+
 // Get All
 async function getAllChildrenByUser(req, res) {
   try {
@@ -110,10 +112,57 @@ async function updateChildForUser(req, res) {
 async function deleteChildForUser(req, res) {
   try {
     const { userId, childId } = req.params;
-    const found = await childModel.deleteChildForUser(userId, childId);
-    if (!found) {
+    
+    // ChildProfile is necdssary to delete the image
+    const childProfile = await childModel.getChildByIdForUser(userId, childId);
+    if (!childProfile) {
       return res.status(404).json({ message: "Profile not found" });
     }
+
+    // Calendar Event
+    // Delete the events that are only associated with the child to be deleted
+    await CalendarEvent.deleteMany({
+      children: childId,
+      $expr: {
+        $and: [
+          { $eq: [{ $size: "$children" }, 1] },
+          { $eq: [{ $arrayElemAt: ["$children", 0] }, childId] }
+        ]
+      }
+    });
+
+    // 他の子供も紐づいているイベントから参照を削除
+    await CalendarEvent.updateMany(
+      {
+        children: childId,
+        $expr: { $gt: [{ $size: "$children" }, 1] }
+      },
+      { $pull: { children: childId } }
+    );
+
+    // 画像ファイルの削除
+    if (childProfile.imageUrl) {
+      try {
+        // imageUrlからファイル名を抽出
+        let filename = childProfile.imageUrl;
+        if (filename.startsWith("/static/child-images/")) {
+          filename = filename.replace("/static/child-images/", "");
+        } else {
+          filename = filename.split("/").pop();
+        }
+        
+        const imagePath = path.join(childImagesDir, filename);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      } catch (imageErr) {
+        console.error("Error deleting child image:", imageErr);
+        に// 画像削除のエラーは処理を続行（ログのみ）
+      }
+    }
+
+    // ChildProfileの削除
+    await childModel.deleteChildForUser(userId, childId);
 
     // Unlink child from user
     await User.findByIdAndUpdate(
