@@ -14,13 +14,11 @@ export default function ReviewReceipt() {
   const categories = ["Medical", "Education", "Consumable", "Clothes", "Entertainment", "Transport", "Other"];
 
   useEffect(() => {
-    console.log("Location state:", location.state); // Debug log
+    console.log("📋 ReviewReceipt - Location state:", location.state);
     
-    // Fix: Access the nested receiptData properly
     const data = location.state?.receiptData?.receiptData;
     
     if (data?.expenses && data.expenses.length > 0) {
-      // Store receipt info for display
       setReceiptInfo({
         merchantName: data.merchantName,
         totalAmount: data.totalAmount,
@@ -28,23 +26,31 @@ export default function ReviewReceipt() {
         currency: data.currency
       });
 
-      // Format expenses from OpenAI response
-      const formattedExpenses = data.expenses.map((exp, idx) => ({
-        id: idx,
-        date: exp.date || new Date().toISOString().split('T')[0],
-        description: data.merchantName || exp.description || "Unknown Merchant", // Use merchantName in description
-        category: exp.category || "Other",
-        quantity: exp.quantity || 1,
-        amount: parseFloat(exp.amount) || 0
-      }));
+      console.log(`📦 Processing ${data.expenses.length} items from receipt`);
+
+      // Map each item from the receipt
+      const formattedExpenses = data.expenses.map((exp, idx) => {
+        console.log(`  Item ${idx + 1}: ${exp.description} - ${exp.category} - Qty: ${exp.quantity} - $${exp.amount}`);
+        
+        return {
+          id: idx,
+          date: exp.date || new Date().toISOString().split('T')[0],
+          items: exp.description || "Unknown Item", // Item name
+          description: data.merchantName || "Unknown Merchant", // Store name
+          category: exp.category || "Other",
+          quantity: exp.quantity || 1,
+          amount: parseFloat(exp.amount) || 0
+        };
+      });
       
+      console.log(`✅ Created ${formattedExpenses.length} expense rows for review`);
       setExpenses(formattedExpenses);
     } else {
-      // Fallback: Create a default expense
-      console.warn("No expenses found in receipt data");
+      console.warn("⚠️ No expenses found in receipt data");
       setExpenses([{
         id: 0,
         date: new Date().toISOString().split('T')[0],
+        items: "",
         description: "",
         category: "Other",
         quantity: 1,
@@ -70,7 +76,8 @@ export default function ReviewReceipt() {
     setExpenses(prev => [...prev, {
       id: newId,
       date: new Date().toISOString().split('T')[0],
-      description: "",
+      items: "",
+      description: receiptInfo?.merchantName || "",
       category: "Other",
       quantity: 1,
       amount: 0
@@ -85,20 +92,54 @@ export default function ReviewReceipt() {
       return;
     }
 
-    // Validate that at least one expense has amount > 0
     const validExpenses = expenses.filter(exp => exp.amount > 0);
     if (validExpenses.length === 0) {
       alert("Please add at least one expense with a valid amount.");
       return;
     }
 
+    console.log(`\n💾 Grouping ${validExpenses.length} items by category...`);
     setLoading(true);
 
     try {
-      // Save each expense individually using the add-manual endpoint
+      // GROUP EXPENSES BY CATEGORY AND DATE
+      const groupedExpenses = {};
+      
+      validExpenses.forEach(expense => {
+        // Create a unique key combining category, date, and store
+        const key = `${expense.category}|${expense.date}|${expense.description}`;
+        
+        if (!groupedExpenses[key]) {
+          groupedExpenses[key] = {
+            category: expense.category,
+            date: expense.date,
+            storeName: expense.description,
+            items: [],
+            totalAmount: 0,
+            totalQuantity: 0
+          };
+        }
+        
+        // Add item to the group
+        groupedExpenses[key].items.push(expense.items);
+        groupedExpenses[key].totalAmount += parseFloat(expense.amount);
+        groupedExpenses[key].totalQuantity += parseInt(expense.quantity);
+      });
+
+      console.log(`📦 Grouped into ${Object.keys(groupedExpenses).length} category groups:`);
+      Object.values(groupedExpenses).forEach(group => {
+        console.log(`  - ${group.category}: ${group.items.length} items, Qty: ${group.totalQuantity}, Total: ${group.totalAmount.toFixed(2)}`);
+      });
+
       const savedExpenses = [];
       
-      for (const expense of validExpenses) {
+      // Save each grouped expense
+      for (const group of Object.values(groupedExpenses)) {
+        // Just use store name, no item list
+        const finalDescription = group.storeName || "Receipt purchase";
+
+        console.log(`  💾 Saving grouped: ${group.category} - ${finalDescription} - ${group.items.length} items`);
+
         const response = await fetch(`${API_URL}/add-manual`, {
           method: "POST",
           headers: {
@@ -106,27 +147,33 @@ export default function ReviewReceipt() {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            amount: parseFloat(expense.amount),
-            category: expense.category,
-            description: expense.description || "Receipt item",
-            date: expense.date,
-            quantity: parseInt(expense.quantity) || 1
+            amount: parseFloat(group.totalAmount.toFixed(2)),
+            category: group.category,
+            description: finalDescription,
+            date: group.date,
+            quantity: group.totalQuantity
           })
         });
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || `Failed to save expense: ${expense.description}`);
+          throw new Error(errorData.message || `Failed to save ${group.category} group`);
         }
 
         const data = await response.json();
+        console.log(`  ✅ Saved grouped expense ID: ${data.expense._id}`);
         savedExpenses.push(data);
       }
 
-      alert(`${savedExpenses.length} expense(s) saved successfully!`);
-      navigate("/dashboard/budget");
+      console.log(`\n✅ Successfully saved ${savedExpenses.length} grouped expenses!`);
+      alert(`${validExpenses.length} items grouped into ${savedExpenses.length} expense(s) by category and saved successfully!`);
+      
+      // Navigate back and trigger refresh
+      navigate("/dashboard/budget", { 
+        state: { refreshData: true, message: `${savedExpenses.length} expenses added from receipt` } 
+      });
     } catch (err) {
-      console.error("Save error:", err);
+      console.error("❌ Save error:", err);
       alert("Failed to save expenses: " + err.message);
     } finally {
       setLoading(false);
@@ -146,7 +193,7 @@ export default function ReviewReceipt() {
       
       {/* Modal Container */}
       <div className="fixed inset-0 flex items-center justify-center z-[9999] p-5 pointer-events-none">
-        <div className="pointer-events-auto bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="pointer-events-auto bg-white rounded-2xl shadow-2xl max-w-7xl w-full max-h-[90vh] overflow-y-auto">
           <div className="px-8 py-6">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
@@ -171,8 +218,9 @@ export default function ReviewReceipt() {
             </div>
 
             {/* Table Header */}
-            <div className="grid grid-cols-[120px_2fr_140px_100px_120px_80px] gap-4 px-4 py-3 bg-[#1a6d69] border-b border-gray-200 text-xs font-semibold text-white font-sans">
+            <div className="grid grid-cols-[100px_1.5fr_1.5fr_130px_80px_100px_60px] gap-3 px-4 py-3 bg-[#1a6d69] border-b border-gray-200 text-xs font-semibold text-white font-sans">
               <div>Date</div>
+              <div>Items</div>
               <div>Description</div>
               <div>Category</div>
               <div className="text-center">Quantity</div>
@@ -185,30 +233,39 @@ export default function ReviewReceipt() {
               {expenses.map((expense) => (
                 <div
                   key={expense.id}
-                  className="grid grid-cols-[120px_2fr_140px_100px_120px_80px] gap-4 px-4 py-4 border-b border-gray-200 items-center"
+                  className="grid grid-cols-[100px_1.5fr_1.5fr_130px_80px_100px_60px] gap-3 px-4 py-3 border-b border-gray-200 items-center"
                 >
                   {/* Date */}
                   <input
                     type="date"
                     value={expense.date}
                     onChange={(e) => handleChange(expense.id, "date", e.target.value)}
-                    className="px-3 py-2  rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
+                    className="px-2 py-2  rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   />
 
-                  {/* Description */}
+                  {/* Items (Product Name) */}
+                  <input
+                    type="text"
+                    value={expense.items}
+                    onChange={(e) => handleChange(expense.id, "items", e.target.value)}
+                    placeholder="Item name"
+                    className="px-2 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
+                  />
+
+                  {/* Description (Store Name) */}
                   <input
                     type="text"
                     value={expense.description}
                     onChange={(e) => handleChange(expense.id, "description", e.target.value)}
-                    placeholder="Description"
-                    className="px-3 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
+                    placeholder="Store name"
+                    className="px-2 py-2  rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   />
 
                   {/* Category */}
                   <select
                     value={expense.category}
                     onChange={(e) => handleChange(expense.id, "category", e.target.value)}
-                    className="px-3 py-2  rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
+                    className="px-2 py-2  rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   >
                     {categories.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -221,7 +278,7 @@ export default function ReviewReceipt() {
                     value={expense.quantity}
                     onChange={(e) => handleChange(expense.id, "quantity", e.target.value)}
                     min="1"
-                    className="px-3 py-2 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
+                    className="px-2 py-2 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   />
 
                   {/* Amount */}
@@ -231,7 +288,7 @@ export default function ReviewReceipt() {
                     value={expense.amount}
                     onChange={(e) => handleChange(expense.id, "amount", e.target.value)}
                     placeholder="0.00"
-                    className="px-3 py-2  rounded text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-numbers"
+                    className="px-2 py-2  rounded text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-numbers"
                   />
 
                   {/* Action Buttons */}
@@ -242,7 +299,7 @@ export default function ReviewReceipt() {
                       className="bg-transparent border-none cursor-pointer p-1 hover:bg-red-50 rounded disabled:opacity-30 disabled:cursor-not-allowed"
                       title="Delete"
                     >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
                         <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                       </svg>
                     </button>

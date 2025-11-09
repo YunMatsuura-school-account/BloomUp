@@ -91,6 +91,7 @@ function toObjectId(id) {
 }
 
 // Upload Receipt and Process with OpenAI Vision
+
 exports.uploadReceipt = async (req, res) => {
   try {
     const rawUserId = getUserId(req);
@@ -115,27 +116,135 @@ exports.uploadReceipt = async (req, res) => {
       model: "gpt-4o-mini",
       messages: [
         {
+          role: "system",
+          content: "You are a receipt analyzer that extracts information accurately. Always return valid JSON only."
+        },
+        {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Analyze this receipt image and extract the following information in JSON format:
-              {
-                "merchantName": "store name",
-                "totalAmount": numeric value only,
-                "date": "YYYY-MM-DD format",
-                "items": [
-                  {
-                    "name": "item name",
-                    "amount": numeric value,
-                    "category": "one of: Medical, Education, Consumable, Other",
-                    "quantity": integer
-                  }
-                ],
-                "suggestedCategory": "main category for the entire purchase",
-                "currency": "currency symbol or code"
-              }
-              Be accurate with numbers. If you cannot determine something, use null or "Unknown".`,
+              text: `Analyze this receipt image and extract ONLY the physical products/services purchased in this EXACT JSON format:
+
+{
+  "merchantName": "store name",
+  "totalAmount": 0.00,
+  "date": "YYYY-MM-DD",
+  "currency": "USD",
+  "suggestedCategory": "Other",
+  "items": [
+    {
+      "name": "item name",
+      "quantity": 1,
+      "unitPrice": 0.00,
+      "amount": 0.00,
+      "category": "Other"
+    }
+  ]
+}
+
+ CRITICAL EXTRACTION RULES - READ CAREFULLY:
+
+1. ONLY EXTRACT PHYSICAL PRODUCTS OR SERVICES:
+    Extract: Milk, Bread, Medicine, Clothing, Food items, Services
+    DO NOT extract: Any line that is NOT a physical product
+
+2. ABSOLUTELY IGNORE THESE (DO NOT ADD TO ITEMS ARRAY):
+    Any discount (sale, coupon, promo, markdown, savings, "You saved")
+    Any deposit (bottle, container, bag deposit)
+    Any recycling fee (recycle, eco fee, environmental charge)
+    Any tax (GST, PST, HST, VAT, sales tax, tax)
+    Any service fee, delivery fee, tip, gratuity
+    Any subtotal line
+    Any "Total" or "Balance" line
+    Any negative amounts (these are always discounts)
+    Any weight/price calculation lines (e.g., "1.240 kg @ $9.50/kg", "2.5 lb @ $3.99/lb")
+    Lines showing only weight, unit price, or price per kg/lb without product name
+
+3. totalAmount = The FINAL amount customer paid (found near "Total", "Grand Total", "Amount Due")
+
+4. For each PRODUCT item only:
+   - name: Product name exactly as shown (e.g., "Milk 2L", "Aspirin 100ct", "Chicken Breast")
+   - If you see weight pricing (e.g., "1.240 kg @ $9.50/kg"), look for the PRODUCT NAME above or nearby
+   - quantity: Number of units purchased (default to 1 for weighted items)
+   - unitPrice: Price per unit AFTER any item-level discounts are applied
+   - amount: quantity × unitPrice (the actual amount paid for this item)
+   - category: Medical, Education, Consumable, Clothes, Entertainment, Transport, or Other
+
+5. IMPORTANT: If an item shows a discount, calculate the final price:
+   - Example: "Milk $5.99 - $1.00 off = $4.99" → unitPrice: 4.99, amount: 4.99
+   - The discount is already reflected in the price, DON'T add it as separate item
+
+6. Category guide:
+   - Medical: medicines, pharmacy, health products
+   - Education: books, stationery, school supplies
+   - Consumable: food, groceries, beverages, household items
+   - Clothes: clothing, shoes, accessories
+   - Entertainment: games, movies, subscriptions
+   - Transport: fuel, tickets, parking
+   - Other: everything else OR when uncertain
+
+7. Main suggestedCategory = Most common category among extracted items
+
+EXAMPLE - Canadian Grocery Receipt with Discount:
+Receipt shows:
+---
+Milk 2L         $4.99 x2  $9.98
+Bread           $3.49
+Eggs            $4.29
+Member Savings            -$2.00
+Subtotal                  $15.76
+GST                       $0.79
+Total                     $16.55
+---
+
+CORRECT JSON (only 3 product items, discount is absorbed):
+{
+  "merchantName": "Loblaws",
+  "totalAmount": 16.55,
+  "date": "2024-03-15",
+  "currency": "CAD",
+  "suggestedCategory": "Consumable",
+  "items": [
+    {
+      "name": "Milk 2L",
+      "quantity": 2,
+      "unitPrice": 4.99,
+      "amount": 9.98,
+      "category": "Consumable"
+    },
+    {
+      "name": "Bread",
+      "quantity": 1,
+      "unitPrice": 3.49,
+      "amount": 3.49,
+      "category": "Consumable"
+    },
+    {
+      "name": "Eggs",
+      "quantity": 1,
+      "unitPrice": 4.29,
+      "amount": 4.29,
+      "category": "Consumable"
+    }
+  ]
+}
+
+Notice: 
+- Items total: $17.76
+- Member Savings: -$2.00
+- Subtotal after discount: $15.76
+- Tax: $0.79
+- Final total: $16.55
+- We DON'T add discount or tax as items!
+- The totalAmount reflects what was actually paid
+
+Remember: The items array shows what was purchased. Discounts, taxes, deposits, and weight calculation lines are just calculations that lead to the final totalAmount. Don't include them as separate items.
+
+IMPORTANT FOR WEIGHTED ITEMS:
+- "Chicken Breast" followed by "1.240 kg @ $9.50/kg $11.78" = ONE item called "Chicken Breast" with amount $11.78
+- "Bananas" followed by "2.5 lb @ $1.99/lb $4.98" = ONE item called "Bananas" with amount $4.98
+- The weight/price line is NOT a separate item, it's just the pricing detail for the product above it`,
             },
             {
               type: "image_url",
@@ -146,34 +255,93 @@ exports.uploadReceipt = async (req, res) => {
           ],
         },
       ],
-      max_tokens: 1000,
-      temperature: 0.2,
+      max_tokens: 2000,
+      temperature: 0.1,
+      response_format: { type: "json_object" }
     });
+
     const usage = response.usage;
-console.log('\n TOKEN USAGE:');
-console.log('Prompt tokens:', usage.prompt_tokens);
-console.log('Completion tokens:', usage.completion_tokens);
-console.log('Total tokens:', usage.total_tokens);
-const inputCost = (usage.prompt_tokens / 1000000) * 0.150;
-const outputCost = (usage.completion_tokens / 1000000) * 0.600;
-const totalCost = inputCost + outputCost;
-console.log('Estimated cost: $' + totalCost.toFixed(6));
-// TOKEN USAGE:
-// Prompt tokens: 36978
-// Completion tokens: 406
-// Total tokens: 37384
-// Estimated cost: $0.005790
-    
+    console.log('\ TOKEN USAGE:');
+    console.log('Prompt tokens:', usage.prompt_tokens);
+    console.log('Completion tokens:', usage.completion_tokens);
+    console.log('Total tokens:', usage.total_tokens);
+    const inputCost = (usage.prompt_tokens / 1000000) * 0.150;
+    const outputCost = (usage.completion_tokens / 1000000) * 0.600;
+    const totalCost = inputCost + outputCost;
+    console.log('Estimated cost: $' + totalCost.toFixed(6));
 
     const content = response.choices[0].message.content;
     let receiptData;
 
     try {
-      let jsonString = content.trim();
-      jsonString = jsonString.replace(/^```json\s*/i, '').replace(/```\s*$/g, '').trim();
-      const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
-      const jsonToParse = jsonMatch ? jsonMatch[0] : jsonString;
-      receiptData = JSON.parse(jsonToParse);
+      receiptData = JSON.parse(content);
+      
+      // Validation: Ensure category is valid
+      const validCategories = ["Medical", "Education", "Consumable", "Clothes", "Entertainment", "Transport", "Other"];
+      if (!validCategories.includes(receiptData.suggestedCategory)) {
+        console.warn(`Invalid category detected: ${receiptData.suggestedCategory}, defaulting to Other`);
+        receiptData.suggestedCategory = "Other";
+      }
+
+      // Validate items
+      if (!receiptData.items || receiptData.items.length === 0) {
+        console.warn('No items found, creating default item');
+        receiptData.items = [{
+          name: receiptData.merchantName || "Unknown Item",
+          quantity: 1,
+          unitPrice: receiptData.totalAmount || 0,
+          amount: receiptData.totalAmount || 0,
+          category: receiptData.suggestedCategory
+        }];
+      }
+
+      // Validate each item's category
+      receiptData.items = receiptData.items.map(item => ({
+        ...item,
+        category: validCategories.includes(item.category) ? item.category : "Other"
+      }));
+
+      // Calculate items total
+      const itemsTotal = receiptData.items.reduce((sum, item) => sum + (item.amount || 0), 0);
+      
+      // Ensure totalAmount is set
+      if (!receiptData.totalAmount || receiptData.totalAmount <= 0) {
+        receiptData.totalAmount = itemsTotal;
+      }
+
+      
+      // Ignore negative differences (discounts) - they're already reflected in item prices
+      const difference = receiptData.totalAmount - itemsTotal;
+      const tolerance = 0.05; // 5 cent tolerance for rounding errors
+
+      if (difference > tolerance) {
+        // Only add Tax & Fees if total is higher than items
+        console.log(`⚠️ Total higher than items: Items=${itemsTotal.toFixed(2)}, Receipt Total=${receiptData.totalAmount.toFixed(2)}, Adding Tax/Fees=${difference.toFixed(2)}`);
+        
+        receiptData.items.push({
+          name: 'Tax & Fees',
+          quantity: 1,
+          unitPrice: difference,
+          amount: difference,
+          category: 'Other'
+        });
+        
+        console.log(` Added Tax & Fees: ${difference.toFixed(2)}`);
+      } else if (difference < -tolerance) {
+        // Items total is higher than final total = discount was applied
+        // DON'T add discount item, just log it
+        console.log(`Discount detected and ignored: ${Math.abs(difference).toFixed(2)}`);
+      }
+
+      console.log('\nParsed Receipt Data:');
+      console.log('Merchant:', receiptData.merchantName);
+      console.log('Total Amount:', receiptData.totalAmount);
+      console.log('Category:', receiptData.suggestedCategory);
+      console.log('Items:', receiptData.items.length);
+      receiptData.items.forEach((item, idx) => {
+        console.log(`  ${idx + 1}. ${item.name} - Qty: ${item.quantity} - $${item.amount}`);
+      });
+      
     } catch (parseError) {
       console.error("Error parsing OpenAI response:", parseError);
       return res.status(500).json({
@@ -182,40 +350,22 @@ console.log('Estimated cost: $' + totalCost.toFixed(6));
       });
     }
 
-    const expenses = [];
+    // Create expenses array - one per item
+    const expenses = receiptData.items.map(item => ({
+      date: receiptData.date || new Date().toISOString().split("T")[0],
+      description: item.name || "Unknown Item",
+      category: item.category,
+      amount: parseFloat(item.amount) || 0,
+      quantity: parseInt(item.quantity) || 1,
+      unitPrice: parseFloat(item.unitPrice) || 0
+    }));
 
-    if (receiptData.items && receiptData.items.length > 0) {
-      const grouped = {};
-
-      for (const item of receiptData.items) {
-        const cat = item.category || receiptData.suggestedCategory || "Other";
-        const qty = Number(item.quantity) || 1;
-
-        if (!grouped[cat]) grouped[cat] = { total: 0, items: [], quantity: 0 };
-
-        grouped[cat].items.push(item.name || "Unknown item");
-        grouped[cat].total += (Number(item.amount) || 0) * qty;
-        grouped[cat].quantity += qty;
-      }
-
-      for (const [category, data] of Object.entries(grouped)) {
-        expenses.push({
-          date: receiptData.date || new Date().toISOString().split("T")[0],
-          description: data.items.join(", "),
-          category: category,
-          quantity: data.quantity,
-          amount: data.total,
-        });
-      }
-    } else {
-      expenses.push({
-        date: receiptData.date || new Date().toISOString().split("T")[0],
-        description: `Purchase at ${receiptData.merchantName || "Unknown"}`,
-        category: receiptData.suggestedCategory || "Other",
-        quantity: 1,
-        amount: receiptData.totalAmount || 0,
-      });
-    }
+    console.log('\nCreated Expenses for Review:');
+    expenses.forEach((exp, idx) => {
+      console.log(`${idx + 1}. ${exp.description} - ${exp.category} - Qty: ${exp.quantity} - ${exp.amount}`);
+    });
+    console.log(`Total items to review: ${expenses.length}`);
+    console.log('---\n');
 
     res.json({
       message: "Receipt processed successfully",
@@ -224,7 +374,9 @@ console.log('Estimated cost: $' + totalCost.toFixed(6));
         totalAmount: receiptData.totalAmount,
         date: receiptData.date,
         currency: receiptData.currency,
-        expenses: expenses,
+        category: receiptData.suggestedCategory,
+        items: receiptData.items,
+        expenses: expenses, // Multiple expenses - one per item
       },
     });
   } catch (error) {
@@ -235,7 +387,6 @@ console.log('Estimated cost: $' + totalCost.toFixed(6));
     });
   }
 };
-
 // Add Manual Expense - FIXED
 exports.addManualExpense = async (req, res) => {
   try {
@@ -976,6 +1127,232 @@ Rules:
     });
   }
 };
+
+
+// Delete Expense
+exports.deleteExpense = async (req, res) => {
+  try {
+    const rawUserId = getUserId(req);
+    if (!rawUserId) {
+      return res.status(400).json({ message: "User ID required" });
+    }
+
+    const userId = toObjectId(rawUserId);
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid User ID format" });
+    }
+
+    const { expenseId } = req.params;
+
+    if (!expenseId || !mongoose.Types.ObjectId.isValid(expenseId)) {
+      return res.status(400).json({ message: "Invalid expense ID" });
+    }
+
+    // Find the expense first to get its details
+    const expense = await Expense.findOne({ 
+      _id: expenseId, 
+      userId 
+    });
+
+    if (!expense) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+
+    // Get the period for this expense
+    const expenseDate = new Date(expense.date);
+    const period = {
+      month: expenseDate.getMonth() + 1,
+      year: expenseDate.getFullYear()
+    };
+
+    // Delete the expense
+    await Expense.findByIdAndDelete(expenseId);
+
+    // Recalculate budget totals
+    const { startDate, endDate } = getPeriodDateRange(period.month, period.year);
+
+    const budget = await Budget.findOne({ 
+      userId,
+      'period.month': period.month,
+      'period.year': period.year
+    });
+
+    if (budget) {
+      // Recalculate total spent after deletion
+      const allExpenses = await Expense.aggregate([
+        { 
+          $match: { 
+            userId,
+            date: { $gte: startDate, $lte: endDate }
+          } 
+        },
+        { $group: { _id: null, totalSpent: { $sum: "$amount" } } },
+      ]);
+
+      const spent = allExpenses.length ? allExpenses[0].totalSpent : 0;
+      const remaining = budget.total - spent;
+
+      budget.spent = spent;
+      budget.remaining = remaining;
+      await budget.save();
+
+      res.json({
+        message: "Expense deleted successfully",
+        budgetOverview: {
+          total: budget.total,
+          spent: budget.spent,
+          remaining: budget.remaining,
+          status: budget.remaining < 0 ? "Over budget" : "On track",
+          period: period
+        }
+      });
+    } else {
+      res.json({
+        message: "Expense deleted successfully",
+        budgetOverview: null
+      });
+    }
+  } catch (error) {
+    console.error("Error deleting expense:", error);
+    res.status(500).json({
+      message: "Failed to delete expense",
+      error: error.message,
+    });
+  }
+};
+
+// Update Expense
+exports.updateExpense = async (req, res) => {
+  try {
+    const rawUserId = getUserId(req);
+    if (!rawUserId) {
+      return res.status(400).json({ message: "User ID required" });
+    }
+
+    const userId = toObjectId(rawUserId);
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid User ID format" });
+    }
+
+    const { expenseId } = req.params;
+    const { amount, category, description, date, quantity } = req.body;
+
+    if (!expenseId || !mongoose.Types.ObjectId.isValid(expenseId)) {
+      return res.status(400).json({ message: "Invalid expense ID" });
+    }
+
+    // Find the expense
+    const expense = await Expense.findOne({ 
+      _id: expenseId, 
+      userId 
+    });
+
+    if (!expense) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+
+    // Store old date for budget recalculation
+    const oldDate = new Date(expense.date);
+    const oldPeriod = {
+      month: oldDate.getMonth() + 1,
+      year: oldDate.getFullYear()
+    };
+
+    // Update expense fields
+    if (amount !== undefined) expense.amount = parseFloat(amount);
+    if (category !== undefined) expense.category = category;
+    if (description !== undefined) {
+      expense.description = description;
+      expense.merchantName = description;
+    }
+    if (date !== undefined) expense.date = new Date(date);
+    if (quantity !== undefined) expense.quantity = parseInt(quantity);
+
+    await expense.save();
+
+    // Get new period
+    const newDate = new Date(expense.date);
+    const newPeriod = {
+      month: newDate.getMonth() + 1,
+      year: newDate.getFullYear()
+    };
+
+    // Update budget for old period (if different from new period)
+    if (oldPeriod.month !== newPeriod.month || oldPeriod.year !== newPeriod.year) {
+      const oldRange = getPeriodDateRange(oldPeriod.month, oldPeriod.year);
+      const oldBudget = await Budget.findOne({ 
+        userId,
+        'period.month': oldPeriod.month,
+        'period.year': oldPeriod.year
+      });
+
+      if (oldBudget) {
+        const oldExpenses = await Expense.aggregate([
+          { 
+            $match: { 
+              userId,
+              date: { $gte: oldRange.startDate, $lte: oldRange.endDate }
+            } 
+          },
+          { $group: { _id: null, totalSpent: { $sum: "$amount" } } },
+        ]);
+
+        const oldSpent = oldExpenses.length ? oldExpenses[0].totalSpent : 0;
+        oldBudget.spent = oldSpent;
+        oldBudget.remaining = oldBudget.total - oldSpent;
+        await oldBudget.save();
+      }
+    }
+
+    // Update budget for new period
+    const newRange = getPeriodDateRange(newPeriod.month, newPeriod.year);
+    const newBudget = await Budget.findOne({ 
+      userId,
+      'period.month': newPeriod.month,
+      'period.year': newPeriod.year
+    });
+
+    let budgetOverview = null;
+    if (newBudget) {
+      const newExpenses = await Expense.aggregate([
+        { 
+          $match: { 
+            userId,
+            date: { $gte: newRange.startDate, $lte: newRange.endDate }
+          } 
+        },
+        { $group: { _id: null, totalSpent: { $sum: "$amount" } } },
+      ]);
+
+      const newSpent = newExpenses.length ? newExpenses[0].totalSpent : 0;
+      newBudget.spent = newSpent;
+      newBudget.remaining = newBudget.total - newSpent;
+      await newBudget.save();
+
+      budgetOverview = {
+        total: newBudget.total,
+        spent: newBudget.spent,
+        remaining: newBudget.remaining,
+        status: newBudget.remaining < 0 ? "Over budget" : "On track",
+        period: newPeriod
+      };
+    }
+
+    res.json({
+      message: "Expense updated successfully",
+      expense,
+      budgetOverview
+    });
+  } catch (error) {
+    console.error("Error updating expense:", error);
+    res.status(500).json({
+      message: "Failed to update expense",
+      error: error.message,
+    });
+  }
+};
+
+
 // Middleware export
 exports.uploadMiddleware = upload.single("receipt");
 
@@ -992,4 +1369,6 @@ module.exports = {
   uploadMiddleware: exports.uploadMiddleware,
   getExpensesByYear: exports.getExpensesByYear,
    getAIInsights: exports.getAIInsights, 
+   deleteExpense: exports.deleteExpense,
+  updateExpense: exports.updateExpense,
 };
