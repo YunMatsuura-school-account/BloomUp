@@ -17,6 +17,7 @@ export default function AvatarDropUpload({
   currentUrl, // existing image /static/child-images/abc.jpx
   onUploaded, //(url)
   onEdit,
+  showEditButton = true, // show edit button (pencil icon)
 }) {
   const BASE = import.meta.env.VITE_BACKEND_URL;
   const [dragOver, setDragOver] = useState(false);
@@ -153,14 +154,16 @@ export default function AvatarDropUpload({
       </button>
 
       {/* Edit button */}
-      <button
-        type="button"
-        onClick={onEdit}
-        className="absolute -bottom-1 -right-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 text-white shadow text-xl disabled:opacity-60"
-        disabled={busy}
-      >
-        <img src={pencilIcon} alt="edit button" className="w-8 h-8" />
-      </button>
+      {showEditButton && onEdit && (
+        <button
+          type="button"
+          onClick={onEdit}
+          className="absolute -bottom-1 -right-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 text-white shadow text-xl disabled:opacity-60"
+          disabled={busy}
+        >
+          <img src={pencilIcon} alt="edit button" className="w-8 h-8" />
+        </button>
+      )}
 
       {/* highlight during dragging */}
       {dragOver && (
