@@ -47,6 +47,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
 
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [childrenList, setChildrenList] = useState([]);
 
   // Load categories and children
@@ -853,6 +854,69 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     }
   }
 
+  // Delete event
+  async function handleDelete() {
+    if (!initialData?._id) {
+      window.alert('No event to delete.');
+      return;
+    }
+
+    // Confirm deletion
+    const confirmed = window.confirm('Are you sure you want to delete this event? This action cannot be undone.');
+    if (!confirmed) {
+      return;
+    }
+
+    const urlPath = `${import.meta.env.VITE_BACKEND_URL}/api/calendar/${initialData._id}`;
+    console.log('🗑️ Deleting event - ID:', initialData._id);
+    console.log('🌐 Request URL:', urlPath);
+
+    setDeleting(true);
+    try {
+      const resp = await fetch(urlPath, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      });
+
+      console.log('📨 Response status:', resp.status);
+
+      const responseText = await resp.text();
+      console.log('📄 Raw response:', responseText);
+
+      let data = {};
+      if (responseText) {
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('❌ JSON parse error:', parseError);
+          throw new Error(`Server returned invalid JSON. Status: ${resp.status}`);
+        }
+      }
+
+      if (!resp.ok) {
+        const errorMessage = data.message ||
+          data.error ||
+          data.errors?.join(', ') ||
+          `HTTP ${resp.status}: ${resp.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      console.log('✅ Event deleted successfully:', data);
+
+      if (onSaved) onSaved(null); // Pass null to indicate deletion
+      onClose();
+
+    } catch (err) {
+      console.error('❌ Delete error:', err);
+      window.alert(`Could not delete event: ${err.message}`);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   // Save event
   // async function handleSave() {
   //   if (!title || !title.trim()) {
@@ -1037,22 +1101,37 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
           />
         </div>
 
-        {/* Save and Cancel Buttons */}
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            disabled={saving}
-            className="px-6 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-6 py-2 bg-[#238D88] text-white rounded hover:bg-[#1d7470] transition-colors"
-          >
-            {saving ? 'Saving...' : (initialData ? 'Save Changes' : 'Save')}
-          </button>
+        {/* Save, Cancel, and Delete Buttons */}
+        <div className="flex justify-between gap-3">
+          {/* Delete Button - Only show when editing */}
+          {initialData && (
+            <button
+              onClick={handleDelete}
+              disabled={deleting || saving}
+              className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </button>
+          )}
+          {/* Spacer when Delete button is shown */}
+          {initialData && <div className="flex-1"></div>}
+          {/* Cancel and Save Buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              disabled={saving || deleting}
+              className="px-6 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving || deleting}
+              className="px-6 py-2 bg-[#238D88] text-white rounded hover:bg-[#1d7470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? 'Saving...' : (initialData ? 'Save Changes' : 'Save')}
+            </button>
+          </div>
         </div>
 
         {/* Category Popup */}
