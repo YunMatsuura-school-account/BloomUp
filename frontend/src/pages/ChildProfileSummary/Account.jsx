@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import personIcon from "../../icons/person_icon.png";
 import pencilIcon from "../../icons/pencil_icon.png";
 import plusIcon from "../../icons/plus_icon.png";
+import ChildAvatar from "../../components/ChildAvatar";
 
 export default function Account() {
   const BASE = import.meta.env.VITE_BACKEND_URL;
@@ -113,11 +114,6 @@ export default function Account() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
           {children.map((child) => {
             const age = calculateAge(child.dateOfBirth);
-            const avatarSrc = child.imageUrl
-              ? child.imageUrl.startsWith(`/static/`)
-                ? `${BASE}${child.imageUrl}`
-                : `${BASE}/static/child-images/${child.imageUrl}`
-              : null;
             return (
               <button
                 key={child._id}
@@ -125,23 +121,8 @@ export default function Account() {
                 style={{ backgroundColor: "#238D88" }}
                 onClick={() => navigate(`/child-dashboard/${child._id}`)}
               >
-                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
-                  {avatarSrc ? (
-                    <img
-                      src={avatarSrc}
-                      alt={`${child.name || "Child"} profile`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <img
-                      src={personIcon}
-                      slt="person icon"
-                      className="w-12 h-12 opacity-90"
-                    />
-                  )}
+                <div className="w-12 h-12 flex items-center justify-center overflow-hidden">
+                  <ChildAvatar child={child} width={48} height={48} />
                 </div>
 
                 <div className="p-4">
@@ -186,14 +167,16 @@ export default function Account() {
              text-gray-600 flex items-center justify-between"
             onClick={() => {
               if (userId) {
-                navigate("/add-child", { 
-                  state: { 
+                navigate("/add-child", {
+                  state: {
                     userId: userId,
-                    returnPath: "/account"
-                  } 
+                    returnPath: "/account",
+                  },
                 });
               } else {
-                console.error("User ID not available. Please wait for page to load.");
+                console.error(
+                  "User ID not available. Please wait for page to load."
+                );
               }
             }}
             aria-label="Add your child here"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { NewLogoBloomUpWhite } from "../icons";
+import ChildAvatar from "../components/ChildAvatar";
 
 export default function FamilySetup() {
   const [familyName, setFamilyName] = useState("");
@@ -319,7 +320,7 @@ export default function FamilySetup() {
                             style={{ backgroundColor: "#238D88" }}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-gray-300" />
+                              <ChildAvatar child={c} width={40} height={40} />
                               <div>
                                 <div className="font-medium text-sm text-white">
                                   {c.name || "Your child's name"}
