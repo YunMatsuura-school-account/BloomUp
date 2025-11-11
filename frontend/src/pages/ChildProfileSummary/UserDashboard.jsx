@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AvatarDropUpload from "../../components/AvatarDropUpload";
+import AddEventModal from "../../components/AddEventModal";
 
 export default function UserDashboard() {
   const BASE = import.meta.env.VITE_BACKEND_URL;
@@ -12,6 +13,8 @@ export default function UserDashboard() {
   const [children, setChildren] = useState([]);
   const [events, setEvents] = useState([]);
   const [evErr, setEvErr] = useState("");
+  const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   useEffect(() => {
     let aborted = false;
@@ -148,59 +151,141 @@ export default function UserDashboard() {
         Family Upcoming Events
       </h2>
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        {events.map((ev) => {
-          const start = new Date(ev.startDate);
-          const end = new Date(ev.endDate || ev.startDate);
+        {events.length === 0 ? (
+          <div className="col-span-full text-center text-black/60 py-8">
+            {evErr ? evErr : "No upcoming events"}
+          </div>
+        ) : (
+          events.map((ev) => {
+            const start = new Date(ev.startDate);
+            const end = new Date(ev.endDate || ev.startDate);
 
-          const kids = Array.isArray(ev.children) ? ev.children : [];
-          const firstKidId = kids.length
-            ? String(
-                typeof kids[0] === "string" ? kids[0] : kids[0]?._id || kids[0]
-              )
-            : null;
-          const kidName =
-            children.find((c) => String(c._id || c.id) === firstKidId)?.name ||
-            "";
-          return (
-            <div
-              key={ev._id}
-              className="rounded-2xl bg-black/5 px-6 py-5 shadow-sm"
-            >
-              <div className="flex items-start justify-between text-sm text-black/60">
-                <span>
-                  {start.toLocaleDateString(undefined, {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
-                <span>
-                  {start.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  ~{" "}
-                  {end.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
+            const kids = Array.isArray(ev.children) ? ev.children : [];
+            const firstKidId = kids.length
+              ? String(
+                  typeof kids[0] === "string" ? kids[0] : kids[0]?._id || kids[0]
+                )
+              : null;
+            const kidName =
+              children.find((c) => String(c._id || c.id) === firstKidId)?.name ||
+              "";
+            return (
+              <div
+                key={ev._id}
+                className="rounded-2xl bg-black/5 px-6 py-5 shadow-sm cursor-pointer hover:bg-black/10 transition-colors"
+                onClick={() => {
+                  setSelectedEvent(ev);
+                  setIsAddEventModalOpen(true);
+                }}
+              >
+                <div className="flex items-start justify-between text-sm text-black/60">
+                  <span>
+                    {start.toLocaleDateString(undefined, {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                  <span>
+                    {start.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    ~{" "}
+                    {end.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+                <div className="mt-2 font-semibold text-black/90">
+                  {ev.title || ev.name || ev.type || "Untitled Event"}
+                </div>
+                {kidName && (
+                  <div className="text-sm text-black/50 mt-1">for {kidName}</div>
+                )}
+                {ev.description && (
+                  <p className="mt-1 text-sm text-black/60 line-clamp-2">
+                    {ev.description}
+                  </p>
+                )}
               </div>
-              <div className="mt-2 font-semibold text-black/90">
-                {ev.title || ev.name || ev.type || "Untitled Event"}
-              </div>
-              {kidName && (
-                <div className="text-sm text-black/50 mt-1">for {kidName}</div>
-              )}
-              {ev.description && (
-                <p className="mt-1 text-sm text-black/60 line-clamp-2">
-                  {ev.description}
-                </p>
-              )}
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
+
+      {/* Event Modal */}
+      {isAddEventModalOpen && (
+        <AddEventModal
+          isOpen={isAddEventModalOpen}
+          onClose={() => {
+            setIsAddEventModalOpen(false);
+            setSelectedEvent(null);
+          }}
+          onSaved={async () => {
+            setIsAddEventModalOpen(false);
+            setSelectedEvent(null);
+            // Reload events after saving
+            const token = localStorage.getItem("accessToken");
+            if (token) {
+              try {
+                const calRes = await fetch(`${BASE}/api/calendar`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                });
+                if (calRes.ok) {
+                  const body = await calRes.json().catch(() => null);
+                  const raw = Array.isArray(body)
+                    ? body
+                    : body?.events || body?.data || [];
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const childIds = me?.children
+                    ? me.children.map((x) =>
+                        typeof x === "string" ? x : x?._id || String(x)
+                      )
+                    : [];
+                  const childSet = new Set(childIds.map(String));
+
+                  const upcoming = (raw || [])
+                    .filter((e) => {
+                      const kids = Array.isArray(e.children)
+                        ? e.children.map((x) =>
+                            typeof x === "string" ? x : x && (x._id || String(x))
+                          )
+                        : [];
+                      const hasAnyChild = kids.some((k) => childSet.has(String(k)));
+                      const start = e.startDate ? new Date(e.startDate) : null;
+                      return hasAnyChild && start && start >= today;
+                    })
+                    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+                  setEvents(upcoming);
+                }
+              } catch (error) {
+                console.error("Error reloading events:", error);
+              }
+            }
+          }}
+          initialData={selectedEvent ? {
+            _id: selectedEvent._id,
+            title: selectedEvent.title || selectedEvent.name || selectedEvent.type,
+            children: Array.isArray(selectedEvent.children) 
+              ? selectedEvent.children.map(child => 
+                  typeof child === 'string' ? child : (child?._id || String(child))
+                )
+              : [],
+            category: selectedEvent.category || 'Others',
+            startDate: selectedEvent.startDate || selectedEvent.start,
+            endDate: selectedEvent.endDate || selectedEvent.end,
+            alert: selectedEvent.alert,
+            notes: selectedEvent.notes || selectedEvent.description,
+            url: selectedEvent.url,
+            attachments: Array.isArray(selectedEvent.attachments) 
+              ? selectedEvent.attachments.join(', ') 
+              : (selectedEvent.attachments || '')
+          } : null}
+        />
+      )}
     </div>
   );
 }
