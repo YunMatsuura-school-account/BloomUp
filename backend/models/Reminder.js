@@ -1,17 +1,19 @@
-// backend/models/Reminder.js
+// models/Reminder.js
+// Update your Reminder model with these changes
+
 const mongoose = require('mongoose');
 
 const reminderSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   eventId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'CalendarEvent',
-    required: true
+    required: false, // ✅ Changed to false to allow standalone reminders
+    default: null
   },
   eventTitle: {
     type: String,
@@ -23,8 +25,18 @@ const reminderSchema = new mongoose.Schema({
   },
   alert: {
     type: String,
-    enum: ['None', '1 day before', '2 Weeks before', '3 Weeks before', 'Custom'],
-    default: 'None'
+    enum: [
+      'None',
+      '5 minutes before',
+      '15 minutes before',
+      '1 hour before',
+      '1 day before',
+      '2 Weeks before',
+      '3 Weeks before',
+      'At time of event', // Add this if missing
+      'Custom'
+    ],
+    default: 'At time of event' //  Changed default
   },
   customAlert: {
     type: Boolean,
@@ -32,17 +44,7 @@ const reminderSchema = new mongoose.Schema({
   },
   customDays: {
     type: Number,
-    min: 0.0001, // Changed from min: 1 to allow fractional days (minutes/hours)
-    validate: {
-      validator: function(value) {
-        // Only validate if customAlert is true
-        if (this.customAlert && value !== null && value !== undefined) {
-          return value >= 0.0001; // Allow values as small as 0.0001 days (~8.6 seconds)
-        }
-        return true;
-      },
-      message: 'Custom days must be at least 0.0001 (about 8 seconds)'
-    }
+    default: null
   },
   isRead: {
     type: Boolean,
@@ -56,9 +58,9 @@ const reminderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for efficient querying
+// Index for efficient queries
 reminderSchema.index({ userId: 1, eventDate: 1 });
+reminderSchema.index({ userId: 1, eventId: 1 });
 reminderSchema.index({ userId: 1, isRead: 1 });
-reminderSchema.index({ userId: 1, eventId: 1 }); // For finding reminders by event
 
 module.exports = mongoose.model('Reminder', reminderSchema);
