@@ -548,3 +548,135 @@ exports.getArticleStats = async (req, res) => {
     });
   }
 };
+
+// @desc    Get recommended articles based on user context
+// @route   GET /api/articles/recommended
+// @access  Private
+exports.getRecommendedArticles = async (req, res) => {
+  try {
+    const userId = getUserId(req.user);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User ID not found in token'
+      });
+    }
+
+    // Get all published articles
+    const allArticles = await Article.find({ status: 'published' })
+      .select('-__v')
+      .lean();
+
+    if (allArticles.length === 0) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        data: [],
+        rulesApplied: []
+      });
+    }
+
+    const selectedArticles = [];
+    const selectedIds = new Set();
+    const rulesApplied = [];
+
+    // Helper function to select article by category
+    const selectArticleByCategory = (category) => {
+      const available = allArticles.filter(
+        a => a.category === category && !selectedIds.has(String(a._id))
+      );
+      
+      if (available.length === 0) return null;
+
+      // Priority: isFeatured > viewCount > createdAt
+      available.sort((a, b) => {
+        if (a.isFeatured !== b.isFeatured) return b.isFeatured - a.isFeatured;
+        if (a.viewCount !== b.viewCount) return b.viewCount - a.viewCount;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
+      return available[0];
+    };
+
+    // Helper function to get random article
+    const getRandomArticle = () => {
+      const available = allArticles.filter(
+        a => !selectedIds.has(String(a._id))
+      );
+      
+      if (available.length === 0) return null;
+      return available[Math.floor(Math.random() * available.length)];
+    };
+
+    // Category mapping: CalendarEvent default categories → Article categories
+    const categoryMapping = {
+      'General Category': 'Parenting',
+      'Shopping': 'Finances',
+      'School Function': 'Education',
+      'Others': 'Routines'
+    };
+
+    // Default categories for CalendarEvent
+    const defaultEventCategories = ['General Category', 'Shopping', 'School Function', 'Others'];
+
+    // Get user's calendar events and extract unique default categories
+    try {
+      const CalendarEvent = require('../models/calendarEvent');
+      
+      const userEvents = await CalendarEvent.find({
+        userId: userId,
+        category: { $in: defaultEventCategories }
+      }).lean();
+
+      // Get unique categories from events
+      const eventCategories = [...new Set(userEvents.map(e => e.category))];
+
+      // Map each event category to article category and select one article per category
+      for (const eventCategory of eventCategories) {
+        if (selectedArticles.length >= 4) break;
+        
+        const articleCategory = categoryMapping[eventCategory];
+        if (articleCategory) {
+          const article = selectArticleByCategory(articleCategory);
+          if (article) {
+            selectedArticles.push(article);
+            selectedIds.add(String(article._id));
+            rulesApplied.push(`event-category-${eventCategory.toLowerCase().replace(/\s+/g, '-')}`);
+          }
+        }
+      }
+    } catch (eventError) {
+      console.error('Error checking calendar events:', eventError);
+      // Continue without event-based selection
+    }
+
+    // Fill remaining slots with random articles (no duplicates)
+    while (selectedArticles.length < 4) {
+      const randomArticle = getRandomArticle();
+      if (randomArticle) {
+        selectedArticles.push(randomArticle);
+        selectedIds.add(String(randomArticle._id));
+        rulesApplied.push('random-fallback');
+      } else {
+        break; // No more articles available
+      }
+    }
+
+    // Ensure we return exactly 4 articles (or as many as available)
+    const finalArticles = selectedArticles.slice(0, 4);
+
+    res.status(200).json({
+      success: true,
+      count: finalArticles.length,
+      data: finalArticles,
+      rulesApplied: rulesApplied
+    });
+  } catch (error) {
+    console.error('Error fetching recommended articles:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch recommended articles',
+      error: error.message
+    });
+  }
+};

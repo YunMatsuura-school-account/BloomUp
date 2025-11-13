@@ -12,6 +12,7 @@ const verifyToken = require('../middleware/authMiddleware');
 
 // 1. STATIC/SPECIFIC ROUTES FIRST (these have fixed paths)
 router.get('/stats', articleController.getArticleStats);
+router.get('/recommended', verifyToken, articleController.getRecommendedArticles);
 
 // 2. SAVED ROUTES (must come before /:id or "saved" will be treated as an ID)
 router.get('/saved/me', verifyToken, articleController.getSavedArticles);
