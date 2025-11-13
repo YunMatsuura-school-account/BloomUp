@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
     familyName: { type: String },
     country: { type: String, default: "Canada" },
     state: { type: String },
+    imageUrl: { type: String }, // User profile image URL
     children: [{ type: mongoose.Schema.Types.ObjectId }], // Add children field
     budget: { type: mongoose.Schema.Types.ObjectId },
     expenses: [{ type: mongoose.Schema.Types.ObjectId }],

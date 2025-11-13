@@ -83,6 +83,7 @@ const getCurrentUser = async (req, res) => {
       familyName: user.familyName,
       country: user.country,
       state: user.state,
+      imageUrl: user.imageUrl || null,
       children: user.children || [],
     });
   } catch (error) {
