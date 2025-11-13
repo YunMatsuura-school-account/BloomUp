@@ -24,6 +24,7 @@ export default function AvatarDropUpload({
   const [dragOver, setDragOver] = useState(false);
   const [preview, setPreview] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const inputRef = useRef(null);
 
   const endpoint =
@@ -120,6 +121,8 @@ export default function AvatarDropUpload({
       URL.revokeObjectURL(preview);
       setPreview(null);
     }
+    // Reset image error when currentUrl changes
+    setImageError(false);
   }, [currentUrl]);
 
   // Cleanup: revoke object URL when component unmounts or preview changes
@@ -162,7 +165,7 @@ export default function AvatarDropUpload({
             alt="preview"
             className="h-full w-full object-cover"
           />
-        ) : currentUrl ? (
+        ) : currentUrl && currentUrl.trim() !== "" && !imageError ? (
           <img
             src={
               currentUrl.startsWith("/static/")
@@ -173,6 +176,10 @@ export default function AvatarDropUpload({
             }
             alt="avatar"
             className="h-full w-full object-cover"
+            onError={() => {
+              // If image fails to load, show personIcon instead
+              setImageError(true);
+            }}
           />
         ) : (
           <img src={personIcon} alt="Person icon" className="w-full h-full object-contain" />

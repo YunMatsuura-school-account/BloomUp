@@ -569,7 +569,7 @@ const disableRestockReminder = async (item) => {
     setModalOpen(true);
   }
 
-  function onSaved() {
+  function refreshCalendar() {
     const api = calendarRef.current?.getApi?.();
     if (api) api.refetchEvents();
   }
@@ -913,7 +913,8 @@ const disableRestockReminder = async (item) => {
         }}
         onSaved={() => {
           setModalOpen(false);
-          onSaved();
+          setEditingEvent(null);
+          refreshCalendar();
         }}
         initialData={editingEvent}
       />

@@ -580,7 +580,7 @@ exports.getRecommendedArticles = async (req, res) => {
     const selectedIds = new Set();
     const rulesApplied = [];
 
-    // Helper function to select article by category
+    // Helper function to select article by category (randomly)
     const selectArticleByCategory = (category) => {
       const available = allArticles.filter(
         a => a.category === category && !selectedIds.has(String(a._id))
@@ -588,14 +588,9 @@ exports.getRecommendedArticles = async (req, res) => {
       
       if (available.length === 0) return null;
 
-      // Priority: isFeatured > viewCount > createdAt
-      available.sort((a, b) => {
-        if (a.isFeatured !== b.isFeatured) return b.isFeatured - a.isFeatured;
-        if (a.viewCount !== b.viewCount) return b.viewCount - a.viewCount;
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      });
-
-      return available[0];
+      // Select a random article from the available articles in this category
+      const randomIndex = Math.floor(Math.random() * available.length);
+      return available[randomIndex];
     };
 
     // Helper function to get random article

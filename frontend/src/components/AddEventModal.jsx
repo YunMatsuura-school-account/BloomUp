@@ -37,7 +37,12 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
   // const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
 
-  const [attachments, setAttachments] = useState(initialData?.attachments || '');
+  // Convert attachments array to string for input field
+  const [attachments, setAttachments] = useState(
+    Array.isArray(initialData?.attachments)
+      ? initialData.attachments.join(', ')
+      : (initialData?.attachments || '')
+  );
 
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [showAddCategoryPanel, setShowAddCategoryPanel] = useState(false);
@@ -123,7 +128,6 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
   // Reset form when opening modal or when initialData changes
   useEffect(() => {
     if (initialData) {
-      console.log('Initial data for editing:', initialData);
       setTitle(initialData.title || '');
 
       // setChildren(initialData.children || []);
@@ -161,7 +165,18 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       setAlertTime(initialData.alert || 'At time of event');
       setNotes(initialData.notes || '');
       setUrl(initialData.url || '');
-      setAttachments(initialData.attachments || '');
+      // Convert attachments array to string
+      setAttachments(
+        Array.isArray(initialData.attachments)
+          ? initialData.attachments.join(', ')
+          : (initialData.attachments || '')
+      );
+      // Reset popup states
+      setShowCategoryPopup(false);
+      setShowAddCategoryPanel(false);
+      // Reset button states
+      setSaving(false);
+      setDeleting(false);
     } else if (isOpen) {
       setTitle('');
 
@@ -180,6 +195,12 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       setNotes('');
       setUrl('');
       setAttachments('');
+      // Reset popup states
+      setShowCategoryPopup(false);
+      setShowAddCategoryPanel(false);
+      // Reset button states
+      setSaving(false);
+      setDeleting(false);
     }
 
     //}, [initialData, isOpen, childrenList]);
@@ -746,8 +767,6 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
   // In frontend/src/components/AddEventModal.jsx - Update the handleSave function
 
   async function handleSave() {
-    console.log('=== HANDLE SAVE STARTED ===');
-
     // VALIDATION FOR REQUIRED FIELDS
     if (!title || !title.trim()) {
       window.alert('Please provide an event title.');
@@ -778,7 +797,14 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       return;
     }
 
-    // FIXED: Proper handling for empty attachments
+    // FIXED: Proper handling for attachments (can be string or array)
+    let attachmentsPayload = [];
+    if (Array.isArray(attachments)) {
+      attachmentsPayload = attachments.filter(a => a && a.trim && a.trim() !== '');
+    } else if (typeof attachments === 'string' && attachments.trim()) {
+      attachmentsPayload = [attachments.trim()];
+    }
+
     const payload = {
       title: title.trim(),
       children: childrenPayload,
@@ -788,7 +814,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       alert: alertTime || '',
       notes: notes || '', // Empty string is fine
       url: url || '', // Empty string is fine
-      attachments: attachments && attachments.trim() ? [attachments.trim()] : [] // FIXED: Check if string has content
+      attachments: attachmentsPayload
     };
 
     // Add endDate only if provided
@@ -796,16 +822,10 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       payload.endDate = new Date(endDate).toISOString();
     }
 
-    console.log('💾 Saving event - ID:', initialData?._id);
-    console.log('📦 Payload:', payload);
-
     const method = initialData?._id ? 'PUT' : 'POST';
     const urlPath = initialData?._id
       ? `${import.meta.env.VITE_BACKEND_URL}/api/calendar/${initialData._id}`
       : `${import.meta.env.VITE_BACKEND_URL}/api/calendar`;
-
-    console.log('🌐 Request URL:', urlPath);
-    console.log('🔧 Method:', method);
 
     setSaving(true);
     try {
@@ -818,10 +838,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         body: JSON.stringify(payload),
       });
 
-      console.log('📨 Response status:', resp.status);
-
       const responseText = await resp.text();
-      console.log('📄 Raw response:', responseText);
 
       let data = {};
       if (responseText) {
@@ -841,10 +858,13 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         throw new Error(errorMessage);
       }
 
-      console.log('✅ Event saved successfully:', data);
-
-      if (onSaved) onSaved(data.event || data);
-      onClose();
+      // Call onSaved callback if provided (parent handles modal close)
+      // Otherwise, close modal directly
+      if (onSaved) {
+        onSaved(data.event || data);
+      } else {
+        onClose();
+      }
 
     } catch (err) {
       console.error('❌ Save error:', err);
@@ -868,8 +888,6 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     }
 
     const urlPath = `${import.meta.env.VITE_BACKEND_URL}/api/calendar/${initialData._id}`;
-    console.log('🗑️ Deleting event - ID:', initialData._id);
-    console.log('🌐 Request URL:', urlPath);
 
     setDeleting(true);
     try {
@@ -881,10 +899,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         },
       });
 
-      console.log('📨 Response status:', resp.status);
-
       const responseText = await resp.text();
-      console.log('📄 Raw response:', responseText);
 
       let data = {};
       if (responseText) {
@@ -904,10 +919,13 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         throw new Error(errorMessage);
       }
 
-      console.log('✅ Event deleted successfully:', data);
-
-      if (onSaved) onSaved(null); // Pass null to indicate deletion
-      onClose();
+      // Call onSaved callback if provided (parent handles modal close)
+      // Otherwise, close modal directly
+      if (onSaved) {
+        onSaved(null); // Pass null to indicate deletion
+      } else {
+        onClose();
+      }
 
     } catch (err) {
       console.error('❌ Delete error:', err);
@@ -1136,7 +1154,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
         {/* Category Popup */}
         {showCategoryPopup && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
             <div className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
               {/* Header */}
               <div className="flex justify-between items-center mb-4">
