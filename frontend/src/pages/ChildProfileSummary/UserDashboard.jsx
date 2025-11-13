@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AvatarDropUpload from "../../components/AvatarDropUpload";
 import AddEventModal from "../../components/AddEventModal";
 import ChildAvatar from "../../components/ChildAvatar";
+import "../../styles/articles.css";
 
 export default function UserDashboard() {
   const BASE = import.meta.env.VITE_BACKEND_URL;
@@ -16,6 +17,7 @@ export default function UserDashboard() {
   const [evErr, setEvErr] = useState("");
   const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [savedArticles, setSavedArticles] = useState([]);
 
   useEffect(() => {
     let aborted = false;
@@ -106,6 +108,24 @@ export default function UserDashboard() {
         //   .slice(0, 8);
 
         if (!aborted) setEvents(upcoming);
+      }
+
+      // Fetch saved articles
+      try {
+        const savedRes = await fetch(`${BASE}/api/articles/saved/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (savedRes.ok) {
+          const savedData = await savedRes.json();
+          if (!aborted && savedData.success) {
+            setSavedArticles(Array.isArray(savedData.data) ? savedData.data : []);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching saved articles:", error);
+        if (!aborted) {
+          setSavedArticles([]);
+        }
       }
     })();
 
@@ -264,6 +284,52 @@ export default function UserDashboard() {
               );
             }).filter(Boolean); // Remove null entries
           })
+        )}
+      </div>
+
+      {/* Saved Articles Section */}
+      <h2 className="mt-12 text-[20px] font-semibold text-black/90 text-center">
+        Saved Articles
+      </h2>
+      <div className="mt-6">
+        {savedArticles.length === 0 ? (
+          <div className="text-center text-black/60 py-8">
+            No saved articles
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {savedArticles.map((article) => (
+              <div
+                key={article._id}
+                className="saved-article-card-wireframe fade-in cursor-pointer"
+                onClick={() => navigate(`/articles/${article._id}`, {
+                  state: { article, fromPage: 'saved' }
+                })}
+              >
+                <img 
+                  src={article.image} 
+                  alt={article.title} 
+                  loading="lazy"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/400x200?text=No+Image';
+                  }}
+                />
+                <div className="saved-article-card-content">
+                  <p className="text-xs text-gray-600 font-medium uppercase mb-1">
+                    {article.category}
+                  </p>
+                  <h3 className="text-base font-bold text-gray-900 mb-2 leading-tight line-clamp-2">
+                    {article.title}
+                  </h3>
+                  {article.description && (
+                    <p className="text-sm text-gray-600 line-clamp-3">
+                      {article.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
