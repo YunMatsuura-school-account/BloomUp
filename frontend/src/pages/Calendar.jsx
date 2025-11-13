@@ -364,7 +364,7 @@ export default function CalendarPage() {
     setModalOpen(true);
   }
 
-  function onSaved() {
+  function refreshCalendar() {
     const api = calendarRef.current?.getApi?.();
     if (api) api.refetchEvents();
   }
@@ -649,7 +649,8 @@ export default function CalendarPage() {
         }}
         onSaved={() => {
           setModalOpen(false);
-          onSaved();
+          setEditingEvent(null);
+          refreshCalendar();
         }}
         initialData={editingEvent}
       />
