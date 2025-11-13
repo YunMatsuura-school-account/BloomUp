@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AvatarDropUpload from "../../components/AvatarDropUpload";
 import AddEventModal from "../../components/AddEventModal";
+import ChildAvatar from "../../components/ChildAvatar";
 
 export default function UserDashboard() {
   const BASE = import.meta.env.VITE_BACKEND_URL;
@@ -41,7 +42,25 @@ export default function UserDashboard() {
           setMe(userData);
         }
 
-        if (Array.isArray(userData.children) && userData.children.length > 0) {
+        // Fetch children data
+        if (userData.id) {
+          const childrenRes = await fetch(`${BASE}/api/users/${userData.id}/children`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (childrenRes.ok) {
+            const childrenData = await childrenRes.json();
+            if (!aborted) {
+              setChildren(Array.isArray(childrenData) ? childrenData : []);
+            }
+            if (Array.isArray(childrenData) && childrenData.length > 0) {
+              childIds = childrenData.map((x) =>
+                typeof x === "string" ? x : x?._id || String(x)
+              );
+            }
+          }
+        }
+
+        if (Array.isArray(userData.children) && userData.children.length > 0 && childIds.length === 0) {
           childIds = userData.children.map((x) =>
             typeof x === "string" ? x : x?._id || String(x)
           );
@@ -69,8 +88,7 @@ export default function UserDashboard() {
         const raw = Array.isArray(body)
           ? body
           : body?.events || body?.data || [];
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const now = new Date(); // Use current date and time instead of today at 00:00
         const childSet = new Set(childIds.map(String));
 
         const upcoming = (raw || [])
@@ -82,7 +100,7 @@ export default function UserDashboard() {
               : [];
             const hasAnyChild = kids.some((k) => childSet.has(String(k)));
             const start = e.startDate ? new Date(e.startDate) : null;
-            return hasAnyChild && start && start >= today;
+            return hasAnyChild && start && start > now; // Use > instead of >= to exclude current/past events
           })
           .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
         //   .slice(0, 8);
@@ -112,6 +130,44 @@ export default function UserDashboard() {
     navigate("/settings", {
       state: { user: me, userId: me?.id },
     });
+  };
+
+  const formatDateTimeRange = (startIso, endIso) => {
+    const start = startIso ? new Date(startIso) : null;
+    const end = endIso ? new Date(endIso) : null;
+    
+    if (!start) return "";
+    
+    const formatDate = (d) => {
+      return d.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
+    };
+    
+    const formatTime = (d) => {
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    };
+    
+    if (start && end) {
+      const startDate = formatDate(start);
+      const startTime = formatTime(start);
+      const endDate = formatDate(end);
+      const endTime = formatTime(end);
+      
+      // If same day, show: "Oct 03 10:00 ~ 14:30"
+      if (startDate === endDate) {
+        return `${startDate} ${startTime} ~ ${endTime}`;
+      }
+      // If different days, show: "Oct 03 10:00 ~ Oct 06 14:30"
+      return `${startDate} ${startTime} ~ ${endDate} ${endTime}`;
+    }
+    
+    if (start) {
+      return `${formatDate(start)} ${formatTime(start)}`;
+    }
+    
+    return "";
   };
 
   return (
@@ -156,62 +212,57 @@ export default function UserDashboard() {
             {evErr ? evErr : "No upcoming events"}
           </div>
         ) : (
-          events.map((ev) => {
-            const start = new Date(ev.startDate);
-            const end = new Date(ev.endDate || ev.startDate);
-
+          events.flatMap((ev) => {
             const kids = Array.isArray(ev.children) ? ev.children : [];
-            const firstKidId = kids.length
-              ? String(
-                  typeof kids[0] === "string" ? kids[0] : kids[0]?._id || kids[0]
-                )
-              : null;
-            const kidName =
-              children.find((c) => String(c._id || c.id) === firstKidId)?.name ||
-              "";
-            return (
-              <div
-                key={ev._id}
-                className="rounded-2xl px-6 py-5 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
-                style={{ backgroundColor: "#FFFFFF" }}
-                onClick={() => {
-                  setSelectedEvent(ev);
-                  setIsAddEventModalOpen(true);
-                }}
-              >
-                <div className="flex items-start justify-between text-sm text-black/60">
-                  <span>
-                    {start.toLocaleDateString(undefined, {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                  <span>
-                    {start.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}{" "}
-                    ~{" "}
-                    {end.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </div>
-                <div className="mt-2 font-semibold text-black/90">
-                  {ev.title || ev.name || ev.type || "Untitled Event"}
-                </div>
-                {kidName && (
-                  <div className="text-sm text-black/50 mt-1">for {kidName}</div>
-                )}
-                {ev.description && (
-                  <p className="mt-1 text-sm text-black/60 line-clamp-2">
-                    {ev.description}
-                  </p>
-                )}
-              </div>
+            const dateTimeRange = formatDateTimeRange(
+              ev.startDate || ev.start,
+              ev.endDate || ev.end
             );
+            const title = ev?.title || ev?.name || ev?.type || "Untitled Event";
+            const notes = ev?.notes || ev?.description || "";
+
+            // Create a card for each child associated with this event
+            return kids.map((kidRef) => {
+              const kidId = String(
+                typeof kidRef === "string" ? kidRef : kidRef?._id || kidRef
+              );
+              const child = children.find(
+                (c) => String(c._id || c.id) === kidId
+              );
+
+              // Only show card if child exists
+              if (!child) return null;
+
+              return (
+                <div
+                  key={`${ev._id}-${kidId}`}
+                  className="rounded-2xl px-6 py-5 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
+                  style={{ backgroundColor: "#FFFFFF" }}
+                  onClick={() => {
+                    setSelectedEvent(ev);
+                    setIsAddEventModalOpen(true);
+                  }}
+                >
+                  <div className="text-sm text-black/60 text-right">
+                    <span className="font-semibold">{dateTimeRange}</span>
+                  </div>
+
+                  <div className="mt-3 flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                      <ChildAvatar child={child} width={40} height={40} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-black/90">{title}</div>
+                      {notes && (
+                        <p className="mt-1 text-sm text-black/60 line-clamp-2">
+                          {notes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            }).filter(Boolean); // Remove null entries
           })
         )}
       </div>
@@ -239,13 +290,10 @@ export default function UserDashboard() {
                   const raw = Array.isArray(body)
                     ? body
                     : body?.events || body?.data || [];
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  const childIds = me?.children
-                    ? me.children.map((x) =>
-                        typeof x === "string" ? x : x?._id || String(x)
-                      )
-                    : [];
+                  const now = new Date(); // Use current date and time
+                  const childIds = children.map((x) =>
+                    typeof x === "string" ? x : x?._id || String(x)
+                  );
                   const childSet = new Set(childIds.map(String));
 
                   const upcoming = (raw || [])
@@ -257,7 +305,7 @@ export default function UserDashboard() {
                         : [];
                       const hasAnyChild = kids.some((k) => childSet.has(String(k)));
                       const start = e.startDate ? new Date(e.startDate) : null;
-                      return hasAnyChild && start && start >= today;
+                      return hasAnyChild && start && start > now; // Use > instead of >=
                     })
                     .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
                   setEvents(upcoming);
