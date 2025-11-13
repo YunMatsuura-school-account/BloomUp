@@ -16,5 +16,7 @@ router.delete('/expenses/:expenseId', verifyToken, budgetController.deleteExpens
 router.post('/upload-receipt', verifyToken, budgetController.uploadMiddleware, budgetController.uploadReceipt);
 router.post("/add-manual", verifyToken, budgetController.addManualExpense);
 router.get("/ai-insights", verifyToken, budgetController.getAIInsights);
+router.get("/restock-items", verifyToken, budgetController.getRestockItems);
+router.post("/restock/toggle", verifyToken, budgetController.toggleRestockReminder);
 
 module.exports = router;

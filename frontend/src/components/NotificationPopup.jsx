@@ -65,7 +65,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   // Initial data fetch on component mount
   useEffect(() => {
     if (!hasInitialLoad) {
-      console.log('🔄 Initial data fetch on mount...');
+      console.log(' Initial data fetch on mount...');
       fetchUpcomingEvents();
       fetchReminders();
       setHasInitialLoad(true);
@@ -75,7 +75,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   // Fetch when popup opens
   useEffect(() => {
     if (isOpen) {
-      console.log('🔔 Popup opened, refreshing data...');
+      console.log(' Popup opened, refreshing data...');
       fetchUpcomingEvents();
       fetchReminders();
     }
@@ -84,7 +84,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   // Check and notify parent whenever data changes
   useEffect(() => {
     const hasGreenItems = checkHasUnreadItems();
-    console.log('📊 Has green items:', hasGreenItems);
+    console.log('Has green items:', hasGreenItems);
     
     if (onNotificationsViewed) {
       onNotificationsViewed(hasGreenItems);
@@ -112,7 +112,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   };
 
   const markItemAsViewed = (type, id) => {
-    console.log(`✅ Marking ${type}-${id} as viewed`);
+    console.log(`Marking ${type}-${id} as viewed`);
     const newViewedItems = new Set(viewedItems);
     newViewedItems.add(`${type}-${id}`);
     setViewedItems(newViewedItems);
@@ -134,7 +134,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/calendar?start=${encodeURIComponent(now)}&end=${encodeURIComponent(endDate)}`;
       
-      console.log('📅 Fetching upcoming events...');
+      console.log('Fetching upcoming events...');
       
       const resp = await fetch(url, {
         headers: {
@@ -175,64 +175,100 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
         });
         
         setUpcomingEvents(sortedEvents);
-        console.log('✅ Loaded', sortedEvents.length, 'events');
+        console.log(' Loaded', sortedEvents.length, 'events');
       } else {
-        console.error('❌ Failed to fetch events:', resp.status);
+        console.error('Failed to fetch events:', resp.status);
       }
     } catch (err) {
-      console.error('❌ Error loading upcoming events:', err);
+      console.error('Error loading upcoming events:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchReminders = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('accessToken');
+ const fetchReminders = async () => {
+  try {
+    setLoading(true);
+    const token = localStorage.getItem('accessToken');
+    
+    console.log('Fetching ALL reminders...');
+    
+    const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reminders`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    });
+
+    if (resp.ok) {
+      const data = await resp.json();
+      const allReminders = data.reminders || [];
       
-      console.log('🔔 Fetching ALL reminders...');
+      console.log('Received reminders from API:', allReminders.length);
       
-      const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reminders`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+      if (allReminders.length > 0) {
+        console.log(' First reminder sample:', {
+          eventTitle: allReminders[0].eventTitle,
+          eventDate: allReminders[0].eventDate,
+          alert: allReminders[0].alert
+        });
+      }
+      
+      const remindersWithTrigger = allReminders.map(reminder => ({
+        ...reminder,
+        triggerTime: calculateReminderTime(reminder),
+        eventDateTime: new Date(reminder.eventDate).getTime()
+      }));
+      
+      const now = new Date().getTime();
+      console.log('Current timestamp:', now, '(' + new Date(now).toISOString() + ')');
+      
+      //  IMPORTANT: Show ALL reminders including past ones for debugging
+      const validReminders = remindersWithTrigger.filter(reminder => {
+        const isFuture = reminder.eventDateTime >= now;
+        const daysDiff = Math.floor((reminder.eventDateTime - now) / (1000 * 60 * 60 * 24));
+        
+       
+        // For debugging, let's include reminders from the past 7 days too
+        const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+        const isRecent = reminder.eventDateTime >= sevenDaysAgo;
+        
+        if (!isFuture && isRecent) {
+   
+          return true;
+        }
+        
+        return isFuture;
       });
-
-      if (resp.ok) {
-        const data = await resp.json();
-        const allReminders = data.reminders || [];
-        
-        const remindersWithTrigger = allReminders.map(reminder => ({
-          ...reminder,
-          triggerTime: calculateReminderTime(reminder),
-          eventDateTime: new Date(reminder.eventDate).getTime()
-        }));
-        
-        const now = new Date().getTime();
-        const validReminders = remindersWithTrigger.filter(reminder => {
-          return reminder.eventDateTime >= now; // Only future events
+      
+      console.log(`\n Valid reminders after filtering: ${validReminders.length}`);
+      
+      const sortedReminders = validReminders.sort((a, b) => {
+        const timeUntilA = Math.abs(a.eventDateTime - now);
+        const timeUntilB = Math.abs(b.eventDateTime - now);
+        return timeUntilA - timeUntilB;
+      });
+      
+      console.log(' Setting reminders state with', sortedReminders.length, 'items');
+      
+      if (sortedReminders.length > 0) {
+   
+        sortedReminders.forEach((r, idx) => {
+          console.log(`   ${idx + 1}. ${r.eventTitle} - ${new Date(r.eventDate).toISOString()}`);
         });
-        
-        const sortedReminders = validReminders.sort((a, b) => {
-          const timeUntilA = a.eventDateTime - now;
-          const timeUntilB = b.eventDateTime - now;
-          return timeUntilA - timeUntilB;
-        });
-        
-        setReminders(sortedReminders);
-        console.log('✅ Loaded', sortedReminders.length, 'reminders');
-      } else {
-        console.error('❌ Failed to fetch reminders:', resp.status);
       }
-    } catch (err) {
-      console.error('❌ Error loading reminders:', err);
-    } finally {
-      setLoading(false);
+      
+      setReminders(sortedReminders);
+      console.log(' Loaded', sortedReminders.length, 'reminders');
+    } else {
+      console.error('Failed to fetch reminders:', resp.status);
     }
-  };
-
+  } catch (err) {
+    console.error(' Error loading reminders:', err);
+  } finally {
+    setLoading(false);
+  }
+};
   const calculateReminderTime = (reminder) => {
     const eventDate = new Date(reminder.eventDate);
     
@@ -334,7 +370,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   };
 
   const handleEventClick = (event) => {
-    console.log('📌 Event clicked:', event.title, 'ID:', event._id);
+    console.log(' Event clicked:', event.title, 'ID:', event._id);
     markItemAsViewed('event', event._id);
     
     // Check if event has passed
@@ -358,7 +394,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   };
 
   const handleReminderClick = (reminder) => {
-    console.log('📌 Reminder clicked:', reminder.eventTitle, 'ID:', reminder._id);
+    console.log(' Reminder clicked:', reminder.eventTitle, 'ID:', reminder._id);
     markItemAsViewed('reminder', reminder._id);
     
     const event = upcomingEvents.find(e => e._id === reminder.eventId);
@@ -368,7 +404,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   };
 
   const handleReminderSelect = async (alertType) => {
-    console.log('🔔 Reminder alert selected:', alertType);
+    console.log(' Reminder alert selected:', alertType);
     
     if (alertType === 'Custom') {
       setShowReminderModal(false);
@@ -379,7 +415,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
         setShowReminderModal(false);
         setSelectedEvent(null);
         
-        console.log('🔄 Refreshing data after save...');
+        console.log(' Refreshing data after save...');
         await Promise.all([fetchReminders(), fetchUpcomingEvents()]);
       }
     }
@@ -392,7 +428,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
       setShowReminderModal(false);
       setSelectedEvent(null);
       
-      console.log('🔄 Refreshing data after custom save...');
+      console.log(' Refreshing data after custom save...');
       await Promise.all([fetchReminders(), fetchUpcomingEvents()]);
     }
   };
@@ -416,13 +452,13 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
       const token = localStorage.getItem('accessToken');
       
       if (!token) {
-        console.error('❌ No authentication token found');
+        console.error(' No authentication token found');
         alert('Please log in to save reminders');
         return false;
       }
 
       if (!event || !event._id) {
-        console.error('❌ Invalid event data:', event);
+        console.error(' Invalid event data:', event);
         alert('Unable to save reminder: Invalid event');
         return false;
       }
@@ -442,7 +478,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
         customDays: customDays
       };
 
-      console.log('💾 Saving reminder:', reminderData);
+     
 
       const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reminders`, {
         method: 'POST',
@@ -456,7 +492,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
       const data = await resp.json();
       
       if (!resp.ok) {
-        console.error('❌ Server error:', data);
+        console.error('Server error:', data);
         
         // Better error messages
         if (resp.status === 400) {
@@ -469,11 +505,11 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
         return false;
       }
 
-      console.log('✅ Reminder saved successfully:', data);
+      console.log('Reminder saved successfully:', data);
       return true;
       
     } catch (err) {
-      console.error('❌ Error saving reminder:', err);
+      console.error(' Error saving reminder:', err);
       alert('Unable to save reminder. Please try again later.');
       return false;
     }
@@ -491,7 +527,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
       });
 
       if (resp.ok) {
-        console.log('✅ Marked all reminders as read');
+        console.log(' Marked all reminders as read');
         
         const newViewedItems = new Set(viewedItems);
         upcomingEvents.forEach(event => {
@@ -505,7 +541,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
         await fetchReminders();
       }
     } catch (err) {
-      console.error('❌ Error marking all as read:', err);
+      console.error('Error marking all as read:', err);
     }
   };
 

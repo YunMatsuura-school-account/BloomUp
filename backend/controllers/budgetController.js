@@ -7,7 +7,9 @@ const multer = require("multer");
 const OpenAI = require("openai");
 const fs = require("fs").promises;
 const path = require("path");
-
+const RestockReminder = require('../models/RestockReminder'); 
+const CalendarEvent = require('../models/calendarEvent'); 
+const Reminder = require('../models/Reminder'); 
 // Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -388,6 +390,8 @@ IMPORTANT FOR WEIGHTED ITEMS:
   }
 };
 // Add Manual Expense - FIXED
+// budgetController.js - UPDATED addManualExpense function
+
 exports.addManualExpense = async (req, res) => {
   try {
     const rawUserId = getUserId(req);
@@ -402,7 +406,8 @@ exports.addManualExpense = async (req, res) => {
       return res.status(400).json({ message: "Invalid User ID format" });
     }
 
-    const { amount, category, description, date, quantity } = req.body;
+    // ✅ IMPORTANT: Extract productName and merchantName from request body
+    const { amount, category, description, productName, merchantName, date, quantity } = req.body;
 
     if (!amount || !category) {
       return res
@@ -413,20 +418,36 @@ exports.addManualExpense = async (req, res) => {
     // Parse date properly
     const expenseDate = date ? new Date(date) : new Date();
     
+
+    
+    let finalDescription;
+    let finalMerchantName;
+    
+    if (productName) {
+      // Receipt upload path: use productName for item, merchantName for store
+      finalDescription = productName;
+      finalMerchantName = merchantName || "Unknown Store";
+      console.log(` Receipt item: ${finalDescription} from ${finalMerchantName}`);
+    } else {
+      // Manual entry path: use description for item
+      finalDescription = description || "Unknown Item";
+      finalMerchantName = merchantName || description || "Manual Entry";
+      console.log(` Manual entry: ${finalDescription} at ${finalMerchantName}`);
+    }
+    
+   
     // Create the expense
     const expense = new Expense({
       userId,
       amount: parseFloat(amount),
       category,
-      description: description || "",
-      merchantName: description || "Unknown",
+      description: finalDescription,      // ✅ Product name - used for restock tracking
+      merchantName: finalMerchantName,    // ✅ Store name - NOT product name
       quantity: quantity ? parseInt(quantity) : 1,
       date: expenseDate,
-      paymentMethod: "Manual Entry",
-      notes: `Manually added expense${quantity ? ` (Qty: ${quantity})` : ""}`,
     });
 
-    await expense.save(); // SINGLE SAVE
+    await expense.save();
 
     // Get the period for this expense
     const period = {
@@ -462,6 +483,8 @@ exports.addManualExpense = async (req, res) => {
       budget.remaining = remaining;
       await budget.save();
     }
+
+    console.log(`Expense saved successfully with ID: ${expense._id}`);
 
     res.json({
       message: "Expense added successfully",
@@ -1351,6 +1374,340 @@ exports.updateExpense = async (req, res) => {
     });
   }
 };
+// In budgetController.js - Remove getCategoryEmoji function and emoji field
+
+exports.getRestockItems = async (req, res) => {
+  try {
+    const rawUserId = getUserId(req);
+    if (!rawUserId) {
+      return res.status(400).json({ message: "User ID required" });
+    }
+
+    const userId = toObjectId(rawUserId);
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid User ID format" });
+    }
+
+    const categoryFilter = req.query.category;
+
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const query = {
+      userId,
+      date: { $gte: sixMonthsAgo }
+    };
+
+    if (categoryFilter && categoryFilter !== 'All') {
+      query.category = categoryFilter;
+    }
+
+    const expenses = await Expense.find(query).sort({ date: 1 });
+
+    console.log(` Found ${expenses.length} expenses in last 6 months${categoryFilter ? ` for category: ${categoryFilter}` : ''}`);
+
+    const productGroups = {};
+
+    expenses.forEach(expense => {
+      const productName = (expense.description ).trim();
+      const productKey = productName.toLowerCase();
+      
+      if (!productGroups[productKey]) {
+        productGroups[productKey] = {
+          productName: productName,
+          category: expense.category || 'Other',
+          purchases: []
+        };
+      }
+      
+      productGroups[productKey].purchases.push({
+        date: expense.date,
+        amount: expense.amount,
+        quantity: expense.quantity || 1,
+        expenseId: expense._id
+      });
+    });
+
+    console.log(` Identified ${Object.keys(productGroups).length} unique products`);
+
+    const eligibleProducts = Object.entries(productGroups).filter(
+      ([key, group]) => group.purchases.length >= 2
+    );
+
+    console.log(` ${eligibleProducts.length} products with recurring purchase patterns`);
+
+    const restockItems = [];
+
+    for (const [key, group] of eligibleProducts) {
+      const intervals = [];
+      for (let i = 1; i < group.purchases.length; i++) {
+        const daysDiff = Math.floor(
+          (new Date(group.purchases[i].date) - new Date(group.purchases[i - 1].date)) / 
+          (1000 * 60 * 60 * 24)
+        );
+        intervals.push(daysDiff);
+      }
+
+      const averageInterval = Math.round(
+        intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length
+      );
+
+      if (averageInterval > 90) {
+        console.log(` Skipping "${group.productName}" - interval too long (${averageInterval} days)`);
+        continue;
+      }
+
+      const lastPurchase = group.purchases[group.purchases.length - 1];
+      const daysSinceLastPurchase = Math.floor(
+        (new Date() - new Date(lastPurchase.date)) / (1000 * 60 * 60 * 24)
+      );
+
+      if (daysSinceLastPurchase < averageInterval) {
+  
+  continue;
+}
+
+// Item needs restocking
+const status = 'NEEDS_RESTOCK';
+
+
+const nextRestockDate = new Date(lastPurchase.date);
+nextRestockDate.setDate(nextRestockDate.getDate() + averageInterval);
+
+      
+      const reminderPref = await RestockReminder.findOne({ 
+        userId, 
+        productName: group.productName 
+      });
+
+      restockItems.push({
+        productName: group.productName,
+        category: group.category,
+        lastPurchaseDate: lastPurchase.date,
+        lastPurchasedText: formatLastPurchased(daysSinceLastPurchase),
+        daysSinceLastPurchase,
+        averageIntervalDays: averageInterval,
+        totalPurchases: group.purchases.length,
+        status,
+        nextRestockDate,
+        daysUntilRestock: Math.ceil((nextRestockDate - new Date()) / (1000 * 60 * 60 * 24)),
+        reminderEnabled: reminderPref ? reminderPref.enabled : false
+      });
+    }
+
+    const statusPriority = { 
+      'OVERDUE': 1, 
+      'DUE_SOON': 2, 
+      'ON_TRACK': 3, 
+      'RECENTLY_BOUGHT': 4
+    };
+    restockItems.sort((a, b) => statusPriority[a.status] - statusPriority[b.status]);
+
+    console.log(` Returning ${restockItems.length} restock items`);
+
+    res.json({
+      success: true,
+      items: restockItems,
+      totalItems: restockItems.length
+    });
+
+  } catch (error) {
+    console.error("Error getting restock items:", error);
+    res.status(500).json({ 
+      message: "Failed to get restock items",
+      error: error.message 
+    });
+  }
+};
+
+// Toggle restock reminder for a product
+exports.toggleRestockReminder = async (req, res) => {
+  try {
+    const rawUserId = getUserId(req);
+    if (!rawUserId) {
+      return res.status(400).json({ message: "User ID required" });
+    }
+
+    const userId = toObjectId(rawUserId);
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid User ID format" });
+    }
+
+    const { productName, enabled, nextRestockDate, alertType, customDays } = req.body;
+
+   
+
+    if (!productName) {
+      return res.status(400).json({ message: "Product name is required" });
+    }
+
+    //  Map alert types to match Reminder model enum
+    const alertTypeMap = {
+      'None': 'None',
+      '5 minutes before': '5 minutes before',
+      '15 minutes before': '15 minutes before',
+      '1 hour before': '1 hour before',
+      '1 day before': '1 day before',
+      '2 Weeks before': '2 Weeks before',
+      '3 Weeks before': '3 Weeks before',
+      'At time of event': 'At time of event',
+      'Custom': 'Custom'
+    };
+    
+    let finalAlertType = alertTypeMap[alertType] || 'At time of event';
+    
+    // If None, use default
+    if (finalAlertType === 'None' || !alertType) {
+      finalAlertType = '1 day before'; // Better default for restock reminders
+    }
+    
+ 
+
+    // Find or create reminder preference
+    let reminderPref = await RestockReminder.findOne({ userId, productName });
+
+    if (reminderPref) {
+      reminderPref.enabled = enabled;
+      reminderPref.nextRestockDate = nextRestockDate;
+      reminderPref.alertType = finalAlertType;
+      reminderPref.customDays = customDays || null;
+      await reminderPref.save();
+      console.log(' Updated existing reminder preference');
+    } else {
+      reminderPref = new RestockReminder({
+        userId,
+        productName,
+        enabled,
+        nextRestockDate, 
+        alertType: finalAlertType,
+        customDays: customDays || null
+      });
+      await reminderPref.save();
+      
+    }
+
+    //  IMPORTANT: Only handle notification reminders (NO calendar events)
+    if (enabled && nextRestockDate) {
+    
+      
+      try {
+        // Clean up any OLD calendar events (from previous version)
+        const deletedEvents = await CalendarEvent.deleteMany({
+          userId,
+          title: ` Restock: ${productName}`
+        });
+        if (deletedEvents.deletedCount > 0) {
+          
+        }
+        
+        // Clean up any existing notification reminders
+        const deletedReminders = await Reminder.deleteMany({
+          userId,
+          eventTitle: `Restock: ${productName}`
+        });
+        if (deletedReminders.deletedCount > 0) {
+          console.log(` Deleted ${deletedReminders.deletedCount} old reminders`);
+        }
+
+        // CREATE NOTIFICATION REMINDER ONLY (no calendar event)
+        const eventDate = new Date(nextRestockDate);
+        // Set to noon to avoid timezone issues
+        eventDate.setUTCHours(12, 0, 0, 0);
+        
+    
+        
+        const notificationReminder = new Reminder({
+          userId,
+          eventId: null, //  NO calendar event - standalone reminder
+          eventTitle: ` Restock: ${productName}`,
+          eventDate: eventDate,
+          alert: finalAlertType,
+          customAlert: finalAlertType === 'Custom',
+          customDays: customDays || null,
+          isRead: false,
+          isSent: false
+        });
+        
+        await notificationReminder.save();
+        
+        
+        
+      } catch (eventError) {
+        console.error(' Error creating reminder:', eventError);
+        throw eventError;
+      }
+      
+    } else if (!enabled) {
+     
+      
+      try {
+        // Clean up calendar events (if any exist from old version)
+        const deletedEvents = await CalendarEvent.deleteMany({
+          userId,
+          title: ` Restock: ${productName}`
+        });
+        if (deletedEvents.deletedCount > 0) {
+        
+        }
+        
+        // Clean up notification reminders
+        const deletedReminders = await Reminder.deleteMany({
+          userId,
+          eventTitle: ` Restock: ${productName}`
+        });
+        
+        
+      } catch (deleteError) {
+        console.error(' Error deleting reminders:', deleteError);
+        throw deleteError;
+      }
+    } else {
+      console.log('Reminder not enabled or no date provided');
+      
+    }
+
+
+
+    res.json({
+      success: true,
+      message: enabled 
+        ? ' Restock reminder set! Check the Reminders tab in your notifications.' 
+        : ' Restock reminder disabled',
+      reminder: {
+        productName: reminderPref.productName,
+        enabled: reminderPref.enabled,
+        nextRestockDate: reminderPref.nextRestockDate,
+        alertType: reminderPref.alertType,
+        customDays: reminderPref.customDays
+      }
+    });
+
+  } catch (error) {
+    console.error('\n ERROR in toggleRestockReminder:');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to toggle restock reminder",
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+function formatLastPurchased(days) {
+  if (days === 0) return 'item today';
+  if (days === 1) return 'item 1 day ago';
+  if (days < 7) return `item ${days} days ago`;
+  
+  const weeks = Math.floor(days / 7);
+  if (weeks === 1) return 'item 1 week ago';
+  if (weeks < 4) return `item ${weeks} weeks ago`;
+  
+  const months = Math.floor(days / 30);
+  if (months === 1) return 'item 1 month ago';
+  return `item ${months} months ago`;
+}
 
 
 // Middleware export
@@ -1371,4 +1728,7 @@ module.exports = {
    getAIInsights: exports.getAIInsights, 
    deleteExpense: exports.deleteExpense,
   updateExpense: exports.updateExpense,
+
+  getRestockItems: exports.getRestockItems, // NEW
+  toggleRestockReminder: exports.toggleRestockReminder, // NEW
 };

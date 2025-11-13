@@ -14,7 +14,7 @@ export default function ReviewReceipt() {
   const categories = ["Medical", "Education", "Consumable", "Clothes", "Entertainment", "Transport", "Other"];
 
   useEffect(() => {
-    console.log("📋 ReviewReceipt - Location state:", location.state);
+    console.log("ReviewReceipt - Location state:", location.state);
     
     const data = location.state?.receiptData?.receiptData;
     
@@ -26,7 +26,7 @@ export default function ReviewReceipt() {
         currency: data.currency
       });
 
-      console.log(`📦 Processing ${data.expenses.length} items from receipt`);
+      console.log(` Processing ${data.expenses.length} items from receipt`);
 
       // Map each item from the receipt
       const formattedExpenses = data.expenses.map((exp, idx) => {
@@ -43,10 +43,10 @@ export default function ReviewReceipt() {
         };
       });
       
-      console.log(`✅ Created ${formattedExpenses.length} expense rows for review`);
+      console.log(`Created ${formattedExpenses.length} expense rows for review`);
       setExpenses(formattedExpenses);
     } else {
-      console.warn("⚠️ No expenses found in receipt data");
+      console.warn(" No expenses found in receipt data");
       setExpenses([{
         id: 0,
         date: new Date().toISOString().split('T')[0],
@@ -98,87 +98,56 @@ export default function ReviewReceipt() {
       return;
     }
 
-    console.log(`\n💾 Grouping ${validExpenses.length} items by category...`);
+    console.log(`\n Grouping ${validExpenses.length} items by category...`);
     setLoading(true);
 
     try {
-      // GROUP EXPENSES BY CATEGORY AND DATE
-      const groupedExpenses = {};
+    const savedExpenses = [];
+    
+    // Save EACH item separately - NO GROUPING
+    for (const expense of validExpenses) {
       
-      validExpenses.forEach(expense => {
-        // Create a unique key combining category, date, and store
-        const key = `${expense.category}|${expense.date}|${expense.description}`;
-        
-        if (!groupedExpenses[key]) {
-          groupedExpenses[key] = {
-            category: expense.category,
-            date: expense.date,
-            storeName: expense.description,
-            items: [],
-            totalAmount: 0,
-            totalQuantity: 0
-          };
-        }
-        
-        // Add item to the group
-        groupedExpenses[key].items.push(expense.items);
-        groupedExpenses[key].totalAmount += parseFloat(expense.amount);
-        groupedExpenses[key].totalQuantity += parseInt(expense.quantity);
+
+      const response = await fetch(`${API_URL}/add-manual`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          amount: parseFloat(expense.amount),
+          category: expense.category,
+          productName: expense.items,           
+          merchantName: expense.description,    //
+          date: expense.date,
+          quantity: parseInt(expense.quantity)
+        })
       });
 
-      console.log(`📦 Grouped into ${Object.keys(groupedExpenses).length} category groups:`);
-      Object.values(groupedExpenses).forEach(group => {
-        console.log(`  - ${group.category}: ${group.items.length} items, Qty: ${group.totalQuantity}, Total: ${group.totalAmount.toFixed(2)}`);
-      });
-
-      const savedExpenses = [];
-      
-      // Save each grouped expense
-      for (const group of Object.values(groupedExpenses)) {
-        // Just use store name, no item list
-        const finalDescription = group.storeName || "Receipt purchase";
-
-        console.log(`  💾 Saving grouped: ${group.category} - ${finalDescription} - ${group.items.length} items`);
-
-        const response = await fetch(`${API_URL}/add-manual`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            amount: parseFloat(group.totalAmount.toFixed(2)),
-            category: group.category,
-            description: finalDescription,
-            date: group.date,
-            quantity: group.totalQuantity
-          })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `Failed to save ${group.category} group`);
-        }
-
-        const data = await response.json();
-        console.log(`  ✅ Saved grouped expense ID: ${data.expense._id}`);
-        savedExpenses.push(data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to save ${expense.items}`);
       }
 
-      console.log(`\n✅ Successfully saved ${savedExpenses.length} grouped expenses!`);
-      alert(`${validExpenses.length} items grouped into ${savedExpenses.length} expense(s) by category and saved successfully!`);
-      
-      // Navigate back and trigger refresh
-      navigate("/dashboard/budget", { 
-        state: { refreshData: true, message: `${savedExpenses.length} expenses added from receipt` } 
-      });
-    } catch (err) {
-      console.error("❌ Save error:", err);
-      alert("Failed to save expenses: " + err.message);
-    } finally {
-      setLoading(false);
+      const data = await response.json();
+      console.log(`  Saved expense ID: ${data.expense._id}\n`);
+      savedExpenses.push(data);
     }
-  };
+
+    console.log(`\nSuccessfully saved ${savedExpenses.length} individual expenses!`);
+    alert(`Successfully saved ${savedExpenses.length} expense(s)! Each item is tracked separately.`);
+    
+    // Navigate back and trigger refresh
+    navigate("/dashboard/budget", { 
+      state: { refreshData: true, message: `${savedExpenses.length} expenses added from receipt` } 
+    });
+  } catch (err) {
+    console.error(" Save error:", err);
+    alert("Failed to save expenses: " + err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const totalAmount = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
 
