@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import personIcon from "../../icons/person_icon.png";
-import pencilIcon from "../../icons/pencil_icon.png";
+import greyPersonIcon from "../../icons/greyPersonIcon.svg";
+import orangePencilIcon from "../../icons/orangePencilIcon.svg";
+import trashBinIcon from "../../icons/trashBinIcon.svg";
 import plusIcon from "../../icons/plus_icon.png";
+import ChildAvatar from "../../components/ChildAvatar";
 
 export default function Account() {
   const BASE = import.meta.env.VITE_BACKEND_URL;
@@ -27,6 +29,50 @@ export default function Account() {
       age--;
     }
     return age;
+  };
+
+  const handleDeleteChild = async (childId, e) => {
+    e.stopPropagation();
+    
+    if (!window.confirm("Are you sure you want to delete this child?")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        alert("Authentication required. Please login again.");
+        return;
+      }
+      if (!userId || !childId) {
+        alert("User ID or Child ID is missing. Please try again.");
+        return;
+      }
+      
+      const res = await fetch(
+        `${BASE}/api/users/${userId}/children/${childId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.ok) {
+        // Reload children list
+        const chRes = await fetch(`${BASE}/api/users/${userId}/children`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const ch = chRes.ok ? await chRes.json() : [];
+        setChildren(Array.isArray(ch) ? ch : []);
+      } else {
+        throw new Error("Failed to delete child");
+      }
+    } catch (e) {
+      console.error(e);
+      alert(`Error: ${e.message || "Unknown error occurred"}`);
+    }
   };
 
   useEffect(() => {
@@ -105,7 +151,7 @@ export default function Account() {
           Your Family
         </h2>
 
-        <div className=" mb-2 text-black/100 font-semibold text-lg">
+        <div className="mb-2 text-black/100 font-semibold text-lg text-center">
           {familyName}
         </div>
         {/* </div> */}
@@ -113,49 +159,29 @@ export default function Account() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
           {children.map((child) => {
             const age = calculateAge(child.dateOfBirth);
-            const avatarSrc = child.imageUrl
-              ? child.imageUrl.startsWith(`/static/`)
-                ? `${BASE}${child.imageUrl}`
-                : `${BASE}/static/child-images/${child.imageUrl}`
-              : null;
             return (
               <button
                 key={child._id}
-                className="flex items-center rounded-[22px] bg-slate-700/60 min-h-[135px] p-4 text-left hover:bg-slate-600/60"
-                style={{ backgroundColor: "#238D88" }}
+                className="flex items-center rounded-[22px] min-h-[135px] p-4 text-left hover:bg-gray-50"
+                style={{ backgroundColor: "#FFFFFF" }}
                 onClick={() => navigate(`/child-dashboard/${child._id}`)}
               >
-                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
-                  {avatarSrc ? (
-                    <img
-                      src={avatarSrc}
-                      alt={`${child.name || "Child"} profile`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <img
-                      src={personIcon}
-                      slt="person icon"
-                      className="w-12 h-12 opacity-90"
-                    />
-                  )}
+                <div className="w-12 h-12 flex items-center justify-center overflow-hidden">
+                  <ChildAvatar child={child} width={48} height={48} />
                 </div>
 
                 <div className="p-4">
-                  <div className="text-white font-semibold">
+                  <div className="text-black font-semibold">
                     {child.name || "Your Child's name"}
                   </div>
-                  <div className="text-white/70 text-sm">
+                  <div className="text-black/70 text-sm">
                     {age !== null ? `Age ${age}` : "Age"}
                   </div>
                 </div>
 
-                <div className="flex justify-end flex-1">
+                <div className="flex justify-end flex-1 gap-2">
                   <button
-                    className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center"
+                    className="w-12 h-12 flex items-center justify-center"
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate("/add-child", {
@@ -170,9 +196,19 @@ export default function Account() {
                     }}
                   >
                     <img
-                      src={pencilIcon}
+                      src={orangePencilIcon}
                       alt="edit"
-                      className="w-12 h-12 invert opacity-80"
+                      className="w-12 h-12"
+                    />
+                  </button>
+                  <button
+                    className="w-12 h-12 flex items-center justify-center"
+                    onClick={(e) => handleDeleteChild(child._id, e)}
+                  >
+                    <img
+                      src={trashBinIcon}
+                      alt="delete"
+                      className="w-10 h-10"
                     />
                   </button>
                 </div>
@@ -182,27 +218,30 @@ export default function Account() {
 
           <button
             className="rounded-2xl border-2 border-dashed border-gray-400/60 
-             bg-gray-200/60 min-h-[135px] p-4 text-left hover:bg-gray-200/80 
+             min-h-[135px] p-4 text-left hover:bg-gray-50 
              text-gray-600 flex items-center justify-between"
+            style={{ backgroundColor: "#FFFFFF" }}
             onClick={() => {
               if (userId) {
-                navigate("/add-child", { 
-                  state: { 
+                navigate("/add-child", {
+                  state: {
                     userId: userId,
-                    returnPath: "/account"
-                  } 
+                    returnPath: "/account",
+                  },
                 });
               } else {
-                console.error("User ID not available. Please wait for page to load.");
+                console.error(
+                  "User ID not available. Please wait for page to load."
+                );
               }
             }}
             aria-label="Add your child here"
           >
-            <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+            <div className="w-12 h-12 flex items-center justify-center overflow-hidden">
               <img
-                src={personIcon}
+                src={greyPersonIcon}
                 alt="person icon"
-                className="w-12 h-12 opacity-90"
+                className="w-12 h-12"
               />
             </div>
             <div className="text-black/30 font-semibold">
@@ -210,12 +249,21 @@ export default function Account() {
             </div>
             <div className="text-black/30 text-sm">Age</div>
 
-            <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-              <img
-                src={plusIcon}
-                alt="edit"
-                className="w-12 h-12 invert opacity-80"
-              />
+            <div className="flex gap-2">
+              <div className="w-12 h-12 flex items-center justify-center">
+                <img
+                  src={orangePencilIcon}
+                  alt="edit"
+                  className="w-12 h-12"
+                />
+              </div>
+              <div className="w-12 h-12 flex items-center justify-center">
+                <img
+                  src={trashBinIcon}
+                  alt="delete"
+                  className="w-10 h-10"
+                />
+              </div>
             </div>
           </button>
         </div>

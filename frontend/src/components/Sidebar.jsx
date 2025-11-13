@@ -10,6 +10,7 @@ import {
 } from "../icons";
 import { useChild } from "../contexts/ChildContext";
 import { logout } from "../utils/auth";
+import ChildAvatar from "./ChildAvatar";
 
 /**
  * Reusable Sidebar component aligned to Figma specs (compact scale)
@@ -257,50 +258,14 @@ function renderChips(
   showDropdown,
   setShowDropdown
 ) {
-  const palette = ["#006F69", "#6CC31F", "#F3BE08", "#238D88", "#FF6B6B"]; // Extended palette for more children
-
-  // Generate initials with smart duplicate handling for all children
-  const getInitials = (allChildren) => {
-    const initialsMap = {};
-
-    // Count occurrences of each initial for all children
-    allChildren.forEach((child) => {
-      const initial = child?.name ? child.name.trim()[0]?.toUpperCase() : "?";
-      if (!initialsMap[initial]) {
-        initialsMap[initial] = [];
-      }
-      initialsMap[initial].push(child._id);
-    });
-
-    // Generate display text with numbers for duplicates
-    const displayMap = {};
-    allChildren.forEach((child) => {
-      const initial = child?.name ? child.name.trim()[0]?.toUpperCase() : "?";
-      const duplicates = initialsMap[initial];
-
-      if (duplicates.length > 1) {
-        // Add number suffix for duplicates
-        const position = duplicates.indexOf(child._id) + 1;
-        displayMap[child._id] = `${initial}${position}`;
-      } else {
-        // Just use initial if no duplicates
-        displayMap[child._id] = initial;
-      }
-    });
-
-    return displayMap;
-  };
-
-  const initialsDisplay = getInitials(children);
   const visibleChildren = children.slice(0, 3);
   const hiddenChildren = children.slice(3);
 
   return (
     <>
       <div className="flex items-center gap-2.5">
-        {visibleChildren.map((child, idx) => {
+        {visibleChildren.map((child) => {
           const isSelected = selectedChild?._id === child._id;
-          const displayText = initialsDisplay[child._id] || "?";
 
           return (
             <button
@@ -311,17 +276,14 @@ function renderChips(
                 selectChild(child);
                 setShowDropdown(false);
               }}
-              className={`w-10 h-10 rounded-full grid place-items-center text-white text-[11px] font-semibold transition-all hover:scale-105 ${
+              className={`rounded-full transition-all hover:scale-105 ${
                 isSelected
                   ? "ring-2 ring-white ring-offset-2 ring-offset-gray-800"
                   : ""
               }`}
-              style={{
-                backgroundColor: palette[idx % palette.length],
-              }}
               title={child.name}
             >
-              {displayText}
+              <ChildAvatar child={child} width={40} height={40} />
             </button>
           );
         })}
@@ -334,9 +296,8 @@ function renderChips(
             <div className="text-xs text-gray-500 px-2 py-1 font-semibold">
               All Children ({children.length})
             </div>
-            {children.map((child, idx) => {
+            {children.map((child) => {
               const isSelected = selectedChild?._id === child._id;
-              const displayText = initialsDisplay[child._id] || "?";
 
               return (
                 <button
@@ -351,14 +312,7 @@ function renderChips(
                     isSelected ? "bg-[#238D88] text-white" : ""
                   }`}
                 >
-                  <div
-                    className="w-8 h-8 rounded-full grid place-items-center text-white text-[10px] font-semibold flex-shrink-0"
-                    style={{
-                      backgroundColor: palette[idx % palette.length],
-                    }}
-                  >
-                    {displayText}
-                  </div>
+                  <ChildAvatar child={child} width={32} height={32} />
                   <span
                     className={`text-sm font-medium ${
                       isSelected ? "text-white" : "text-gray-700"

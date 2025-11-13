@@ -19,7 +19,10 @@ const childProfileSchema = new mongoose.Schema({
   age: { type: Number, required: false }, // age in years, computed from dateOfBirth
   gender: { type: String, required: false },
   userId: { type: String, required: true },
-  imageUrl: {type: String, required: false},
+  imageUrl: { type: String, required: false },
+  avatarIndex: { type: Number, required: false }, // Index of selected avatar (0-7)
+  avatarName: { type: String, required: false }, // Name of selected avatar
+  backgroundColor: { type: String, required: false }, // Background color for avatar
 });
 
 //　(model name, schema, collection name)

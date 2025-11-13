@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { NewLogoBloomUpWhite } from "../icons";
+import AvatarSelectionModal from "../components/AvatarSelectionModal";
+import {
+  FoxAvatar,
+  CapybaraAvatar,
+  MooseAvatar,
+  SealAvatar,
+  WhiteBearAvatar,
+  RabbitAvatar,
+  BrownBearAvatar,
+  RaccoonAvatar,
+} from "../components/avatars";
 
 export default function FamilyAddChild() {
   const navigate = useNavigate();
@@ -13,6 +24,28 @@ export default function FamilyAddChild() {
     gender: "",
     medicalHistory: "",
   });
+
+  // Avatar selection state
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState({
+    avatarIndex: 0,
+    avatarName: "Fox",
+    backgroundColor: "#0073E7",
+  });
+
+  // Avatar components array
+  const AVATARS = [
+    { name: "Fox", component: FoxAvatar },
+    { name: "Capybara", component: CapybaraAvatar },
+    { name: "Moose", component: MooseAvatar },
+    { name: "Seal", component: SealAvatar },
+    { name: "White Bear", component: WhiteBearAvatar },
+    { name: "Rabbit", component: RabbitAvatar },
+    { name: "Brown Bear", component: BrownBearAvatar },
+    { name: "Raccoon", component: RaccoonAvatar },
+  ];
+
+  const SelectedAvatarComponent = AVATARS[selectedAvatar.avatarIndex].component;
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -33,13 +66,22 @@ export default function FamilyAddChild() {
       const url = `${
         import.meta.env.VITE_BACKEND_URL
       }/api/users/${userId}/children`;
+
+      // Include avatar data in the request
+      const formData = {
+        ...form,
+        avatarIndex: selectedAvatar.avatarIndex,
+        avatarName: selectedAvatar.avatarName,
+        backgroundColor: selectedAvatar.backgroundColor,
+      };
+
       const res = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(formData),
       });
 
       if (res.ok) {
@@ -175,22 +217,23 @@ export default function FamilyAddChild() {
                 className="flex flex-col"
                 style={{ width: "461px", gap: "20px" }}
               >
-                {/* Avatar Placeholder */}
+                {/* Avatar Selection */}
                 <div className="flex flex-col items-center gap-2 mb-4">
-                  <div
-                    className="rounded-full bg-gray-200 flex items-center justify-center overflow-hidden"
-                    style={{ width: "80px", height: "80px" }}
+                  <button
+                    type="button"
+                    onClick={() => setIsAvatarModalOpen(true)}
+                    className="flex items-center justify-center transition-all duration-200 hover:scale-105 cursor-pointer"
+                    aria-label="Select avatar"
                   >
-                    {/* Placeholder for avatar */}
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                      <circle cx="20" cy="15" r="8" fill="#999999" />
-                      <path
-                        d="M32 35C32 28.3726 26.6274 23 20 23C13.3726 23 8 28.3726 8 35"
-                        fill="#999999"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-xs text-gray-500">Add photo (optional)</p>
+                    <SelectedAvatarComponent
+                      width={80}
+                      height={80}
+                      backgroundColor={selectedAvatar.backgroundColor}
+                    />
+                  </button>
+                  <p className="text-xs text-gray-500">
+                    Click to change avatar
+                  </p>
                 </div>
 
                 {/* Name Field */}
@@ -273,7 +316,7 @@ export default function FamilyAddChild() {
                     value={form.gender}
                     onChange={onChange}
                     required
-                    className="w-full bg-white font-medium outline-none"
+                    className="w-full text-black bg-white font-medium outline-none"
                     style={{
                       fontSize: "16px",
                       fontWeight: 500,
@@ -286,6 +329,7 @@ export default function FamilyAddChild() {
                     <option value="">Select gender</option>
                     <option value="Boy">Boy</option>
                     <option value="Girl">Girl</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
                   </select>
                 </div>
 
@@ -368,6 +412,17 @@ export default function FamilyAddChild() {
           </form>
         </div>
       </div>
+
+      {/* Avatar Selection Modal */}
+      <AvatarSelectionModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        onSave={(avatarData) => {
+          setSelectedAvatar(avatarData);
+        }}
+        initialAvatar={selectedAvatar.avatarIndex}
+        initialColor={selectedAvatar.backgroundColor}
+      />
     </div>
   );
 }

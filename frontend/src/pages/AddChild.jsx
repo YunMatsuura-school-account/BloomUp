@@ -1,7 +1,8 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import AvatarDropUpload from "../components/AvatarDropUpload";
-
+import ChildAvatar from "../components/ChildAvatar";
+import AvatarSelectionModal from "../components/AvatarSelectionModal";
+import cameraIcon from "../icons/cameraIcon.svg";
 
 export default function AddChild() {
   const navigate = useNavigate();
@@ -17,11 +18,18 @@ export default function AddChild() {
     dateOfBirth: "",
     gender: "",
     medicalHistory: "",
-    imageUrl: "",
+  });
+
+  // Avatar selection state
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState({
+    avatarIndex: null, // null means no avatar selected (will show initials)
+    avatarName: null,
+    backgroundColor: null,
   });
 
   useEffect(() => {
-    if (isEdit) {
+    if (isEdit && editChild) {
       setForm({
         name: editChild.name || "",
         dateOfBirth: editChild.dateOfBirth
@@ -29,8 +37,26 @@ export default function AddChild() {
           : "",
         gender: editChild.gender || "",
         medicalHistory: editChild.medicalHistory || "",
-        imageUrl: editChild.imageUrl || "",
       });
+
+      // Load existing avatar data if available
+      if (
+        editChild.avatarIndex !== null &&
+        editChild.avatarIndex !== undefined
+      ) {
+        setSelectedAvatar({
+          avatarIndex: editChild.avatarIndex,
+          avatarName: editChild.avatarName || null,
+          backgroundColor: editChild.backgroundColor || "#0073E7",
+        });
+      } else {
+        // No avatar selected, will show initials
+        setSelectedAvatar({
+          avatarIndex: null,
+          avatarName: null,
+          backgroundColor: null,
+        });
+      }
     }
   }, [isEdit, editChild]);
 
@@ -54,13 +80,22 @@ export default function AddChild() {
           }/api/users/${userId}/children/${childId}`
         : `${import.meta.env.VITE_BACKEND_URL}/api/users/${userId}/children`;
       const method = isEdit ? "PUT" : "POST";
+
+      // Include avatar data in the request
+      const formData = {
+        ...form,
+        avatarIndex: selectedAvatar.avatarIndex,
+        avatarName: selectedAvatar.avatarName,
+        backgroundColor: selectedAvatar.backgroundColor,
+      };
+
       const res = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(formData),
       });
       if (res.ok) {
         if (returnPath) {
@@ -71,7 +106,9 @@ export default function AddChild() {
           navigate("/dashboard"); // returns to Dashboard for new child without returnPath
         }
       } else {
-        const errorData = await res.json().catch(() => ({ message: "Unknown error" }));
+        const errorData = await res
+          .json()
+          .catch(() => ({ message: "Unknown error" }));
         alert(`Failed to save: ${errorData.message || "Unknown error"}`);
       }
     } catch (e) {
@@ -80,7 +117,14 @@ export default function AddChild() {
     }
   };
 
-  const currentImageUrl = form?.imageUrl || editChild?.imageUrl || null;
+  // Create a temporary child object for displaying the avatar
+  const displayChild = {
+    name: form.name || editChild?.name || "",
+    avatarIndex: selectedAvatar.avatarIndex,
+    avatarName: selectedAvatar.avatarName,
+    backgroundColor: selectedAvatar.backgroundColor,
+    ...(editChild || {}),
+  };
 
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this child?")) {
@@ -89,7 +133,7 @@ export default function AddChild() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      if (!token){
+      if (!token) {
         alert("Authentication required. Please login again.");
         return; //redirect to login page
       }
@@ -97,7 +141,10 @@ export default function AddChild() {
         alert("User ID or Child ID is missing. Please try again.");
         return; //redirect to add child page
       }
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/${userId}/children/${childId}`,
+      const res = await fetch(
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/users/${userId}/children/${childId}`,
         {
           method: "DELETE",
           headers: {
@@ -119,34 +166,57 @@ export default function AddChild() {
   };
 
   return (
-    <div className="min-h-screen w-full grid place-items-center bg-gray-100 p-4">
+    <div className="min-h-screen w-full grid place-items-center p-4" style={{ backgroundColor: "#FFFFFF" }}>
       <form
         onSubmit={onSubmit}
-        className="bg-white p-8 rounded-xl shadow w-full max-w-[560px]"
+        className="p-8 rounded-xl shadow w-full max-w-[560px]"
+        style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}
       >
+        <div className="flex flex-col items-center gap-2 mb-6">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsAvatarModalOpen(true)}
+              className="flex items-center justify-center transition-all duration-200 hover:scale-105 cursor-pointer"
+              aria-label="Select avatar"
+            >
+              <div className="flex h-32 w-32 items-center justify-center rounded-full overflow-hidden">
+                <ChildAvatar child={displayChild} width={128} height={128} />
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsAvatarModalOpen(true)}
+              className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+              aria-label="Change avatar"
+            >
+              <img src={cameraIcon} alt="Camera icon" className="w-10 h-10" />
+            </button>
+          </div>
+        </div>
+
         <h2 className="text-center text-xl font-semibold mb-6">
           {isEdit ? "Edit child" : "Add child"}
         </h2>
 
-        <div className="flex justify-center mb-6">
-          <AvatarDropUpload
-            mode="child"
-            userId={userId}
-            childId={childId}
-            currentUrl={currentImageUrl}
-            onUploaded={(url) => {
-              setForm((f) => ({ ...f, imageUrl: url }));
-            }}
-            showEditButton={false}
-          />
-        </div>
+        {/* Avatar Selection Modal */}
+        <AvatarSelectionModal
+          isOpen={isAvatarModalOpen}
+          onClose={() => setIsAvatarModalOpen(false)}
+          onSave={(avatarData) => {
+            setSelectedAvatar(avatarData);
+          }}
+          initialAvatar={selectedAvatar.avatarIndex}
+          initialColor={selectedAvatar.backgroundColor}
+        />
 
         <label className="block text-sm font-medium mb-1">Name</label>
         <input
           name="name"
           value={form.name}
           onChange={onChange}
-          className="w-full border rounded px-3 py-2 mb-4"
+          className="w-full rounded-lg px-3 py-2 mb-4"
+          style={{ backgroundColor: "#FFFFFF" }}
         />
 
         <label className="block text-sm font-medium mb-1">Date of birth</label>
@@ -155,7 +225,8 @@ export default function AddChild() {
           name="dateOfBirth"
           value={form.dateOfBirth}
           onChange={onChange}
-          className="w-full border rounded px-3 py-2 mb-4"
+          className="w-full rounded-lg px-3 py-2 mb-4"
+          style={{ backgroundColor: "#FFFFFF" }}
         />
 
         <label className="block text-sm font-medium mb-1">Gender</label>
@@ -163,25 +234,28 @@ export default function AddChild() {
           name="gender"
           value={form.gender}
           onChange={onChange}
-          className="w-full border rounded px-3 py-2 mb-4"
+          className="w-full rounded-lg px-3 py-2 mb-4 appearance-none"
+          style={{ backgroundColor: "#FFFFFF" }}
         >
           <option value="">Select</option>
           <option>Boy</option>
           <option>Girl</option>
+          <option>Prefer not to say</option>
         </select>
 
         <label className="block text-sm font-medium mb-1">
-          Medical History
+          Medical Note
         </label>
         <input
           name="medicalHistory"
           value={form.medicalHistory}
           onChange={onChange}
-          className="w-full border rounded px-3 py-2 mb-6"
+          className="w-full rounded-lg px-3 py-2 mb-6"
+          style={{ backgroundColor: "#FFFFFF" }}
         />
 
         <div className="flex gap-4">
-          <button
+          {/* <button
             type="button"
             onClick={() => {
               if (returnPath) {
@@ -195,18 +269,22 @@ export default function AddChild() {
             className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded"
           >
             Cancel
-          </button>
+          </button> */}
           <button
             type="submit"
-            className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded"
+            className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded-lg"
+            style={{ backgroundColor: "#238D88" }}
           >
             Save
           </button>
         </div>
-        { isEdit && (
-          <button 
-          type="button"
-          className="w-full bg-[#F3BE08] hover:bg-orange-700 text-black font-semibold mt-4 py-2 rounded" onClick={handleDelete}>
+        {isEdit && (
+          <button
+            type="button"
+            className="w-full hover:bg-gray-50 text-black font-semibold mt-4 py-2 rounded-lg"
+            style={{ backgroundColor: "#FFFFFF" }}
+            onClick={handleDelete}
+          >
             Delete Profile
           </button>
         )}

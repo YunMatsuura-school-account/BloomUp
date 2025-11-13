@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom"; // useLocation: receive state info from navigate()
 import AvatarDropUpload from "../../components/AvatarDropUpload";
+import cameraIcon from "../../icons/cameraIcon.svg";
 
 // Hoisted helper components to avoid remounting inputs on each render
 function Field({ label, hint, children }) {
@@ -15,7 +16,7 @@ function Field({ label, hint, children }) {
 
 function ToggleRow({ title, description, checked, onChange }) {
   return (
-    <div className="flex items-center justify-between rounded-xl bg-gray-300/70 px-4 py-3">
+    <div className="flex items-center justify-between rounded-lg px-4 py-3" style={{ backgroundColor: "#FFFFFF" }}>
       <div>
         <div className="text-sm text-black/90">{title}</div>
         <div className="text-xs text-black/60">{description}</div>
@@ -264,32 +265,55 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F2F2F2] px-6 lg:px-12 py-8">
+    <div className="min-h-screen px-6 lg:px-12 py-8" style={{ backgroundColor: "#FFFFFF" }}>
       <h1 className="text-center text-[22px] font-semibold text-black/90 mb-6">
         Edit user
       </h1>
 
       {/* Personal information */}
-      <section className="rounded-2xl bg-gray-200/80 p-6 md:p-8 max-w-3xl mx-auto space-y-4">
+      <section className="rounded-2xl p-6 md:p-8 max-w-3xl mx-auto space-y-4" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}>
         <h2 className="text-center text-sm text-black/70">
           Personal information
         </h2>
 
         {/* Avatar */}
         <div className="flex justify-center">
-          <AvatarDropUpload
-            mode="user"
-            userId={userId}
-            currentUrl={me?.imageUrl ?? ""}
-            onUploaded={(url) =>
-              setMe((m) => ({ ...(m || {}), imageUrl: url }))
-            }
-          />
+          <div className="relative">
+            <div
+              onClick={() => {
+                const input = document.querySelector('input[type="file"][accept="image/*"]');
+                input?.click();
+              }}
+              className="flex items-center justify-center transition-all duration-200 hover:scale-105 cursor-pointer"
+            >
+              <AvatarDropUpload
+                mode="user"
+                userId={userId}
+                currentUrl={me?.imageUrl ?? ""}
+                onUploaded={(url) =>
+                  setMe((m) => ({ ...(m || {}), imageUrl: url }))
+                }
+                showEditButton={false}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const input = document.querySelector('input[type="file"][accept="image/*"]');
+                input?.click();
+              }}
+              className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+              aria-label="Change avatar"
+            >
+              <img src={cameraIcon} alt="Camera icon" className="w-10 h-10" />
+            </button>
+          </div>
         </div>
 
         <Field label="User name">
           <input
-            className="w-full rounded-lg bg-gray-300/70 px-4 py-2 outline-none"
+            className="w-full rounded-lg px-4 py-2 outline-none"
+            style={{ backgroundColor: "#FFFFFF" }}
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
@@ -299,7 +323,8 @@ export default function Settings() {
         <Field label="Email">
           <input
             type="email"
-            className="w-full rounded-lg bg-gray-300/70 px-4 py-2 outline-none"
+            className="w-full rounded-lg px-4 py-2 outline-none"
+            style={{ backgroundColor: "#FFFFFF" }}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
@@ -310,7 +335,8 @@ export default function Settings() {
           <div className="relative">
             <input
               type={showCurrentPw ? "text" : "password"}
-              className="w-full rounded-lg bg-gray-300/70 px-4 py-2 pr-10 outline-none"
+              className="w-full rounded-lg px-4 py-2 pr-10 outline-none"
+              style={{ backgroundColor: "#FFFFFF" }}
               value={currentPw}
               onChange={(e) => setCurrentPw(e.target.value)}
               placeholder=""
@@ -330,7 +356,8 @@ export default function Settings() {
           <div className="relative">
             <input
               type={showNewPw ? "text" : "password"}
-              className="w-full rounded-lg bg-gray-300/70 px-4 py-2 pr-10 outline-none"
+              className="w-full rounded-lg px-4 py-2 pr-10 outline-none"
+              style={{ backgroundColor: "#FFFFFF" }}
               value={newPw}
               onChange={(e) => setNewPw(e.target.value)}
               placeholder=""
@@ -350,7 +377,8 @@ export default function Settings() {
           <div className="relative">
             <input
               type={showConfirmPw ? "text" : "password"}
-              className="w-full rounded-lg bg-gray-300/70 px-4 py-2 pr-10 outline-none"
+              className="w-full rounded-lg px-4 py-2 pr-10 outline-none"
+              style={{ backgroundColor: "#FFFFFF" }}
               value={confirmPw}
               onChange={(e) => setConfirmPw(e.target.value)}
               placeholder=""
@@ -368,7 +396,7 @@ export default function Settings() {
       </section>
 
       {/* Notification */}
-      <section className="rounded-2xl bg-gray-200/80 p-6 md:p-8 max-w-3xl mx-auto space-y-5 mt-6">
+      <section className="rounded-2xl p-6 md:p-8 max-w-3xl mx-auto space-y-5 mt-6" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}>
         <h2 className="text-center text-sm text-black/70">Notification</h2>
 
         {/* <ToggleRow
@@ -386,7 +414,7 @@ export default function Settings() {
       </section>
 
       {/* Delete account */}
-      <section className="rounded-2xl bg-gray-200/80 p-6 md:p-8 max-w-3xl mx-auto space-y-4 mt-6">
+      <section className="rounded-2xl p-6 md:p-8 max-w-3xl mx-auto space-y-4 mt-6" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}>
         <h2 className="text-center text-sm text-black/70">
           Delete your account
         </h2>
@@ -397,12 +425,12 @@ export default function Settings() {
         <div className="flex justify-center">
           <button
             type="button"
-            className="px-5 py-2 rounded bg-gray-400/70 text-black/80"
+            className="px-5 py-2 rounded-lg text-black/80 hover:bg-gray-50"
+            style={{ backgroundColor: "#FFFFFF" }}
             onClick={() => handleDelete()}
             disabled={deleting} // disable button during the button cannot be clicked. This avoid trying to delete multiple times.
           >
             {deleting ? "Deleting..." : "Delete"}
-            Delete
           </button>
         </div>
       </section>
@@ -412,13 +440,14 @@ export default function Settings() {
         <button
           disabled={!canSave}
           onClick={handleSave}
-          className={`w-full rounded-xl py-3 ${
+          className={`w-full rounded-lg py-3 ${
             canSave
-              ? "bg-teal-700 text-white"
+              ? "text-white"
               : "bg-gray-400 text-gray-200 cursor-not-allowed"
           }`}
+          style={canSave ? { backgroundColor: "#238D88" } : {}}
         >
-          {saving ? "Saving..." : "Save"}
+          {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
 

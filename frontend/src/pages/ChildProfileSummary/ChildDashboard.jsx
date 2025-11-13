@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import AvatarDropUpload from "../../components/AvatarDropUpload";
+import ChildAvatar from "../../components/ChildAvatar";
 import personIcon from "../../icons/person_icon.png";
 import AddEventModal from "../../components/AddEventModal";
 
@@ -56,21 +56,41 @@ export default function ChildDashboard() {
     });
   };
 
-  const formatTimeRange = (startIso, endIso) => {
+  const formatDateTimeRange = (startIso, endIso) => {
     const start = startIso ? new Date(startIso) : null;
     const end = endIso ? new Date(endIso) : null;
-    const t = (d) =>
-      d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
+    
+    if (!start) return "";
+    
+    const formatDate = (d) => {
+      return d.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
+    };
+    
+    const formatTime = (d) => {
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    };
+    
     if (start && end) {
-      return `${t(start)} ~ ${t(end)}`;
+      const startDate = formatDate(start);
+      const startTime = formatTime(start);
+      const endDate = formatDate(end);
+      const endTime = formatTime(end);
+      
+      // If same day, show: "Oct 03 10:00 ~ 14:30"
+      if (startDate === endDate) {
+        return `${startDate} ${startTime} ~ ${endTime}`;
+      }
+      // If different days, show: "Oct 03 10:00 ~ Oct 06 14:30"
+      return `${startDate} ${startTime} ~ ${endDate} ${endTime}`;
     }
+    
     if (start) {
-      return `${t(start)}`;
+      return `${formatDate(start)} ${formatTime(start)}`;
     }
-    if (end) {
-      return `~ ${t(end)}`;
-    }
+    
     return "";
   };
 
@@ -94,9 +114,7 @@ export default function ChildDashboard() {
       if (!res.ok || res.status === 204) continue;
 
       const body = await res.json().catch(() => null);
-      const arr = Array.isArray(body)
-        ? body
-        : body?.events || body?.data || [];
+      const arr = Array.isArray(body) ? body : body?.events || body?.data || [];
 
       if (!Array.isArray(arr) || arr.length === 0) continue;
 
@@ -179,7 +197,12 @@ export default function ChildDashboard() {
 
   const onEdit = () => {
     navigate("/add-child", {
-      state: { child, childId: child?._id, userId: meId, returnPath: `/child-dashboard/${childId}` },
+      state: {
+        child,
+        childId: child?._id,
+        userId: meId,
+        returnPath: `/child-dashboard/${childId}`,
+      },
     });
   };
 
@@ -198,35 +221,51 @@ export default function ChildDashboard() {
   const month = calculateMonth(child.dateOfBirth);
 
   return (
-    <div className="page-surface space-y-6">
-      <div className="flex items-center justify-center">
-        <h1 className="text-[30px] text-black text-center">Child Dashboard</h1>
-      </div>
-      <hr className="mt-3 mb-10 border-black/20" />
+    <div className="page-surface">
+      <div className="p-6">
+        <div className="flex items-center justify-center">
+          <h1 className="text-[30px] text-black text-center mt-3">Child Dashboard</h1>
+        </div>
+        <hr className="mt-3 mb-10 border-black/100" style={{ borderWidth: "2px" }} />
 
       {/* Child Information Section */}
       <div className="flex flex-col items-center gap-4">
         {/* Avatar */}
         <div className="relative">
-          <AvatarDropUpload
-            mode="child"
-            userId={meId}
-            childId={childId}
-            currentUrl={child?.imageUrl ?? null}
-            onUploaded={(url) =>
-              setChild((currentChildData) => ({
-                ...(currentChildData || {}),
-                imageUrl: url,
-              }))
-            }
-            onEdit={onEdit}
-          />
+          <div className="flex h-32 w-32 items-center justify-center rounded-full overflow-hidden">
+            <ChildAvatar child={child} width={128} height={128} />
+          </div>
+          {/* Edit Button - Pencil Icon */}
+          <button
+            onClick={onEdit}
+            className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity"
+            style={{
+              backgroundColor: "#238D88",
+            }}
+            aria-label="Edit child profile"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 22 22"
+              fill="none"
+            >
+              <path
+                d="M13.9999 4.00038L17.9999 8.00038M20.1739 5.81238C20.7026 5.2838 20.9997 4.56685 20.9998 3.81923C20.9999 3.07162 20.703 2.35459 20.1744 1.82588C19.6459 1.29717 18.9289 1.00009 18.1813 1C17.4337 0.999906 16.7166 1.2968 16.1879 1.82538L2.84193 15.1744C2.60975 15.4059 2.43805 15.6909 2.34193 16.0044L1.02093 20.3564C0.99509 20.4429 0.993138 20.5347 1.01529 20.6222C1.03743 20.7097 1.08285 20.7896 1.14673 20.8534C1.21061 20.9172 1.29055 20.9624 1.37809 20.9845C1.46563 21.0065 1.55749 21.0044 1.64393 20.9784L5.99693 19.6584C6.3101 19.5631 6.59511 19.3925 6.82693 19.1614L20.1739 5.81238Z"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         </div>
 
-        <div className="text-[20px] font-semibold text-black/90 tracking-wide">
+        <div className="text-[20px] font-semibold text-black tracking-wide">
           {child.name}
         </div>
-        <div className="text-black/60 text-sm">
+        <div className="text-black font-semibold text-sm -mt-2">
           {age !== null ? `${age} years` : ""}
           {child.dateOfBirth ? " " : ""}
           {child.dateOfBirth
@@ -248,10 +287,7 @@ export default function ChildDashboard() {
           </div>
         ) : (
           events.map((ev) => {
-            const headerDate = formatEventDate(
-              ev.startDate || ev.date || ev.start
-            );
-            const headerTime = formatTimeRange(
+            const dateTimeRange = formatDateTimeRange(
               ev.startDate || ev.start,
               ev.endDate || ev.end
             );
@@ -262,38 +298,36 @@ export default function ChildDashboard() {
             return (
               <div
                 key={ev._id}
-                className="rounded-2xl bg-black/5 px-6 py-5 shadow-sm cursor-pointer hover:bg-black/10 transition-colors"
+                className="rounded-2xl px-6 py-5 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
+                style={{ backgroundColor: "#FFFFFF" }}
                 onClick={() => {
                   setSelectedEvent(ev);
                   setIsAddEventModalOpen(true);
                 }}
               >
-                <div className="flex items-center justify-between text-sm text-black/60">
-                  <span className="font-medium">{headerDate}</span>
-                  <span>{headerTime}</span>
+                <div className="text-sm text-black/60 text-right">
+                  <span className="font-semibold">{dateTimeRange}</span>
                 </div>
 
                 <div className="mt-3 flex items-start gap-3">
-                  <div
-                    className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center"
-                    aria-hidden="true"
-                  >
-                    <img src={personIcon} alt="person icon" />
+                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                    <ChildAvatar child={child} width={40} height={40} />
                   </div>
-                </div>
-
-                <div className="flex-1">
-                  <div className="font-semibold text-black/90">{title}</div>
-                  {notes && (
-                    <p className="mt-1 text-sm text-black/60 line-blamp-2">
-                      {notes}
-                    </p>
-                  )}
+                  <div className="flex-1">
+                    <div className="font-semibold text-black/90">{title}</div>
+                    {notes && (
+                      <p className="mt-1 text-sm text-black/60 line-clamp-2">
+                        {notes}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })
         )}
+      </div>
+
       </div>
 
       {/* Event Modal */}
@@ -313,24 +347,30 @@ export default function ChildDashboard() {
               await fetchEvents(meId, token);
             }
           }}
-          initialData={selectedEvent ? {
-            _id: selectedEvent._id,
-            title: selectedEvent.title || selectedEvent.name,
-            children: Array.isArray(selectedEvent.children) 
-              ? selectedEvent.children.map(child => 
-                  typeof child === 'string' ? child : (child?._id || String(child))
-                )
-              : [],
-            category: selectedEvent.category || 'Others',
-            startDate: selectedEvent.startDate || selectedEvent.start,
-            endDate: selectedEvent.endDate || selectedEvent.end,
-            alert: selectedEvent.alert,
-            notes: selectedEvent.notes || selectedEvent.description,
-            url: selectedEvent.url,
-            attachments: Array.isArray(selectedEvent.attachments) 
-              ? selectedEvent.attachments.join(', ') 
-              : (selectedEvent.attachments || '')
-          } : null}
+          initialData={
+            selectedEvent
+              ? {
+                  _id: selectedEvent._id,
+                  title: selectedEvent.title || selectedEvent.name,
+                  children: Array.isArray(selectedEvent.children)
+                    ? selectedEvent.children.map((child) =>
+                        typeof child === "string"
+                          ? child
+                          : child?._id || String(child)
+                      )
+                    : [],
+                  category: selectedEvent.category || "Others",
+                  startDate: selectedEvent.startDate || selectedEvent.start,
+                  endDate: selectedEvent.endDate || selectedEvent.end,
+                  alert: selectedEvent.alert,
+                  notes: selectedEvent.notes || selectedEvent.description,
+                  url: selectedEvent.url,
+                  attachments: Array.isArray(selectedEvent.attachments)
+                    ? selectedEvent.attachments.join(", ")
+                    : selectedEvent.attachments || "",
+                }
+              : null
+          }
         />
       )}
     </div>

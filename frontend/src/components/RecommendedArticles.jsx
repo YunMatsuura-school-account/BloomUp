@@ -10,6 +10,31 @@ const RecommendedArticles = () => {
       try {
         setLoading(true);
         const base = import.meta.env.VITE_BACKEND_URL || "";
+        const token = localStorage.getItem("accessToken");
+        
+        // Try to fetch recommended articles (requires authentication)
+        if (token) {
+          try {
+            const resp = await fetch(`${base}/api/articles/recommended`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            
+            if (resp.ok) {
+              const json = await resp.json();
+              if (json.success && json.data && json.data.length > 0) {
+                setArticles(json.data);
+                return;
+              }
+            }
+          } catch (e) {
+            console.error("Error fetching recommended articles:", e);
+            // Fall through to default fetch
+          }
+        }
+        
+        // Fallback: fetch regular articles if recommended fails or no token
         const resp = await fetch(`${base}/api/articles?limit=4&page=1`);
         let json = {};
         try {

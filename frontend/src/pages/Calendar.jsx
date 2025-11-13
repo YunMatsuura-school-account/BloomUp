@@ -10,6 +10,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 
 import ReminderModal from '../components/ReminderModal';
 import CustomReminderModal from '../components/CustomReminderModal';
+import { useChild } from "../contexts/ChildContext";
 
 // Icons
 function BellIcon({ className = "w-5 h-5" }) {
@@ -113,6 +114,7 @@ export default function CalendarPage() {
   const calendarRef = useRef(null);
   
   // Calendar & Events State
+  const { selectedChild } = useChild(); // Get selected child from context
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [currentView, setCurrentView] = useState("dayGridMonth");
@@ -132,35 +134,38 @@ const [customRestockDays, setCustomRestockDays] = useState('');
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem("accessToken");
         if (!token) {
-          navigate('/login');
+          navigate("/login");
           return;
         }
 
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/auth/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (res.ok) {
           const userData = await res.json();
           setUserData(userData);
         }
       } catch (error) {
-        console.error('Error loading user data:', error);
+        console.error("Error loading user data:", error);
       }
     };
 
     loadUserData();
   }, [navigate]);
 
-  // Load upcoming events
+  // Load upcoming events - filtered by selected child
   useEffect(() => {
     const loadUpcomingEvents = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem("accessToken");
         if (!token) return;
 
         const now = new Date().toISOString();
@@ -168,11 +173,21 @@ const [customRestockDays, setCustomRestockDays] = useState('');
         thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
         const endDate = thirtyDaysLater.toISOString();
 
-        const url = `${import.meta.env.VITE_BACKEND_URL}/api/calendar?start=${encodeURIComponent(now)}&end=${encodeURIComponent(endDate)}`;
+        // Add child filter if a child is selected
+        const params = new URLSearchParams();
+        params.set("start", now);
+        params.set("end", endDate);
+        if (selectedChild?._id) {
+          params.set("child", selectedChild._id);
+        }
+
+        const url = `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/calendar?${params.toString()}`;
         const resp = await fetch(url, {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
           },
         });
 
@@ -184,42 +199,82 @@ const [customRestockDays, setCustomRestockDays] = useState('');
           setUpcomingEvents(sortedEvents);
         }
       } catch (err) {
-        console.error('Error loading upcoming events:', err);
+        console.error("Error loading upcoming events:", err);
       }
     };
 
     loadUpcomingEvents();
-  }, [modalOpen]);
+  // }, [modalOpen]);
+  }, [modalOpen, selectedChild]); // Reload when modal closes or child changes
+
+  // Load children for event cards
+  // useEffect(() => {
+  //     const loadChildren = async () => {
+  //         try {
+  //             const token = localStorage.getItem('accessToken');
+  //             if (!token) return;
+
+  //             const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/children`, {
+  //                 headers: {
+  //                     Authorization: `Bearer ${token}`,
+  //                     'Content-Type': 'application/json'
+  //                 },
+  //             });
+
+  //             if (res.ok) {
+  //                 const data = await res.json();
+  //                 setChildrenList(data.children || []);
+  //             }
+  //         } catch (error) {
+  //             console.error('Error loading children:', error);
+  //         }
+  //     };
+
+  //     loadChildren();
+  // }, []);
+
+  // In your useEffect for loading children, replace with this:
 
   // Load children
   useEffect(() => {
     const loadChildren = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem("accessToken");
         if (!token) {
-          console.log('No token found');
+          console.log("No token found");
           return;
         }
 
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/children`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-        });
+        console.log("Fetching children from API...");
+
+        const res = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/children`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("Children API response status:", res.status);
 
         if (res.ok) {
           const data = await res.json();
+          console.log("Children data received:", data);
+
           if (data.success && data.children) {
             setChildrenList(data.children);
           } else {
+            console.log("No children found or API error");
             setChildrenList([]);
           }
         } else {
+          console.error("Failed to fetch children:", res.status);
           setChildrenList([]);
         }
       } catch (error) {
-        console.error('Error loading children:', error);
+        console.error("Error loading children:", error);
         setChildrenList([]);
       }
     };
@@ -424,24 +479,34 @@ const disableRestockReminder = async (item) => {
     const end = info.end.toISOString();
 
     try {
-      const url = `${import.meta.env.VITE_BACKEND_URL}/api/calendar?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+      // Add child filter if a child is selected
+      const params = new URLSearchParams();
+      params.set("start", start);
+      params.set("end", end);
+      if (selectedChild?._id) {
+        params.set("child", selectedChild._id);
+      }
+
+      const url = `${
+        import.meta.env.VITE_BACKEND_URL
+      }/api/calendar?${params.toString()}`;
       const resp = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          "Content-Type": "application/json",
         },
       });
 
       if (resp.status === 401) {
-        localStorage.removeItem('accessToken');
-        window.location.href = '/login';
+        localStorage.removeItem("accessToken");
+        window.location.href = "/login";
         return [];
       }
 
       const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.message || 'Failed to load events');
+      if (!resp.ok) throw new Error(data?.message || "Failed to load events");
 
-      const fcEvents = (data.events || []).map(ev => ({
+      const fcEvents = (data.events || []).map((ev) => ({
         id: ev._id,
         title: ev.title,
         start: ev.startDate,
@@ -451,10 +516,43 @@ const disableRestockReminder = async (item) => {
       }));
       return fcEvents;
     } catch (err) {
-      console.error('Error loading events', err);
+      console.error("Error loading events", err);
       return [];
     }
   }
+
+  // This useEffect is now handled above with selectedChild dependency
+
+  // Load children for event cards
+  useEffect(() => {
+    const loadChildren = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+
+        const res = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/children`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (res.ok) {
+          const data = await res.json();
+          setChildrenList(data.children || []);
+        }
+      } catch (error) {
+        console.error("Error loading children:", error);
+      }
+    };
+
+    loadChildren();
+  }, []);
+
+  // This function is now handled above with selectedChild filtering
 
   function handleDateSelect(selectInfo) {
     setEditingEvent({
@@ -475,6 +573,14 @@ const disableRestockReminder = async (item) => {
     const api = calendarRef.current?.getApi?.();
     if (api) api.refetchEvents();
   }
+
+  // Refresh calendar when selected child changes
+  useEffect(() => {
+    const api = calendarRef.current?.getApi?.();
+    if (api) {
+      api.refetchEvents();
+    }
+  }, [selectedChild]);
 
   function handleViewChange(view) {
     const api = calendarRef.current.getApi();
@@ -557,7 +663,7 @@ const disableRestockReminder = async (item) => {
         <div className="flex items-center gap-2 mt-1">
           <LocationIcon className="w-4 h-4 text-gray-500" />
           <span className="text-gray-600 text-sm">
-            {userData?.country || 'Your Location'}
+            {userData?.country || "Your Location"}
           </span>
         </div>
       </div>
@@ -667,17 +773,21 @@ const disableRestockReminder = async (item) => {
               </div>
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                {upcomingEvents.map((event) => (
+                {upcomingEvents.map((event, index) => (
                   <div
                     key={event._id}
                     className="border rounded-lg p-3 hover:shadow-md transition-shadow"
-                    style={{ borderLeft: `4px solid ${event.color || '#006F69'}` }}
+                    style={{
+                      borderLeft: `4px solid ${event.color || "#006F69"}`,
+                    }}
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-medium text-gray-800">{event.title}</h4>
+                      <h4 className="font-medium text-gray-800">
+                        {event.title}
+                      </h4>
                       <div
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: event.color || '#006F69' }}
+                        style={{ backgroundColor: event.color || "#006F69" }}
                       ></div>
                     </div>
 
@@ -700,7 +810,7 @@ const disableRestockReminder = async (item) => {
 
                     <div className="text-xs text-gray-500">
                       {event.children && event.children.length > 0 ? (
-                        event.children.map(childId => (
+                        event.children.map((childId) => (
                           <span key={childId} className="mr-2">
                             {getChildName(childId)}
                           </span>
