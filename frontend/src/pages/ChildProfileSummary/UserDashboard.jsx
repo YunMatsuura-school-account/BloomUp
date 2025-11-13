@@ -172,7 +172,8 @@ export default function UserDashboard() {
             return (
               <div
                 key={ev._id}
-                className="rounded-2xl bg-black/5 px-6 py-5 shadow-sm cursor-pointer hover:bg-black/10 transition-colors"
+                className="rounded-2xl px-6 py-5 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
+                style={{ backgroundColor: "#FFFFFF" }}
                 onClick={() => {
                   setSelectedEvent(ev);
                   setIsAddEventModalOpen(true);

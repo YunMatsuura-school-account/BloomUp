@@ -56,21 +56,41 @@ export default function ChildDashboard() {
     });
   };
 
-  const formatTimeRange = (startIso, endIso) => {
+  const formatDateTimeRange = (startIso, endIso) => {
     const start = startIso ? new Date(startIso) : null;
     const end = endIso ? new Date(endIso) : null;
-    const t = (d) =>
-      d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
+    
+    if (!start) return "";
+    
+    const formatDate = (d) => {
+      return d.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
+    };
+    
+    const formatTime = (d) => {
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    };
+    
     if (start && end) {
-      return `${t(start)} ~ ${t(end)}`;
+      const startDate = formatDate(start);
+      const startTime = formatTime(start);
+      const endDate = formatDate(end);
+      const endTime = formatTime(end);
+      
+      // If same day, show: "Oct 03 10:00 ~ 14:30"
+      if (startDate === endDate) {
+        return `${startDate} ${startTime} ~ ${endTime}`;
+      }
+      // If different days, show: "Oct 03 10:00 ~ Oct 06 14:30"
+      return `${startDate} ${startTime} ~ ${endDate} ${endTime}`;
     }
+    
     if (start) {
-      return `${t(start)}`;
+      return `${formatDate(start)} ${formatTime(start)}`;
     }
-    if (end) {
-      return `~ ${t(end)}`;
-    }
+    
     return "";
   };
 
@@ -201,11 +221,12 @@ export default function ChildDashboard() {
   const month = calculateMonth(child.dateOfBirth);
 
   return (
-    <div className="page-surface space-y-6">
-      <div className="flex items-center justify-center">
-        <h1 className="text-[30px] text-black text-center">Child Dashboard</h1>
-      </div>
-      <hr className="mt-3 mb-10 border-black/20" />
+    <div className="page-surface">
+      <div className="p-6">
+        <div className="flex items-center justify-center">
+          <h1 className="text-[30px] text-black text-center mt-3">Child Dashboard</h1>
+        </div>
+        <hr className="mt-3 mb-10 border-black/100" style={{ borderWidth: "2px" }} />
 
       {/* Child Information Section */}
       <div className="flex flex-col items-center gap-4">
@@ -241,10 +262,10 @@ export default function ChildDashboard() {
           </button>
         </div>
 
-        <div className="text-[20px] font-semibold text-black/90 tracking-wide">
+        <div className="text-[20px] font-semibold text-black tracking-wide">
           {child.name}
         </div>
-        <div className="text-black/60 text-sm">
+        <div className="text-black font-semibold text-sm -mt-2">
           {age !== null ? `${age} years` : ""}
           {child.dateOfBirth ? " " : ""}
           {child.dateOfBirth
@@ -266,10 +287,7 @@ export default function ChildDashboard() {
           </div>
         ) : (
           events.map((ev) => {
-            const headerDate = formatEventDate(
-              ev.startDate || ev.date || ev.start
-            );
-            const headerTime = formatTimeRange(
+            const dateTimeRange = formatDateTimeRange(
               ev.startDate || ev.start,
               ev.endDate || ev.end
             );
@@ -280,38 +298,36 @@ export default function ChildDashboard() {
             return (
               <div
                 key={ev._id}
-                className="rounded-2xl bg-black/5 px-6 py-5 shadow-sm cursor-pointer hover:bg-black/10 transition-colors"
+                className="rounded-2xl px-6 py-5 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
+                style={{ backgroundColor: "#FFFFFF" }}
                 onClick={() => {
                   setSelectedEvent(ev);
                   setIsAddEventModalOpen(true);
                 }}
               >
-                <div className="flex items-center justify-between text-sm text-black/60">
-                  <span className="font-medium">{headerDate}</span>
-                  <span>{headerTime}</span>
+                <div className="text-sm text-black/60 text-right">
+                  <span className="font-semibold">{dateTimeRange}</span>
                 </div>
 
                 <div className="mt-3 flex items-start gap-3">
-                  <div
-                    className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center"
-                    aria-hidden="true"
-                  >
-                    <img src={personIcon} alt="person icon" />
+                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                    <ChildAvatar child={child} width={40} height={40} />
                   </div>
-                </div>
-
-                <div className="flex-1">
-                  <div className="font-semibold text-black/90">{title}</div>
-                  {notes && (
-                    <p className="mt-1 text-sm text-black/60 line-blamp-2">
-                      {notes}
-                    </p>
-                  )}
+                  <div className="flex-1">
+                    <div className="font-semibold text-black/90">{title}</div>
+                    {notes && (
+                      <p className="mt-1 text-sm text-black/60 line-clamp-2">
+                        {notes}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })
         )}
+      </div>
+
       </div>
 
       {/* Event Modal */}

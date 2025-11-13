@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ChildAvatar from "../components/ChildAvatar";
 import AvatarSelectionModal from "../components/AvatarSelectionModal";
+import cameraIcon from "../icons/cameraIcon.svg";
 
 export default function AddChild() {
   const navigate = useNavigate();
@@ -165,26 +166,38 @@ export default function AddChild() {
   };
 
   return (
-    <div className="min-h-screen w-full grid place-items-center bg-gray-100 p-4">
+    <div className="min-h-screen w-full grid place-items-center p-4" style={{ backgroundColor: "#FFFFFF" }}>
       <form
         onSubmit={onSubmit}
-        className="bg-white p-8 rounded-xl shadow w-full max-w-[560px]"
+        className="p-8 rounded-xl shadow w-full max-w-[560px]"
+        style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}
       >
+        <div className="flex flex-col items-center gap-2 mb-6">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsAvatarModalOpen(true)}
+              className="flex items-center justify-center transition-all duration-200 hover:scale-105 cursor-pointer"
+              aria-label="Select avatar"
+            >
+              <div className="flex h-32 w-32 items-center justify-center rounded-full overflow-hidden">
+                <ChildAvatar child={displayChild} width={128} height={128} />
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsAvatarModalOpen(true)}
+              className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+              aria-label="Change avatar"
+            >
+              <img src={cameraIcon} alt="Camera icon" className="w-10 h-10" />
+            </button>
+          </div>
+        </div>
+
         <h2 className="text-center text-xl font-semibold mb-6">
           {isEdit ? "Edit child" : "Add child"}
         </h2>
-
-        <div className="flex flex-col items-center gap-2 mb-6">
-          <button
-            type="button"
-            onClick={() => setIsAvatarModalOpen(true)}
-            className="flex items-center justify-center transition-all duration-200 hover:scale-105 cursor-pointer"
-            aria-label="Select avatar"
-          >
-            <ChildAvatar child={displayChild} width={80} height={80} />
-          </button>
-          <p className="text-xs text-gray-500">Click to change avatar</p>
-        </div>
 
         {/* Avatar Selection Modal */}
         <AvatarSelectionModal
@@ -202,7 +215,8 @@ export default function AddChild() {
           name="name"
           value={form.name}
           onChange={onChange}
-          className="w-full border rounded px-3 py-2 mb-4"
+          className="w-full rounded-lg px-3 py-2 mb-4"
+          style={{ backgroundColor: "#FFFFFF" }}
         />
 
         <label className="block text-sm font-medium mb-1">Date of birth</label>
@@ -211,7 +225,8 @@ export default function AddChild() {
           name="dateOfBirth"
           value={form.dateOfBirth}
           onChange={onChange}
-          className="w-full border rounded px-3 py-2 mb-4"
+          className="w-full rounded-lg px-3 py-2 mb-4"
+          style={{ backgroundColor: "#FFFFFF" }}
         />
 
         <label className="block text-sm font-medium mb-1">Gender</label>
@@ -219,25 +234,28 @@ export default function AddChild() {
           name="gender"
           value={form.gender}
           onChange={onChange}
-          className="w-full border rounded px-3 py-2 mb-4"
+          className="w-full rounded-lg px-3 py-2 mb-4 appearance-none"
+          style={{ backgroundColor: "#FFFFFF" }}
         >
           <option value="">Select</option>
           <option>Boy</option>
           <option>Girl</option>
+          <option>Prefer not to say</option>
         </select>
 
         <label className="block text-sm font-medium mb-1">
-          Medical History
+          Medical Note
         </label>
         <input
           name="medicalHistory"
           value={form.medicalHistory}
           onChange={onChange}
-          className="w-full border rounded px-3 py-2 mb-6"
+          className="w-full rounded-lg px-3 py-2 mb-6"
+          style={{ backgroundColor: "#FFFFFF" }}
         />
 
         <div className="flex gap-4">
-          <button
+          {/* <button
             type="button"
             onClick={() => {
               if (returnPath) {
@@ -251,10 +269,11 @@ export default function AddChild() {
             className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded"
           >
             Cancel
-          </button>
+          </button> */}
           <button
             type="submit"
-            className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded"
+            className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded-lg"
+            style={{ backgroundColor: "#238D88" }}
           >
             Save
           </button>
@@ -262,7 +281,8 @@ export default function AddChild() {
         {isEdit && (
           <button
             type="button"
-            className="w-full bg-[#F3BE08] hover:bg-orange-700 text-black font-semibold mt-4 py-2 rounded"
+            className="w-full hover:bg-gray-50 text-black font-semibold mt-4 py-2 rounded-lg"
+            style={{ backgroundColor: "#FFFFFF" }}
             onClick={handleDelete}
           >
             Delete Profile
