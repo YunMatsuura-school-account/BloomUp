@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import greyPersonIcon from "../../icons/greyPersonIcon.svg";
 import orangePencilIcon from "../../icons/orangePencilIcon.svg";
 import trashBinIcon from "../../icons/trashBinIcon.svg";
-import plusIcon from "../../icons/plus_icon.png";
+import plusIcon from "../../icons/plusIcon.svg";
 import ChildAvatar from "../../components/ChildAvatar";
 
 export default function Account() {
@@ -151,10 +151,35 @@ export default function Account() {
           Your Family
         </h2>
 
-        <div className="mb-2 text-black/100 font-semibold text-lg text-center">
-          {familyName}
+        <div className="mb-2 flex items-center justify-between md:justify-center">
+          <div className="text-black/100 font-semibold text-lg">
+            {familyName}
+          </div>
+          <button
+            onClick={() => {
+              if (userId) {
+                navigate("/add-child", {
+                  state: {
+                    userId: userId,
+                    returnPath: "/account",
+                  },
+                });
+              } else {
+                console.error(
+                  "User ID not available. Please wait for page to load."
+                );
+              }
+            }}
+            className="md:hidden"
+            aria-label="Add your child here"
+          >
+            <img
+              src={plusIcon}
+              alt="Add child"
+              className="w-8 h-8"
+            />
+          </button>
         </div>
-        {/* </div> */}
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
           {children.map((child) => {
