@@ -11,6 +11,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import ReminderModal from "../components/ReminderModal";
 import CustomReminderModal from "../components/CustomReminderModal";
 import { useChild } from "../contexts/ChildContext";
+import ChildAvatar from "../components/ChildAvatar";
 
 // Icons
 function BellIcon({ className = "w-5 h-5" }) {
@@ -106,6 +107,132 @@ function ChevronRightIcon({ className = "w-5 h-5" }) {
         d="M9 5l7 7-7 7"
       />
     </svg>
+  );
+}
+
+// Vaccination Section Component
+function VaccinationSection({ selectedChild, userData }) {
+  const [vaccinations, setVaccinations] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchVaccinations = async () => {
+      if (!selectedChild?._id || !userData?.id) {
+        setVaccinations([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const base = import.meta.env.VITE_BACKEND_URL || "";
+        const vaccUrl = `${base}/api/users/${userData.id}/children/${
+          selectedChild._id
+        }/vaccinations/recommendations${
+          selectedChild.dateOfBirth
+            ? `?birthDate=${encodeURIComponent(selectedChild.dateOfBirth)}`
+            : ""
+        }`;
+        const vaccRes = await fetch(vaccUrl);
+        if (vaccRes.ok) {
+          const vaccData = await vaccRes.json();
+          const upcoming = (vaccData?.recommendations || [])
+            .filter((r) => r?.recommendedDate)
+            .sort(
+              (a, b) =>
+                new Date(a.recommendedDate) - new Date(b.recommendedDate)
+            )
+            .slice(0, 2); // Show top 2 upcoming
+          setVaccinations(upcoming);
+        }
+      } catch (e) {
+        console.error("Error fetching vaccinations:", e);
+        setVaccinations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVaccinations();
+  }, [selectedChild?._id, userData?.id, selectedChild?.dateOfBirth]);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const month = date.toLocaleString("en-US", { month: "short" });
+    const day = date.getDate();
+    return `You got this dose ${month} ${day}.`;
+  };
+
+  return (
+    <div className="mt-6">
+      <div className="bg-white rounded-2xl border shadow-sm p-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-6">
+          It's Vaccination Time!
+        </h2>
+
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#238D88] mx-auto mb-3"></div>
+            <p className="text-sm text-gray-600">Loading vaccinations...</p>
+          </div>
+        ) : vaccinations.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-600 mb-4">
+              No upcoming vaccinations scheduled
+            </p>
+            <a
+              href="https://www.google.com/maps/search/child+hospitals+near+me"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-lg bg-[#238D88] text-white font-medium px-6 py-3 hover:bg-[#1a6d68] transition-colors"
+            >
+              Find Child Hospitals
+            </a>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {vaccinations.map((vacc, index) => (
+              <div
+                key={index}
+                className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <ChildAvatar
+                      child={selectedChild}
+                      size="md"
+                      className="w-12 h-12"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base font-semibold text-gray-800 mb-1">
+                      {vacc.name || "Vaccination"}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {formatDate(vacc.recommendedDate)}
+                    </p>
+                    <a
+                      href="https://www.google.com/maps/search/child+hospitals+near+me"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center rounded-lg bg-[#238D88] text-white font-medium px-4 py-2 text-sm hover:bg-[#1a6d68] transition-colors"
+                    >
+                      Book Clinic
+                    </a>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#238D88]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#238D88]"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -907,28 +1034,8 @@ export default function CalendarPage() {
         )}
       </div>
 
-      {/* Vaccination CTA */}
-      <div className="mt-6">
-        <div className="bg-white rounded-2xl border shadow-sm p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <p className="text-[#238D88] text-sm font-semibold uppercase tracking-wide">
-              It's Vaccination Time
-            </p>
-            <p className="text-lg text-gray-700 mt-1">
-              Stay ready for the next appointment and locate nearby
-              child-friendly hospitals.
-            </p>
-          </div>
-          <a
-            href="https://www.google.com/maps/search/child+hospitals+near+me"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center rounded-lg bg-[#F3BE08] text-gray-900 font-medium px-6 py-3 hover:bg-amber-500 transition-colors"
-          >
-            Find Child Hospitals
-          </a>
-        </div>
-      </div>
+      {/* Vaccination Section */}
+      <VaccinationSection selectedChild={selectedChild} userData={userData} />
 
       {/* Add Event Modal */}
       <AddEventModal
