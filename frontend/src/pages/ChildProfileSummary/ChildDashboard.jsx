@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ChildAvatar from "../../components/ChildAvatar";
-import personIcon from "../../icons/person_icon.png";
+import CircleUserRoundIcon from "../../icons/CircleUserRoundIcon";
+import bell_icon from "../../icons/bell_icon.png";
+import NotificationPopup from "../../components/NotificationPopup";
 import AddEventModal from "../../components/AddEventModal";
 
 export default function ChildDashboard() {
@@ -17,6 +19,10 @@ export default function ChildDashboard() {
   const [eventErr, setEventErr] = useState("");
   const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const bellRef = useRef(null);
 
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) {
@@ -206,6 +212,24 @@ export default function ChildDashboard() {
     });
   };
 
+  const handleNotificationClick = () => {
+    setShowNotifications((v) => !v);
+  };
+
+  const handleNotificationClose = () => {
+    setShowNotifications(false);
+  };
+
+  const handleNotificationsViewed = (hasGreenItems) => {
+    setHasUnreadNotifications(hasGreenItems);
+  };
+
+  useEffect(() => {
+    if (showNotifications) {
+      setRefreshTrigger((prev) => prev + 1);
+    }
+  }, [showNotifications]);
+
   if (loading) {
     return <p className="text-white p-6">Loading...</p>;
   }
@@ -222,11 +246,46 @@ export default function ChildDashboard() {
 
   return (
     <div className="page-surface">
+      {/* Mobile Header - shown only on mobile (md:hidden) */}
+      <div className="md:hidden w-full bg-[#F5F5F5] flex items-center justify-between px-6 py-4">
+        {/* Bell Icon - Left */}
+        <button
+          ref={bellRef}
+          onClick={handleNotificationClick}
+          className="p-2 rounded-full hover:bg-gray-200/50 transition-colors relative"
+          aria-label="Notifications"
+        >
+          <img src={bell_icon} alt="Notifications" className="w-6 h-6" />
+          {hasUnreadNotifications && (
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
+          )}
+        </button>
+
+        {/* Person Icon - Right */}
+        <button
+          onClick={() => navigate("/user-dashboard")}
+          className="p-2 rounded-full hover:bg-gray-200/50 transition-colors flex items-center justify-center"
+          aria-label="User Profile"
+        >
+          <CircleUserRoundIcon className="w-7 h-7" fill="#FFFFFF" />
+        </button>
+      </div>
+
+      {/* Notification Popup */}
+      <NotificationPopup
+        isOpen={showNotifications}
+        onClose={handleNotificationClose}
+        anchorEl={bellRef.current}
+        refreshTrigger={refreshTrigger}
+        onNotificationsViewed={handleNotificationsViewed}
+      />
+
       <div className="p-6">
-        <div className="flex items-center justify-center">
+        {/* Child Dashboard Title and HR - hidden on mobile */}
+        <div className="hidden md:flex items-center justify-center">
           <h1 className="text-[30px] text-black text-center mt-3">Child Dashboard</h1>
         </div>
-        <hr className="mt-3 mb-10 border-black/100" style={{ borderWidth: "2px" }} />
+        <hr className="hidden md:block mt-3 mb-10 border-black/100" style={{ borderWidth: "2px" }} />
 
       {/* Child Information Section */}
       <div className="flex flex-col items-center gap-4">
@@ -277,7 +336,7 @@ export default function ChildDashboard() {
       </div>
 
       {/* Upcoming Events */}
-      <h2 className="mt-12 text-[20px] font-semibold text-black/90 text-center">
+      <h2 className="mt-12 text-[20px] font-semibold text-black/90 text-left">
         Upcoming Events
       </h2>
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">

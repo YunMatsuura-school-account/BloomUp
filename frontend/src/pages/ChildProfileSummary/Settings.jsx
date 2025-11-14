@@ -271,7 +271,8 @@ export default function Settings() {
       </h1>
 
       {/* Personal information */}
-      <section className="rounded-2xl p-6 md:p-8 max-w-3xl mx-auto space-y-4" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}>
+      <section className="rounded-2xl p-6 md:p-8 md:px-16 md:py-12 max-w-3xl md:max-w-4xl mx-auto space-y-4" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}>
+        <div className="md:max-w-md md:mx-auto space-y-4">
         <h2 className="text-center text-sm text-black/70">
           Personal information
         </h2>
@@ -393,10 +394,12 @@ export default function Settings() {
             </button>
           </div>
         </Field>
+        </div>
       </section>
 
       {/* Notification */}
-      <section className="rounded-2xl p-6 md:p-8 max-w-3xl mx-auto space-y-5 mt-6" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}>
+      <section className="rounded-2xl p-6 md:p-8 md:px-16 md:py-12 max-w-3xl md:max-w-4xl mx-auto space-y-5 mt-6" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}>
+        <div className="md:max-w-md md:mx-auto space-y-5">
         <h2 className="text-center text-sm text-black/70">Notification</h2>
 
         {/* <ToggleRow
@@ -411,10 +414,12 @@ export default function Settings() {
           checked={reminder}
           onChange={setReminder}
         />
+        </div>
       </section>
 
       {/* Delete account */}
-      <section className="rounded-2xl p-6 md:p-8 max-w-3xl mx-auto space-y-4 mt-6" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}>
+      <section className="rounded-2xl p-6 md:p-8 md:px-16 md:py-12 max-w-3xl md:max-w-4xl mx-auto space-y-4 mt-6" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}>
+        <div className="md:max-w-md md:mx-auto space-y-4">
         <h2 className="text-center text-sm text-black/70">
           Delete your account
         </h2>
@@ -433,10 +438,12 @@ export default function Settings() {
             {deleting ? "Deleting..." : "Delete"}
           </button>
         </div>
+        </div>
       </section>
 
       {/* Save button */}
-      <div className="max-w-3xl mx-auto mt-8">
+      <div className="max-w-3xl md:max-w-4xl mx-auto mt-8">
+        <div className="md:max-w-md md:mx-auto">
         <button
           disabled={!canSave}
           onClick={handleSave}
@@ -449,13 +456,16 @@ export default function Settings() {
         >
           {saving ? "Saving..." : "Save Changes"}
         </button>
+        </div>
       </div>
 
       {/* Back link */}
-      <div className="max-w-3xl mx-auto mt-4 text-center">
+      <div className="max-w-3xl md:max-w-4xl mx-auto mt-4 text-center">
+        <div className="md:max-w-md md:mx-auto">
         <Link to="/dashboard" className="text-sm text-gray-600 underline">
           Back to Dashboard
         </Link>
+        </div>
       </div>
     </div>
   );
