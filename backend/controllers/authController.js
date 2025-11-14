@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 
 const login = async (req, res) => {
@@ -15,8 +16,8 @@ const login = async (req, res) => {
     return res.status(401).json({ message: "Invalid email or password" });
   }
 
-  // Check password match
-  if (user.password !== password) {
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
     return res.status(401).json({ message: "Invalid email or password" });
   }
 
@@ -52,10 +53,12 @@ const signup = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = new User({
       name,
       email,
-      password,
+      password: hashedPassword,
       country,
       state,
       familyName,
@@ -98,11 +101,15 @@ const changePassword = async (req, res) => {
     const userId = req.user.id;
 
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: "Current password and new password are required" });
+      return res
+        .status(400)
+        .json({ message: "Current password and new password are required" });
     }
 
-    if ( newPassword.length < 6 ) {
-      return res.status(400).json({ message: "New password must be at least 6 characters long" });
+    if (newPassword.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "New password must be at least 6 characters long" });
     }
 
     const user = await User.findById(userId);
@@ -110,18 +117,18 @@ const changePassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (user.password !== currentPassword) {
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
       return res.status(401).json({ message: "Invalid current password" });
     }
 
-    user.password = newPassword;
+    user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
     res.status(200).json({ message: "Password changed successfully" });
-    
   } catch (error) {
     console.error("Change password error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 module.exports = { signup, login, getCurrentUser, changePassword };

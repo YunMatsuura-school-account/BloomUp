@@ -83,34 +83,70 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
   const calendarDays = generateCalendarDays();
 
   // Normalize incoming events to a map keyed by day number for current month
+  // This handles multi-day events by adding them to all days from start to end date
   const eventsByDay = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const map = {};
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const monthStart = new Date(year, month, 1);
+    const monthEnd = new Date(year, month, daysInMonth);
+
     (events || []).forEach((ev) => {
       if (!ev || !ev.date) return;
-      const d = new Date(ev.date);
-      if (
-        d.getFullYear() === year &&
-        d.getMonth() === month &&
-        Number.isInteger(d.getDate())
-      ) {
-        const day = d.getDate();
-        let derivedColor = "#F3BE08"; // default calendar/school
-        if (ev.type === "vaccination") derivedColor = "#006F69";
-        else if (ev.type === "school") derivedColor = "#F3BE08";
+      const startDate = new Date(ev.date);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = ev.endDate ? new Date(ev.endDate) : null;
+      if (endDate) endDate.setHours(23, 59, 59, 999);
 
-        const entry = {
-          title: ev.title || ev.name || "Event",
-          color: ev.color || derivedColor,
-          type: ev.type,
-          date: ev.date,
-          _id: ev._id,
-          endDate: ev.endDate,
-          notes: ev.notes,
-        };
-        if (!map[day]) map[day] = [entry];
-        else map[day].push(entry);
+      // Check if event overlaps with current month
+      const eventEnd = endDate || startDate;
+      if (eventEnd < monthStart || startDate > monthEnd) {
+        return; // Event doesn't overlap with current month
+      }
+
+      // Determine the actual start and end days within the current month
+      let startDay = 1;
+      let endDay = daysInMonth;
+
+      if (startDate >= monthStart) {
+        // Event starts in current month
+        startDay = startDate.getDate();
+      }
+
+      // If event has no end date, it should only show on the start date
+      if (!endDate) {
+        endDay = startDay; // Single day event
+      } else if (endDate <= monthEnd) {
+        // Event ends in current month
+        endDay = endDate.getDate();
+      }
+      // If endDate exists but is after monthEnd, endDay remains daysInMonth
+
+      let derivedColor = "#F3BE08"; // default calendar/school
+      if (ev.type === "vaccination") derivedColor = "#006F69";
+      else if (ev.type === "school") derivedColor = "#F3BE08";
+
+      const entry = {
+        title: ev.title || ev.name || "Event",
+        color: ev.color || derivedColor,
+        type: ev.type,
+        date: ev.date,
+        _id: ev._id,
+        endDate: ev.endDate,
+        notes: ev.notes,
+        isMultiDay: !!endDate && endDate > startDate,
+        startDay: startDay,
+        endDay: endDay,
+      };
+
+      // Add event to all days from start to end (inclusive)
+      for (let day = startDay; day <= endDay; day++) {
+        if (!map[day]) map[day] = [];
+        // Avoid duplicates by checking if event with same _id already exists
+        if (!map[day].some((e) => e._id === entry._id)) {
+          map[day].push(entry);
+        }
       }
     });
     return map;
@@ -129,21 +165,40 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
     setIsModalOpen(true);
   };
 
-  // Get events for selected date
+  // Get events for selected date (including multi-day events that span this date)
   const getEventsForDate = (date) => {
     if (!date) return [];
     const year = date.getFullYear();
     const month = date.getMonth();
     const day = date.getDate();
+    const selectedDate = new Date(year, month, day);
+    selectedDate.setHours(0, 0, 0, 0);
 
     return (events || []).filter((ev) => {
       if (!ev || !ev.date) return false;
-      const evDate = new Date(ev.date);
-      return (
-        evDate.getFullYear() === year &&
-        evDate.getMonth() === month &&
-        evDate.getDate() === day
-      );
+      const evStartDate = new Date(ev.date);
+      evStartDate.setHours(0, 0, 0, 0);
+
+      // Check if event starts on this date
+      if (
+        evStartDate.getFullYear() === year &&
+        evStartDate.getMonth() === month &&
+        evStartDate.getDate() === day
+      ) {
+        return true;
+      }
+
+      // Check if this date falls within a multi-day event range
+      if (ev.endDate) {
+        const evEndDate = new Date(ev.endDate);
+        evEndDate.setHours(23, 59, 59, 999);
+
+        if (selectedDate >= evStartDate && selectedDate <= evEndDate) {
+          return true;
+        }
+      }
+
+      return false;
     });
   };
 
@@ -306,18 +361,65 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
 
                   {/* Events */}
                   {eventsByDay[dayObj.day] && (
-                    <div className="flex flex-col gap-0.5 p-0.5">
-                      {eventsByDay[dayObj.day].slice(0, 2).map((event, idx) => (
-                        <div
-                          key={idx}
-                          className="rounded px-0.5 py-0.5 text-[10px] font-semibold text-white truncate"
-                          style={{ backgroundColor: event.color }}
-                        >
-                          {event.title}
-                        </div>
-                      ))}
+                    <div className="flex flex-col" style={{ rowGap: "6px" }}>
+                      {eventsByDay[dayObj.day].slice(0, 2).map((event, idx) => {
+                        // Determine if this is a multi-day event and its position
+                        const isMultiDay = event.isMultiDay;
+                        const isFirstDay =
+                          isMultiDay && event.startDay === dayObj.day;
+                        const isLastDay =
+                          isMultiDay && event.endDay === dayObj.day;
+                        const isMiddleDay =
+                          isMultiDay && !isFirstDay && !isLastDay;
+
+                        // Build className for multi-day event styling
+                        // Each event wrapper is isolated with fixed height to prevent vertical overlap
+                        // The wrapper contains the event bar and prevents it from extending vertically
+                        let eventWrapperClassName =
+                          "relative h-[22px] flex-shrink-0";
+                        let eventClassName =
+                          "py-0.5 text-[10px] font-semibold text-white truncate h-full flex items-center";
+
+                        if (isMultiDay) {
+                          // For multi-day events, extend to cell edges to create seamless bar
+                          // Position relative to wrapper, negative margins extend horizontally only
+                          if (isFirstDay) {
+                            eventClassName +=
+                              " rounded-l pl-0.5 pr-0 -mr-[3px]";
+                          } else if (isLastDay) {
+                            eventClassName +=
+                              " rounded-r pl-0 pr-0.5 -ml-[3px]";
+                          } else if (isMiddleDay) {
+                            // Middle days: maintain padding and extend with negative margins
+                            eventClassName +=
+                              " rounded-none pl-0.5 pr-0 -mx-[3px]";
+                          } else {
+                            eventClassName += " rounded px-0.5";
+                          }
+                        } else {
+                          // Single day events have normal padding
+                          eventClassName += " rounded px-0.5";
+                        }
+
+                        return (
+                          <div
+                            key={`${event._id}-${idx}`}
+                            className={eventWrapperClassName}
+                          >
+                            <div
+                              className={eventClassName}
+                              style={{
+                                backgroundColor: event.color,
+                              }}
+                            >
+                              {/* Only show title on first day of multi-day events */}
+                              {isMultiDay && !isFirstDay ? "" : event.title}
+                            </div>
+                          </div>
+                        );
+                      })}
                       {eventsByDay[dayObj.day].length > 2 && (
-                        <p className="text-[10px] font-semibold text-[#A0A0A0] px-0.5">
+                        <p className="text-[10px] font-semibold text-[#A0A0A0] px-0.5 mt-1">
                           +{eventsByDay[dayObj.day].length - 2} More
                         </p>
                       )}

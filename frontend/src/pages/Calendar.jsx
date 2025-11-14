@@ -8,8 +8,8 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
-import ReminderModal from '../components/ReminderModal';
-import CustomReminderModal from '../components/CustomReminderModal';
+import ReminderModal from "../components/ReminderModal";
+import CustomReminderModal from "../components/CustomReminderModal";
 import { useChild } from "../contexts/ChildContext";
 
 // Icons
@@ -112,7 +112,7 @@ function ChevronRightIcon({ className = "w-5 h-5" }) {
 export default function CalendarPage() {
   const navigate = useNavigate();
   const calendarRef = useRef(null);
-  
+
   // Calendar & Events State
   const { selectedChild } = useChild(); // Get selected child from context
   const [modalOpen, setModalOpen] = useState(false);
@@ -122,14 +122,14 @@ export default function CalendarPage() {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [childrenList, setChildrenList] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
-  
+
   // Restock State (simplified - no category filter)
   const [restockItems, setRestockItems] = useState([]);
-const [loadingRestock, setLoadingRestock] = useState(false);
-const [showRestockDateModal, setShowRestockDateModal] = useState(false);
-const [selectedRestockItem, setSelectedRestockItem] = useState(null);
-const [showRestockCustomModal, setShowRestockCustomModal] = useState(false);
-const [customRestockDays, setCustomRestockDays] = useState('');
+  const [loadingRestock, setLoadingRestock] = useState(false);
+  const [showRestockDateModal, setShowRestockDateModal] = useState(false);
+  const [selectedRestockItem, setSelectedRestockItem] = useState(null);
+  const [showRestockCustomModal, setShowRestockCustomModal] = useState(false);
+  const [customRestockDays, setCustomRestockDays] = useState("");
   // Load user data
   useEffect(() => {
     const loadUserData = async () => {
@@ -204,7 +204,7 @@ const [customRestockDays, setCustomRestockDays] = useState('');
     };
 
     loadUpcomingEvents();
-  // }, [modalOpen]);
+    // }, [modalOpen]);
   }, [modalOpen, selectedChild]); // Reload when modal closes or child changes
 
   // Load children for event cards
@@ -287,24 +287,27 @@ const [customRestockDays, setCustomRestockDays] = useState('');
     const fetchRestockItems = async () => {
       try {
         setLoadingRestock(true);
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem("accessToken");
         if (!token) return;
-        
+
         // Fetch all items without category filter
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/budget/restock-items`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/budget/restock-items`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
-        });
+        );
 
         if (response.ok) {
           const data = await response.json();
-          console.log(' Restock items:', data.items);
+          console.log(" Restock items:", data.items);
           setRestockItems(data.items || []);
         }
       } catch (error) {
-        console.error('Error fetching restock items:', error);
+        console.error("Error fetching restock items:", error);
       } finally {
         setLoadingRestock(false);
       }
@@ -314,164 +317,165 @@ const [customRestockDays, setCustomRestockDays] = useState('');
   }, []); // Run once on mount
 
   // Handle toggle reminder
-const handleToggleReminder = async (item) => {
-  const newState = !item.reminderEnabled;
-  
-  if (newState) {
-    // User is enabling - show date picker modal
-    console.log('Opening date modal for:', item.productName);
-    setSelectedRestockItem(item);
-    setShowRestockDateModal(true);
-  } else {
-    // User is disabling - directly disable
-    await disableRestockReminder(item);
-  }
-};
+  const handleToggleReminder = async (item) => {
+    const newState = !item.reminderEnabled;
 
-const handleRestockCustomSave = async (customDays) => {
-  setCustomRestockDays(customDays);
-  setShowRestockCustomModal(false);
-  // Reopen the date modal so user can select date with custom alert
-  setShowRestockDateModal(true);
-};
-const handleRestockReminderSelect = async (alertType) => {
-   console.log(' Restock reminder selected:', alertType);
-  
-  if (alertType === 'Custom') {
+    if (newState) {
+      // User is enabling - show date picker modal
+      console.log("Opening date modal for:", item.productName);
+      setSelectedRestockItem(item);
+      setShowRestockDateModal(true);
+    } else {
+      // User is disabling - directly disable
+      await disableRestockReminder(item);
+    }
+  };
+
+  const handleRestockCustomSave = async (customDays) => {
+    setCustomRestockDays(customDays);
+    setShowRestockCustomModal(false);
+    // Reopen the date modal so user can select date with custom alert
+    setShowRestockDateModal(true);
+  };
+  const handleRestockReminderSelect = async (alertType) => {
+    console.log(" Restock reminder selected:", alertType);
+
+    if (alertType === "Custom") {
+      setShowRestockDateModal(false);
+      setShowRestockCustomModal(true);
+    } else {
+      // For non-custom alerts, we still need the date
+      // So keep the date modal open but pass the alert type
+      // This is handled in handleRestockDateSave
+    }
+  };
+  const handleRestockDateSave = async (alertType, selectedDate) => {
+    try {
+      //  If user clicked Custom button, open the custom modal instead of saving
+      if (alertType === "Custom") {
+        console.log(" Custom button clicked - opening CustomReminderModal");
+        setShowRestockDateModal(false); // Close date modal
+        setShowRestockCustomModal(true); // Open custom modal
+        return; // Don't save yet
+      }
+
+      const token = localStorage.getItem("accessToken");
+
+      if (!selectedDate) {
+        alert("Please select a date");
+        return;
+      }
+
+      // Convert customDays to number if we have custom days set
+      let customDaysValue = null;
+      if (customRestockDays) {
+        customDaysValue = parseFloat(customRestockDays);
+        console.log(" Using custom days:", customDaysValue);
+      }
+
+      console.log(" Saving restock reminder:", {
+        productName: selectedRestockItem.productName,
+        date: selectedDate,
+        alertType,
+        customDays: customDaysValue,
+      });
+
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/budget/restock/toggle`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            productName: selectedRestockItem.productName,
+            enabled: true,
+            nextRestockDate: selectedDate.toISOString(),
+            alertType: customRestockDays ? "Custom" : alertType, //  Use 'Custom' if we have custom days
+            customDays: customDaysValue,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        //  UPDATE LOCAL STATE IMMEDIATELY
+        setRestockItems((prevItems) =>
+          prevItems.map((i) =>
+            i.productName === selectedRestockItem.productName
+              ? {
+                  ...i,
+                  reminderEnabled: true,
+                  nextRestockDate: selectedDate.toISOString(),
+                }
+              : i
+          )
+        );
+
+        console.log(" Restock reminder saved successfully");
+
+        // Close modals and reset
+        setShowRestockDateModal(false);
+        setShowRestockCustomModal(false);
+        setSelectedRestockItem(null);
+        setCustomRestockDays("");
+
+        // Reload calendar events
+        const api = calendarRef.current?.getApi?.();
+        if (api) api.refetchEvents();
+      } else {
+        console.error("Failed to save reminder:", result);
+      }
+    } catch (error) {
+      console.error("Error saving restock reminder:", error);
+    }
+  };
+  const handleRestockCustomClick = () => {
+    // Close the main reminder modal and open custom modal
     setShowRestockDateModal(false);
     setShowRestockCustomModal(true);
-  } else {
-    // For non-custom alerts, we still need the date
-    // So keep the date modal open but pass the alert type
-    // This is handled in handleRestockDateSave
-  }
-};
-const handleRestockDateSave = async (alertType, selectedDate) => {
-  try {
-    //  If user clicked Custom button, open the custom modal instead of saving
-    if (alertType === 'Custom') {
-      console.log(' Custom button clicked - opening CustomReminderModal');
-      setShowRestockDateModal(false); // Close date modal
-      setShowRestockCustomModal(true); // Open custom modal
-      return; // Don't save yet
-    }
-
-    const token = localStorage.getItem('accessToken');
-    
-    if (!selectedDate) {
-      alert('Please select a date');
-      return;
-    }
-
-    // Convert customDays to number if we have custom days set
-    let customDaysValue = null;
-    if (customRestockDays) {
-      customDaysValue = parseFloat(customRestockDays);
-      console.log(' Using custom days:', customDaysValue);
-    }
-    
-    console.log(' Saving restock reminder:', {
-      productName: selectedRestockItem.productName,
-      date: selectedDate,
-      alertType,
-      customDays: customDaysValue
-    });
-    
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/budget/restock/toggle`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        productName: selectedRestockItem.productName,
-        enabled: true,
-        nextRestockDate: selectedDate.toISOString(),
-        alertType: customRestockDays ? 'Custom' : alertType, //  Use 'Custom' if we have custom days
-        customDays: customDaysValue
-      })
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      //  UPDATE LOCAL STATE IMMEDIATELY
-      setRestockItems(prevItems => 
-        prevItems.map(i => 
-          i.productName === selectedRestockItem.productName 
-            ? { ...i, reminderEnabled: true, nextRestockDate: selectedDate.toISOString() } 
-            : i
-        )
+  };
+  const disableRestockReminder = async (item) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/budget/restock/toggle`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            productName: item.productName,
+            enabled: false,
+            nextRestockDate: item.nextRestockDate,
+          }),
+        }
       );
-      
-      console.log(' Restock reminder saved successfully');
-      
-      
 
-      // Close modals and reset
-      setShowRestockDateModal(false);
-      setShowRestockCustomModal(false);
-      setSelectedRestockItem(null);
-      setCustomRestockDays('');
+      if (response.ok) {
+        //  UPDATE LOCAL STATE IMMEDIATELY
+        setRestockItems((prevItems) =>
+          prevItems.map((i) =>
+            i.productName === item.productName
+              ? { ...i, reminderEnabled: false }
+              : i
+          )
+        );
 
-      // Reload calendar events
-      const api = calendarRef.current?.getApi?.();
-      if (api) api.refetchEvents();
-    } else {
-      console.error('Failed to save reminder:', result);
-      
+        const api = calendarRef.current?.getApi?.();
+        if (api) api.refetchEvents();
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to disable reminder:", errorData);
+      }
+    } catch (error) {
+      console.error("Error disabling reminder:", error);
     }
-  } catch (error) {
-    console.error('Error saving restock reminder:', error);
-    
-  }
-};
-const handleRestockCustomClick = () => {
-  // Close the main reminder modal and open custom modal
-  setShowRestockDateModal(false);
-  setShowRestockCustomModal(true);
-};
-const disableRestockReminder = async (item) => {
-  try {
-    const token = localStorage.getItem('accessToken');
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/budget/restock/toggle`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        productName: item.productName,
-        enabled: false,
-        nextRestockDate: item.nextRestockDate
-      })
-    });
-
-    if (response.ok) {
-      //  UPDATE LOCAL STATE IMMEDIATELY
-      setRestockItems(prevItems =>
-        prevItems.map(i => 
-          i.productName === item.productName 
-            ? { ...i, reminderEnabled: false } 
-            : i
-        )
-      );
-      
-    
-
-      const api = calendarRef.current?.getApi?.();
-      if (api) api.refetchEvents();
-    } else {
-      const errorData = await response.json();
-      console.error('Failed to disable reminder:', errorData);
-    
-    }
-  } catch (error) {
-    console.error('Error disabling reminder:', error);
-    
-  }
-};
-   
+  };
 
   // Calendar functions
   async function fetchEventsForRange(info) {
@@ -658,7 +662,7 @@ const disableRestockReminder = async (item) => {
       {/* Welcome Section */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">
-          Hi, {userData?.name || 'User'}
+          Hi, {userData?.name || "User"}
         </h1>
         <div className="flex items-center gap-2 mt-1">
           <LocationIcon className="w-4 h-4 text-gray-500" />
@@ -672,29 +676,32 @@ const disableRestockReminder = async (item) => {
       <div className="mb-6">
         <div className="flex gap-4 mb-4">
           <button
-            onClick={() => handleViewChange('dayGridMonth')}
-            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${currentView === 'dayGridMonth'
-                ? 'bg-[#238D88] text-white border-[#238D88]'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
+            onClick={() => handleViewChange("dayGridMonth")}
+            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${
+              currentView === "dayGridMonth"
+                ? "bg-[#238D88] text-white border-[#238D88]"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+            }`}
           >
             Month
           </button>
           <button
-            onClick={() => handleViewChange('timeGridWeek')}
-            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${currentView === 'timeGridWeek'
-                ? 'bg-[#238D88] text-white border-[#238D88]'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
+            onClick={() => handleViewChange("timeGridWeek")}
+            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${
+              currentView === "timeGridWeek"
+                ? "bg-[#238D88] text-white border-[#238D88]"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+            }`}
           >
             Week
           </button>
           <button
-            onClick={() => handleViewChange('timeGridDay')}
-            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${currentView === 'timeGridDay'
-                ? 'bg-[#238D88] text-white border-[#238D88]'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-              }`}
+            onClick={() => handleViewChange("timeGridDay")}
+            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${
+              currentView === "timeGridDay"
+                ? "bg-[#238D88] text-white border-[#238D88]"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+            }`}
           >
             Day
           </button>
@@ -760,7 +767,9 @@ const disableRestockReminder = async (item) => {
         {/* Upcoming Events - Takes 1/3 on large screens */}
         <div>
           <div className="bg-white rounded-lg shadow-sm border p-4 h-full">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Upcoming Events</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Upcoming Events
+            </h3>
 
             {upcomingEvents.length === 0 ? (
               <div className="text-center py-8">
@@ -852,19 +861,17 @@ const disableRestockReminder = async (item) => {
             </p>
             <div className="border-2 border-dashed border-[#F3BE08] bg-amber-50 rounded-lg p-6 max-w-md mx-auto">
               <p className="text-gray-700 text-sm">
-                Items you purchase regularly (at least twice) will appear here automatically!
+                Items you purchase regularly (at least twice) will appear here
+                automatically!
               </p>
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-  {restockItems.map((item, index) => (
-    <div
-      key={index}
-      className={`border rounded-lg p-4 transition-all ${
-        item.reminderEnabled 
-          
-      }`}
+            {restockItems.map((item, index) => (
+              <div
+                key={index}
+                className={`border rounded-lg p-4 transition-all ${item.reminderEnabled}`}
               >
                 {/* Product Info */}
                 <div className="flex items-start justify-between gap-3 mb-3">
@@ -872,9 +879,7 @@ const disableRestockReminder = async (item) => {
                     <h4 className="font-semibold text-gray-800 mb-1 text-sm leading-tight">
                       {item.productName}
                     </h4>
-                    <p className="text-xs text-gray-500">
-                      {item.category}
-                    </p>
+                    <p className="text-xs text-gray-500">{item.category}</p>
                   </div>
 
                   {/* Toggle Switch */}
@@ -892,16 +897,37 @@ const disableRestockReminder = async (item) => {
                 {/* Purchase Info */}
                 <div className="text-xs text-gray-600 mb-3 space-y-1">
                   <div>
-                    <span className="font-medium">Last purchased:</span> {item.lastPurchasedText}
+                    <span className="font-medium">Last purchased:</span>{" "}
+                    {item.lastPurchasedText}
                   </div>
-                 
                 </div>
-
-            
               </div>
             ))}
           </div>
         )}
+      </div>
+
+      {/* Vaccination CTA */}
+      <div className="mt-6">
+        <div className="bg-white rounded-2xl border shadow-sm p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <p className="text-[#238D88] text-sm font-semibold uppercase tracking-wide">
+              It's Vaccination Time
+            </p>
+            <p className="text-lg text-gray-700 mt-1">
+              Stay ready for the next appointment and locate nearby
+              child-friendly hospitals.
+            </p>
+          </div>
+          <a
+            href="https://www.google.com/maps/search/child+hospitals+near+me"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-lg bg-[#F3BE08] text-gray-900 font-medium px-6 py-3 hover:bg-amber-500 transition-colors"
+          >
+            Find Child Hospitals
+          </a>
+        </div>
       </div>
 
       {/* Add Event Modal */}
@@ -920,36 +946,38 @@ const disableRestockReminder = async (item) => {
       />
 
       {/* Restock Reminder Modal */}
-{/* Restock Custom Reminder Modal */}
-<CustomReminderModal
-  isOpen={showRestockCustomModal}
-  onClose={() => {
-    setShowRestockCustomModal(false);
-    setCustomRestockDays('');
-  }}
-  onSave={handleRestockCustomSave}
-  onDaysChange={setCustomRestockDays}
-/>
-{/* Restock Date/Reminder Modal - Combined */}
-<ReminderModal
-  isOpen={showRestockDateModal}
-  onClose={() => {
-    setShowRestockDateModal(false);
-    setSelectedRestockItem(null);
-    setCustomRestockDays('');
-  }}
-  onSelectAlert={handleRestockDateSave} // This now receives (alertType, selectedDate)
-  event={selectedRestockItem ? {
-    title: `Restock: ${selectedRestockItem.productName}`,
-    startDate: selectedRestockItem.nextRestockDate
-  } : null}
-  customDaysPreview={customRestockDays}
-  existingReminder={null}
-  showDatePicker={true} // 
-  productName={selectedRestockItem?.productName || ''} //
-/>
-
-
+      {/* Restock Custom Reminder Modal */}
+      <CustomReminderModal
+        isOpen={showRestockCustomModal}
+        onClose={() => {
+          setShowRestockCustomModal(false);
+          setCustomRestockDays("");
+        }}
+        onSave={handleRestockCustomSave}
+        onDaysChange={setCustomRestockDays}
+      />
+      {/* Restock Date/Reminder Modal - Combined */}
+      <ReminderModal
+        isOpen={showRestockDateModal}
+        onClose={() => {
+          setShowRestockDateModal(false);
+          setSelectedRestockItem(null);
+          setCustomRestockDays("");
+        }}
+        onSelectAlert={handleRestockDateSave} // This now receives (alertType, selectedDate)
+        event={
+          selectedRestockItem
+            ? {
+                title: `Restock: ${selectedRestockItem.productName}`,
+                startDate: selectedRestockItem.nextRestockDate,
+              }
+            : null
+        }
+        customDaysPreview={customRestockDays}
+        existingReminder={null}
+        showDatePicker={true} //
+        productName={selectedRestockItem?.productName || ""} //
+      />
     </div>
   );
 }
