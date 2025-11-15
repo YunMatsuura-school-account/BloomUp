@@ -283,50 +283,37 @@ export default function AddChild() {
           style={{ backgroundColor: "#FFFFFF" }}
         />
 
-        {/* Buttons - Different layout for Add Child vs Edit Child */}
-        {isEdit ? (
-          /* Edit Child: horizontal on mobile, vertical on desktop */
-          <div className="flex md:flex-col gap-4">
-            {/* Save button - left on mobile, top on desktop */}
-            <button
-              type="submit"
-              className="flex-1 md:flex-none md:w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded-lg"
-              style={{ backgroundColor: "#238D88" }}
-            >
-              Save
-            </button>
-            {/* Delete button - right on mobile, bottom on desktop */}
+        {/* Buttons - Unified layout: Cancel/Delete left, Save right (both mobile and desktop) */}
+        <div className="flex gap-4">
+          {/* Cancel/Delete button - left */}
+          {isEdit ? (
             <button
               type="button"
-              className="flex-1 md:flex-none md:w-full hover:bg-gray-50 text-black font-semibold py-2 rounded-lg"
+              className="flex-1 hover:bg-gray-50 text-black font-semibold py-2 rounded-lg"
               style={{ backgroundColor: "#FFFFFF" }}
               onClick={handleDelete}
             >
               Delete
             </button>
-          </div>
-        ) : (
-          /* Add Child: vertical on mobile, horizontal on desktop */
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Save button - top on mobile, right on desktop */}
-            <button
-              type="submit"
-              className="w-full md:flex-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded-lg order-1 md:order-2"
-              style={{ backgroundColor: "#238D88" }}
-            >
-              Save
-            </button>
-            {/* Cancel button - bottom on mobile, left on desktop */}
+          ) : (
             <button
               type="button"
               onClick={handleGoBack}
-              className="w-full md:flex-1 hover:bg-gray-50 text-black font-semibold py-2 rounded-lg order-2 md:order-1"
+              className="flex-1 hover:bg-gray-50 text-black font-semibold py-2 rounded-lg"
               style={{ backgroundColor: "#FFFFFF" }}
             >
               Cancel
             </button>
-          </div>
-        )}
+          )}
+          {/* Save button - right */}
+          <button
+            type="submit"
+            className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded-lg"
+            style={{ backgroundColor: "#238D88" }}
+          >
+            Save
+          </button>
+        </div>
           </div>
       </form>
       </div>
