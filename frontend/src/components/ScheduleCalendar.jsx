@@ -1,3 +1,4 @@
+// frontend/src/components/ScheduleCalendar.jsx
 import React, { useMemo, useState } from "react";
 
 const ScheduleCalendar = ({ events = [], initialDate }) => {
@@ -10,21 +11,11 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
   // Calendar data
   const daysOfWeek = ["Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"];
   const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
 
-  // Build year options based on events to include future years (e.g., 2028)
+  // Build year options based on events to include future years
   const yearOptions = useMemo(() => {
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -57,7 +48,7 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
     setCurrentDate(new Date(now.getFullYear(), now.getMonth(), 1));
   };
 
-  // Generate calendar days
+  // Generate calendar days - ONLY CURRENT MONTH (no previous/next month dates)
   const generateCalendarDays = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -67,14 +58,14 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
     const days = [];
     const startDay = firstDay === 0 ? 6 : firstDay - 1; // Adjust for Monday start
 
-    // Previous month days
-    for (let i = startDay - 1; i >= 0; i--) {
-      days.push({ day: "", isCurrentMonth: false });
+    // Fill empty cells for days before the first day of month
+    for (let i = 0; i < startDay; i++) {
+      days.push({ day: "", isCurrentMonth: false, isEmpty: true });
     }
 
     // Current month days
     for (let i = 1; i <= daysInMonth; i++) {
-      days.push({ day: i, isCurrentMonth: true });
+      days.push({ day: i, isCurrentMonth: true, isEmpty: false });
     }
 
     return days;
@@ -87,38 +78,43 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const map = {};
+    const monthStart = new Date(year, month, 1);
+    const monthEnd = new Date(year, month + 1, 0);
+
     (events || []).forEach((ev) => {
       if (!ev || !ev.date) return;
-      const d = new Date(ev.date);
-      if (
-        d.getFullYear() === year &&
-        d.getMonth() === month &&
-        Number.isInteger(d.getDate())
-      ) {
-        const day = d.getDate();
-        let derivedColor = "#F3BE08"; // default calendar/school
-        if (ev.type === "vaccination") derivedColor = "#006F69";
-        else if (ev.type === "school") derivedColor = "#F3BE08";
-
-        const entry = {
-          title: ev.title || ev.name || "Event",
-          color: ev.color || derivedColor,
-          type: ev.type,
-          date: ev.date,
-          _id: ev._id,
-          endDate: ev.endDate,
-          notes: ev.notes,
-        };
-        if (!map[day]) map[day] = [entry];
-        else map[day].push(entry);
+      const startDate = new Date(ev.date);
+      
+      // Only include events that start in the current month
+      if (startDate < monthStart || startDate > monthEnd) {
+        return; // Event doesn't belong to current month
       }
+
+      const day = startDate.getDate();
+      
+      let derivedColor = "#F3BE08"; // default calendar/school
+      if (ev.type === "vaccination") derivedColor = "#006F69";
+      else if (ev.type === "school") derivedColor = "#F3BE08";
+
+      const entry = {
+        title: ev.title || ev.name || "Event",
+        color: ev.color || derivedColor,
+        type: ev.type,
+        date: ev.date,
+        _id: ev._id,
+        endDate: ev.endDate,
+        notes: ev.notes,
+      };
+
+      if (!map[day]) map[day] = [];
+      map[day].push(entry);
     });
     return map;
   }, [events, currentDate]);
 
   // Handle date click - show modal with events for that day
   const handleDateClick = (day) => {
-    if (!day || !day.isCurrentMonth) return;
+    if (!day || !day.isCurrentMonth || day.isEmpty) return;
 
     const clickedDate = new Date(
       currentDate.getFullYear(),
@@ -155,16 +151,6 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
       year: "numeric",
       month: "long",
       day: "numeric",
-    });
-  };
-
-  // Format time for display
-  const formatTime = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
@@ -209,13 +195,6 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
             </div>
 
             <button className="p-2" onClick={goToToday} title="Go to Today">
-              {/* <svg width="21" height="21" viewBox="0 0 21 21" fill="none">
-                <path
-                  d="M3.28 5.47L17.72 5.47L17.72 15.53L3.28 15.53"
-                  stroke="#000"
-                  strokeWidth="2"
-                />
-              </svg> */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="21"
@@ -266,19 +245,19 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
           ))}
         </div>
 
-        {/* Calendar Grid */}
+        {/* Calendar Grid - Only show current month dates */}
         <div className="grid grid-cols-7 flex-1 overflow-y-auto">
           {calendarDays.map((dayObj, index) => (
             <div
               key={index}
               onClick={() => handleDateClick(dayObj)}
               className={`border border-[rgba(218,220,224,0.6)] p-0.5 min-h-[78px] flex flex-col justify-between ${
-                dayObj.isCurrentMonth
-                  ? "cursor-pointer hover:bg-gray-50 transition-colors"
-                  : ""
+                dayObj.isCurrentMonth && !dayObj.isEmpty
+                  ? "cursor-pointer hover:bg-gray-50 transition-colors bg-white"
+                  : "bg-gray-100" // Gray background for empty cells
               }`}
             >
-              {dayObj.isCurrentMonth && (
+              {dayObj.isCurrentMonth && !dayObj.isEmpty && (
                 <>
                   {/* Day Number */}
                   <div className="p-1">
@@ -304,20 +283,26 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
                     </div>
                   </div>
 
-                  {/* Events */}
+                  {/* Events - Show only title without time */}
                   {eventsByDay[dayObj.day] && (
-                    <div className="flex flex-col gap-0.5 p-0.5">
+                    <div className="flex flex-col" style={{ rowGap: "6px" }}>
                       {eventsByDay[dayObj.day].slice(0, 2).map((event, idx) => (
                         <div
-                          key={idx}
-                          className="rounded px-0.5 py-0.5 text-[10px] font-semibold text-white truncate"
-                          style={{ backgroundColor: event.color }}
+                          key={`${event._id}-${idx}`}
+                          className="relative h-[22px] flex-shrink-0"
                         >
-                          {event.title}
+                          <div
+                            className="py-0.5 text-[10px] font-semibold text-white truncate h-full flex items-center rounded px-0.5"
+                            style={{
+                              backgroundColor: event.color,
+                            }}
+                          >
+                            {event.title}
+                          </div>
                         </div>
                       ))}
                       {eventsByDay[dayObj.day].length > 2 && (
-                        <p className="text-[10px] font-semibold text-[#A0A0A0] px-0.5">
+                        <p className="text-[10px] font-semibold text-[#A0A0A0] px-0.5 mt-1">
                           +{eventsByDay[dayObj.day].length - 2} More
                         </p>
                       )}
@@ -395,36 +380,17 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
                             }}
                           ></div>
 
-                          {/* Event Details */}
+                          {/* Event Details - Only show title */}
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-gray-800 mb-1">
                               {event.title || "Event"}
                             </h4>
-                            <div className="space-y-1">
-                              <p className="text-sm text-gray-600">
-                                <span className="font-medium">Time:</span>{" "}
-                                {formatTime(event.date)}
-                                {event.endDate &&
-                                  ` - ${formatTime(event.endDate)}`}
+                            {event.notes && (
+                              <p className="text-sm text-gray-600 mt-2">
+                                <span className="font-medium">Notes:</span>{" "}
+                                {event.notes}
                               </p>
-                              {event.type && (
-                                <p className="text-xs text-gray-500">
-                                  <span className="font-medium">Type:</span>{" "}
-                                  {event.type === "vaccination"
-                                    ? "Vaccination"
-                                    : event.type === "event"
-                                    ? "Custom Event"
-                                    : event.type.charAt(0).toUpperCase() +
-                                      event.type.slice(1)}
-                                </p>
-                              )}
-                              {event.notes && (
-                                <p className="text-sm text-gray-600 mt-2">
-                                  <span className="font-medium">Notes:</span>{" "}
-                                  {event.notes}
-                                </p>
-                              )}
-                            </div>
+                            )}
                           </div>
                         </div>
                       </div>

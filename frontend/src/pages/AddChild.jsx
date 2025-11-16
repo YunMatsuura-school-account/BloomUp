@@ -3,15 +3,30 @@ import { useEffect, useState } from "react";
 import ChildAvatar from "../components/ChildAvatar";
 import AvatarSelectionModal from "../components/AvatarSelectionModal";
 import cameraIcon from "../icons/cameraIcon.svg";
+import chevronLeftIcon from "../icons/chevron-left.svg";
 
 export default function AddChild() {
   const navigate = useNavigate();
-  const { state } = useLocation();
+  const location = useLocation();
+  const { state } = location;
   const userId = state?.userId;
   const editChild = state?.child || null;
   const childId = state?.childId || null;
   let returnPath = state?.returnPath || null;
   const isEdit = !!editChild && !!childId;
+
+  // Get the previous page path dynamically
+  const handleGoBack = () => {
+    if (returnPath) {
+      navigate(returnPath);
+    } else if (isEdit) {
+      // If editing and no returnPath, try to go back in history
+      navigate(-1);
+    } else {
+      // If adding new child and no returnPath, go to account page
+      navigate("/account");
+    }
+  };
 
   const [form, setForm] = useState({
     name: "",
@@ -166,12 +181,26 @@ export default function AddChild() {
   };
 
   return (
-    <div className="min-h-screen w-full grid place-items-center p-4" style={{ backgroundColor: "#FFFFFF" }}>
-      <form
-        onSubmit={onSubmit}
-        className="p-8 rounded-xl shadow w-full max-w-[560px]"
-        style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}
-      >
+    <div className="min-h-screen w-full" style={{ backgroundColor: "#FFFFFF" }}>
+      {/* Back button - Mobile only */}
+      <div className="md:hidden p-4">
+        <button
+          type="button"
+          onClick={handleGoBack}
+          className="flex items-center justify-center p-2 hover:bg-gray-100 rounded-full transition-colors"
+          aria-label="Go back"
+        >
+          <img src={chevronLeftIcon} alt="Back" className="w-6 h-6" />
+        </button>
+      </div>
+
+      <div className="grid place-items-center p-4 md:p-8">
+        <form
+          onSubmit={onSubmit}
+          className="p-8 rounded-xl shadow w-full max-w-[560px] md:max-w-4xl md:px-16 md:py-12"
+          style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}
+        >
+          <div className="md:max-w-md md:mx-auto">
         <div className="flex flex-col items-center gap-2 mb-6">
           <div className="relative">
             <button
@@ -254,22 +283,29 @@ export default function AddChild() {
           style={{ backgroundColor: "#FFFFFF" }}
         />
 
+        {/* Buttons - Unified layout: Cancel/Delete left, Save right (both mobile and desktop) */}
         <div className="flex gap-4">
-          {/* <button
-            type="button"
-            onClick={() => {
-              if (returnPath) {
-                navigate(returnPath);
-              } else if (isEdit) {
-                navigate("/family-setup");
-              } else {
-                navigate("/dashboard");
-              }
-            }}
-            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 rounded"
-          >
-            Cancel
-          </button> */}
+          {/* Cancel/Delete button - left */}
+          {isEdit ? (
+            <button
+              type="button"
+              className="flex-1 hover:bg-gray-50 text-black font-semibold py-2 rounded-lg"
+              style={{ backgroundColor: "#FFFFFF" }}
+              onClick={handleDelete}
+            >
+              Delete
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleGoBack}
+              className="flex-1 hover:bg-gray-50 text-black font-semibold py-2 rounded-lg"
+              style={{ backgroundColor: "#FFFFFF" }}
+            >
+              Cancel
+            </button>
+          )}
+          {/* Save button - right */}
           <button
             type="submit"
             className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 rounded-lg"
@@ -278,17 +314,9 @@ export default function AddChild() {
             Save
           </button>
         </div>
-        {isEdit && (
-          <button
-            type="button"
-            className="w-full hover:bg-gray-50 text-black font-semibold mt-4 py-2 rounded-lg"
-            style={{ backgroundColor: "#FFFFFF" }}
-            onClick={handleDelete}
-          >
-            Delete Profile
-          </button>
-        )}
+          </div>
       </form>
+      </div>
     </div>
   );
 }

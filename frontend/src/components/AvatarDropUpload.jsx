@@ -1,5 +1,6 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import pencilIcon from "../icons/pencil_icon.png";
+import personIcon from "../icons/personIcon.svg";
 
 const ALLOWED_IMAGE_TYPES = [
   "image/png",
@@ -23,6 +24,7 @@ export default function AvatarDropUpload({
   const [dragOver, setDragOver] = useState(false);
   const [preview, setPreview] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const inputRef = useRef(null);
 
   const endpoint =
@@ -68,9 +70,16 @@ export default function AvatarDropUpload({
       }
       const { url } = await response.json();
       onUploaded?.(url);
+      // Clear preview after successful upload so currentUrl can be displayed
+      // The preview will be cleared by useEffect when currentUrl updates
     } catch (e) {
       console.error(e);
       alert("Failed to upload image");
+      // Clear preview on error
+      if (preview) {
+        URL.revokeObjectURL(preview);
+        setPreview(null);
+      }
     } finally {
       setBusy(false);
     }
@@ -105,6 +114,26 @@ export default function AvatarDropUpload({
     inputRef.current?.click();
   };
 
+  // Clear preview when currentUrl is updated (after successful upload)
+  useEffect(() => {
+    if (currentUrl && preview) {
+      // Revoke the object URL to free memory
+      URL.revokeObjectURL(preview);
+      setPreview(null);
+    }
+    // Reset image error when currentUrl changes
+    setImageError(false);
+  }, [currentUrl]);
+
+  // Cleanup: revoke object URL when component unmounts or preview changes
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
+
   return (
     <div
       className="relative"
@@ -136,7 +165,7 @@ export default function AvatarDropUpload({
             alt="preview"
             className="h-full w-full object-cover"
           />
-        ) : currentUrl ? (
+        ) : currentUrl && currentUrl.trim() !== "" && !imageError ? (
           <img
             src={
               currentUrl.startsWith("/static/")
@@ -147,9 +176,13 @@ export default function AvatarDropUpload({
             }
             alt="avatar"
             className="h-full w-full object-cover"
+            onError={() => {
+              // If image fails to load, show personIcon instead
+              setImageError(true);
+            }}
           />
         ) : (
-          "📷"
+          <img src={personIcon} alt="Person icon" className="w-full h-full object-contain" />
         )}
       </button>
 

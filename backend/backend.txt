@@ -17,6 +17,7 @@ Backend built with Node.js, Express, and MongoDB (Mongoose) providing REST API f
 
 ### Authentication
 - **JSON Web Token** (`^9.0.2`): JWT for user authentication and authorization
+- **bcryptjs** (`^2.4.3`): Password hashing and verification
 
 ### File Upload
 - **Multer** (`^2.0.2`): Middleware for handling multipart/form-data (file uploads)

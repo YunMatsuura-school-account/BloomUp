@@ -9,6 +9,7 @@ import {
   BrownBearAvatar,
   RaccoonAvatar,
 } from "./avatars";
+import personIcon from "../icons/personIcon.svg";
 
 // Avatar components array - must match the order in AvatarSelectionModal
 const AVATARS = [
@@ -76,24 +77,21 @@ const ChildAvatar = ({ child, width = 40, height = 40, className = "" }) => {
     avatarIndex >= 0 &&
     avatarIndex <= 7;
 
-  // If no avatar selected, show initials
+  // If no avatar selected, show personIcon
   if (!hasAvatar) {
-    const initials = getInitials(child?.name);
-    // Use color palette based on child's name (consistent color per child)
-    const backgroundColor = getColorForChild(child?.name);
-    const fontSize = Math.max(12, Math.min(width * 0.4, 24)); // Responsive font size
-
     return (
       <div
-        className={`rounded-full flex items-center justify-center text-white font-semibold ${className}`}
+        className={`rounded-full flex items-center justify-center overflow-hidden ${className}`}
         style={{
           width: `${width}px`,
           height: `${height}px`,
-          backgroundColor: backgroundColor,
-          fontSize: `${fontSize}px`,
         }}
       >
-        {initials}
+        <img
+          src={personIcon}
+          alt="Person icon"
+          className="w-full h-full object-cover"
+        />
       </div>
     );
   }
