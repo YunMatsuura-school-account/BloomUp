@@ -41,6 +41,8 @@ function BudgetSetup({ onClose }) {
 
         if (response.ok) {
           const data = await response.json();
+          console.log("Loaded budget data:", data); // Debug log
+          
           if (data.total) {
             setTotalBudget(data.total.toString());
           }
@@ -57,12 +59,22 @@ function BudgetSetup({ onClose }) {
                 color: existingCat?.color || "#" + Math.floor(Math.random()*16777215).toString(16)
               };
             });
+            
+            // First set categories, then fetch spending
             setCategories(loadedCategories);
+            
+            // Fetch spending data after categories are loaded
+            setTimeout(async () => {
+              await fetchCategorySpending();
+            }, 100);
+          } else {
+            // No categories from backend, fetch spending for default categories
+            await fetchCategorySpending();
           }
-          
-          await fetchCategorySpending();
         } else if (response.status === 404) {
           setTotalBudget("");
+          // Still fetch spending for default categories
+          await fetchCategorySpending();
         }
       } catch (err) {
         console.error("Error loading existing budget:", err);
@@ -254,7 +266,7 @@ function BudgetSetup({ onClose }) {
         throw new Error(errData.message || "Failed to set budget");
       }
 
-      alert("Budget updated successfully!");
+      // alert("Budget updated successfully!");
       onClose();
     } catch (err) {
       console.error("Error setting budget:", err);
@@ -283,7 +295,7 @@ function BudgetSetup({ onClose }) {
       
       <div className="flex-1 bg-black bg-opacity-50 overflow-y-auto flex items-start justify-center p-4">
         <div className="bg-white flex flex-col items-start gap-5 p-12 w-full max-w-[1034px] rounded-[10px] shadow-lg">
-
+         <div className="bg-[#F9F9F9] w-full p-6 rounded-lg mb-4">
           <h2 className="text-[20px] font-semibold text-[#262626] mb-1">Set your overall Budget</h2>
           <p className="text-[#525252] text-[14px] mb-5">
             Enter the total amount you want to set budget for this period
@@ -295,9 +307,7 @@ function BudgetSetup({ onClose }) {
             </div>
           )}
 
-          <div className="w-full">
-            <div className="mb-6">
-              <div className="relative flex items-center gap-4 flex-wrap">
+           <div className="relative flex items-center gap-4 flex-wrap">
                 <div className="relative flex-1 min-w-[300px]">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-[#525252] z-10 font-['Urbanist']">
                     $
@@ -313,55 +323,38 @@ function BudgetSetup({ onClose }) {
                     className="w-full pl-8 pr-4 py-3 rounded-[15px] border border-[#D4D4D4] text-[20px] font-medium text-black outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-['Urbanist']"
                   />
                 </div>
-                <button
+                 <button
                   type="button"
                   onClick={() => {
-                    if (parseFloat(totalBudget) <= 0) {
+                    const budget = parseFloat(totalBudget);
+                    if (isNaN(budget) || budget <= 0) {
                       setError("Please enter a valid budget amount");
                       setTimeout(() => setError(null), 3000);
+                      return;
                     }
+                    // Budget is set - user can now allocate to categories
+                    setError(null);
+                    //alert(`Budget of $${budget.toFixed(2)} has been set! Now allocate funds to categories below.`);
                   }}
-                  className="flex justify-center items-center px-8 py-3 rounded-[15px] bg-[#238D88] hover:bg-[#1a6d69] text-white text-[16px] font-semibold cursor-pointer transition-colors border-none"
+                  disabled={!totalBudget || parseFloat(totalBudget) <= 0}
+                  className="flex justify-center items-center px-8 py-3 rounded-[15px] bg-[#238D88] hover:bg-[#1a6d69] disabled:bg-[#D4D4D4] disabled:cursor-not-allowed text-white text-[16px] font-semibold cursor-pointer transition-colors border-none"
                 >
                   Set Budget
                 </button>
               </div>
-            </div>
+          </div>
 
-            <div className="mb-5">
-              <div className="flex justify-end items-center gap-4">
-                <span className="text-[14px] font-medium text-[#525252]">Mode:</span>
-                <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="mode"
-                    value="dollar"
-                    checked={mode === "dollar"}
-                    onChange={(e) => setMode(e.target.value)}
-                    className="cursor-pointer accent-[#238D88]"
-                  />
-                  <span className="text-[14px] text-[#262626] font-['Urbanist']">$</span>
-                </label>
-                <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="mode"
-                    value="percentage"
-                    checked={mode === "percentage"}
-                    onChange={(e) => setMode(e.target.value)}
-                    className="cursor-pointer accent-[#238D88]"
-                  />
-                  <span className="text-[14px] text-[#262626]">%</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h3 className="text-[16px] font-semibold text-[#262626] mb-4">
+          <div className="w-full">
+           
+<h3 className="text-[16px] font-semibold text-[#262626] mb-4">
                 Define your budget by category
               </h3>
+            <div className="mb-6">
+              {/* <h3 className="text-[16px] font-semibold text-[#262626] mb-4">
+                Define your budget by category
+              </h3> */}
 
-              <div className="mb-5">
+              <div className="mb-5 bg-[#F5F5F5] p-4 rounded-lg">
                 <div className="flex justify-between mb-2">
                   <span className="text-[14px] font-medium text-[#262626]">Total assigned</span>
                   <span className="text-[14px] font-semibold text-[#262626] font-['Urbanist']">
@@ -375,7 +368,7 @@ function BudgetSetup({ onClose }) {
                   />
                 </div>
                 <div className="flex justify-between items-center mt-1">
-                  <div className="text-[12px] text-[#525252]">
+                  <div className="text-[14px] text-[#525252]">
                     {totalPercentage >= 100 ? (
                       <>
                         <span className="font-medium">Assigned:</span> <span className="font-['Urbanist']">{totalPercentage.toFixed(1)}%</span>
@@ -442,7 +435,34 @@ function BudgetSetup({ onClose }) {
                   </button>
                 </div>
               )}
-
+              <div className="bg-[#F9F9F9]   p-4 rounded-lg "> 
+                <div className="mb-5">
+              <div className="flex justify-end items-center gap-4">
+                <span className="text-[14px] font-medium text-[#525252]">Mode:</span>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="mode"
+                    value="dollar"
+                    checked={mode === "dollar"}
+                    onChange={(e) => setMode(e.target.value)}
+                    className="cursor-pointer accent-[#238D88]"
+                  />
+                  <span className="text-[14px] text-[#262626] font-['Urbanist']">$</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="mode"
+                    value="percentage"
+                    checked={mode === "percentage"}
+                    onChange={(e) => setMode(e.target.value)}
+                    className="cursor-pointer accent-[#238D88]"
+                  />
+                  <span className="text-[14px] text-[#262626]">%</span>
+                </label>
+              </div>
+            </div>
               <div className="flex flex-col gap-3">
                 {categories.map((category) => {
                   const allocationPercentage = category.percentage;
@@ -452,11 +472,11 @@ function BudgetSetup({ onClose }) {
                       <div className="flex items-center gap-3 flex-wrap">
                         
                         <div className="flex-1 min-w-[150px]">
-                          <div className="text-[14px] font-semibold text-[#262626] mb-0.5">
+                          <div className="text-[18px] font-semibold text-[#262626] mb-0.5">
                             {category.name}
                           </div>
-                          <div className="text-[12px] text-[#737373] font-['Urbanist']">
-                            ${category.allocated.toFixed(2)} allocated
+                          <div className="text-[14px]  font-['Urbanist']">
+                            ${category.allocated} allocated
                           </div>
                         </div>
 
@@ -487,7 +507,7 @@ function BudgetSetup({ onClose }) {
                               max={mode === "percentage" ? "100" : undefined}
                               className="w-full pr-6 pl-2 py-1.5 border border-[#D4D4D4] rounded-md text-[14px] text-right outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-['Urbanist']"
                             />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[12px] text-[#525252]">
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[14px] text-[#525252]">
                               {mode === "percentage" ? "%" : "$"}
                             </span>
                           </div>
@@ -512,6 +532,9 @@ function BudgetSetup({ onClose }) {
                   );
                 })}
               </div>
+
+               </div>
+
             </div>
 
             <div className="flex gap-3">

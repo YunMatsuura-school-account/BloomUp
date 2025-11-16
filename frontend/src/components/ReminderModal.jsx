@@ -250,14 +250,14 @@ const ReminderModal = ({
               </button>
 
               {/* Time Setting Button (placeholder for now) */}
-              {/* <button
+              <button
                 className="w-full text-left  transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700">Time Setting</span>
                   
                 </div>
-              </button> */}
+              </button>
             </div>
           </div>
         )}
@@ -341,8 +341,8 @@ const ReminderModal = ({
               <h3 className="text-xl font-bold text-black">Date</h3>
               
               {/* Selected Date Display */}
-              <div className="grid grid-cols-2 gap-4  p-1 ">
-                <div>
+              {/* <div className="grid grid-cols-2 gap-4  p-1 "> */}
+                {/* <div>
                   <p className="text-xs text-gray-500 mb-1 font-medium">Starts</p>
                   {startFormatted ? (
                     <div>
@@ -362,9 +362,9 @@ const ReminderModal = ({
                   ) : (
                     <p className="text-sm text-gray-400 italic">Select date</p>
                   )}
-                </div>
+                </div> */}
 
-                <div>
+                {/* <div>
                   <p className="text-xs text-gray-500 mb-1 font-medium">Ends</p>
                   {endFormatted ? (
                     <div>
@@ -384,8 +384,8 @@ const ReminderModal = ({
                   ) : (
                     <p className="text-sm text-gray-400 italic">+2 days</p>
                   )}
-                </div>
-              </div>
+                </div> */}
+              {/* </div> */}
             </div>
 
             {/* Calendar */}

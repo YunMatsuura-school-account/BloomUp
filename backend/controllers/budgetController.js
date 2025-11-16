@@ -92,6 +92,93 @@ function toObjectId(id) {
   }
 }
 
+
+
+async function classifyChildProducts(productNames) {
+  try {
+   
+    
+    const prompt = `Analyze this list of products and identify which ones are typically used by or purchased for children aged 0-12 years old.
+
+Products to classify:
+${productNames.map((name, i) => `${i + 1}. ${name}`).join('\n')}
+
+CHILD PRODUCTS (0-12 years) include:
+- Baby essentials: diapers, formula, baby food, wipes, bottles, pacifiers
+- Children's health: children's tylenol/advil, kids' vitamins, teething gel
+- Kids' food: juice boxes, fruit pouches, kids' cereals, goldfish crackers, baby snacks
+- School supplies: crayons, markers, notebooks, pencils, scissors, glue sticks
+- Children's toiletries: kids' shampoo, children's toothpaste, bubble bath
+- Baby care: baby lotion, diaper cream, baby powder
+- Toys and games
+- Children's clothing and shoes (kids sizes)
+- Educational books and materials for children
+
+DO NOT classify as child products:
+- Regular groceries used by whole family (unless specifically marketed for kids)
+- Adult medications and supplements
+- Adult clothing and shoes
+- Household cleaning products
+- Adult personal care items
+- Coffee, tea, alcohol
+- Regular toiletries (unless marked "kids" or "children's")
+
+IMPORTANT RULES:
+- If product name contains "kids", "children's", "baby", "infant", "toddler" → true
+- If product is specifically designed for ages 0-12 → true
+- If it's a general household item used by everyone → false
+- When uncertain, default to false (only include clear child products)
+
+Return ONLY valid JSON in this exact format:
+{
+  "Product Name 1": true,
+  "Product Name 2": false,
+  "Product Name 3": true
+}`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a product classifier specialized in identifying children's products (ages 0-12). Be strict: only classify items clearly designed for children. Respond with valid JSON only."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      max_tokens: 1500,
+      temperature: 0.2, // Lower temperature for more consistent results
+      response_format: { type: "json_object" }
+    });
+
+    // Log token usage for monitoring
+    const usage = response.usage;
+    console.log('\nCHILD PRODUCT CLASSIFICATION - TOKEN USAGE:');
+    console.log(`  Products classified: ${productNames.length}`);
+    console.log(`  Prompt tokens: ${usage.prompt_tokens}`);
+    console.log(`  Completion tokens: ${usage.completion_tokens}`);
+    console.log(`  Total tokens: ${usage.total_tokens}`);
+    const inputCost = (usage.prompt_tokens / 1000000) * 0.150;
+    const outputCost = (usage.completion_tokens / 1000000) * 0.600;
+    const totalCost = inputCost + outputCost;
+    console.log(`  Estimated cost: $${totalCost.toFixed(6)}`);
+
+    const classifications = JSON.parse(response.choices[0].message.content);
+    
+    // Log results
+    const childCount = Object.values(classifications).filter(v => v === true).length;
+    console.log(`\n Classification complete: ${childCount} child products, ${productNames.length - childCount} excluded\n`);
+    
+    return classifications;
+
+  } catch (error) {
+    console.error(" Error classifying child products:", error);
+    // On error, return empty object - won't filter anything (safe fallback)
+    return {};
+  }
+}
 // Upload Receipt and Process with OpenAI Vision
 
 exports.uploadReceipt = async (req, res) => {
@@ -312,13 +399,13 @@ IMPORTANT FOR WEIGHTED ITEMS:
       }
 
       
-      // Ignore negative differences (discounts) - they're already reflected in item prices
+     
       const difference = receiptData.totalAmount - itemsTotal;
       const tolerance = 0.05; // 5 cent tolerance for rounding errors
 
       if (difference > tolerance) {
         // Only add Tax & Fees if total is higher than items
-        console.log(`⚠️ Total higher than items: Items=${itemsTotal.toFixed(2)}, Receipt Total=${receiptData.totalAmount.toFixed(2)}, Adding Tax/Fees=${difference.toFixed(2)}`);
+        
         
         receiptData.items.push({
           name: 'Tax & Fees',
@@ -366,9 +453,7 @@ IMPORTANT FOR WEIGHTED ITEMS:
     expenses.forEach((exp, idx) => {
       console.log(`${idx + 1}. ${exp.description} - ${exp.category} - Qty: ${exp.quantity} - ${exp.amount}`);
     });
-    console.log(`Total items to review: ${expenses.length}`);
-    console.log('---\n');
-
+    
     res.json({
       message: "Receipt processed successfully",
       receiptData: {
@@ -389,8 +474,8 @@ IMPORTANT FOR WEIGHTED ITEMS:
     });
   }
 };
-// Add Manual Expense - FIXED
-// budgetController.js - UPDATED addManualExpense function
+
+//  addManualExpense function
 
 exports.addManualExpense = async (req, res) => {
   try {
@@ -406,7 +491,7 @@ exports.addManualExpense = async (req, res) => {
       return res.status(400).json({ message: "Invalid User ID format" });
     }
 
-    // ✅ IMPORTANT: Extract productName and merchantName from request body
+    //  Extract productName and merchantName from request body
     const { amount, category, description, productName, merchantName, date, quantity } = req.body;
 
     if (!amount || !category) {
@@ -441,8 +526,8 @@ exports.addManualExpense = async (req, res) => {
       userId,
       amount: parseFloat(amount),
       category,
-      description: finalDescription,      // ✅ Product name - used for restock tracking
-      merchantName: finalMerchantName,    // ✅ Store name - NOT product name
+      description: finalDescription,      //  Product name - used for restock tracking
+      merchantName: finalMerchantName,    // Store name - NOT product name
       quantity: quantity ? parseInt(quantity) : 1,
       date: expenseDate,
     });
@@ -522,7 +607,7 @@ exports.getBudgetOverview = async (req, res) => {
       ? { month: parseInt(req.query.month), year: parseInt(req.query.year) }
       : getCurrentPeriod();
 
-    console.log(`\n=== Getting budget overview for: ${period.month}/${period.year} ===`);
+    
 
     // Find budget for this period
     const budget = await Budget.findOne({ 
@@ -539,11 +624,10 @@ exports.getBudgetOverview = async (req, res) => {
       });
     }
 
-    console.log(`Budget found: Total=${budget.total}, Month=${budget.period.month}, Year=${budget.period.year}`);
-
+    
     const { startDate, endDate } = getPeriodDateRange(period.month, period.year);
     
-    console.log(`Expense date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
+    
 
     // Get expenses by category
     const expensesByCategory = await Expense.aggregate([
@@ -561,7 +645,7 @@ exports.getBudgetOverview = async (req, res) => {
       },
     ]);
 
-    console.log(`Expenses by category:`, expensesByCategory);
+  
 
     // Get allocations
     const allocations = await CategoryAllocation.find({ userId, budget: budget._id });
@@ -584,7 +668,6 @@ exports.getBudgetOverview = async (req, res) => {
     const totalSpent = expensesByCategory.reduce((sum, e) => sum + e.spent, 0);
     const remaining = budget.total - totalSpent;
 
-    console.log(`Total spent: ${totalSpent}, Remaining: ${remaining}\n`);
 
     // Update budget
     budget.spent = totalSpent;
@@ -619,21 +702,20 @@ exports.getExpensesByYear = async (req, res) => {
 
     const year = parseInt(req.params.year) || new Date().getFullYear();
     
-    console.log(`\n=== Getting all expenses for year: ${year} ===`);
+   
     
     // Get date range for entire year
     const yearStart = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0)); // Jan 1
     const yearEnd = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)); // Dec 31
     
-    console.log(`Query range: ${yearStart.toISOString()} to ${yearEnd.toISOString()}`);
-
+    
     // Get all expenses for the year
     const expenses = await Expense.find({ 
       userId,
       date: { $gte: yearStart, $lte: yearEnd }
     }).sort({ date: -1 });
 
-    console.log(`Found ${expenses.length} expenses for year ${year}\n`);
+    
 
     res.json(expenses);
   } catch (error) {
@@ -701,7 +783,7 @@ exports.getAllExpenses = async (req, res) => {
       ? { month: parseInt(req.query.month), year: parseInt(req.query.year) }
       : getCurrentPeriod();
 
-    console.log(`\n=== Getting expenses for period: ${period.month}/${period.year} ===`);
+    console.log(`\n Getting expenses for period: ${period.month}/${period.year} ===`);
     
     const { startDate, endDate } = getPeriodDateRange(period.month, period.year);
     
@@ -863,8 +945,14 @@ exports.getMonthlySpending = async (req, res) => {
 
     // Get year from query or use current year
     const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
+    
+    //  Get category filter from query
+    const categoryFilter = req.query.category;
 
     console.log(`\n=== Getting monthly spending for year: ${year} ===`);
+    if (categoryFilter) {
+      console.log(`Category filter: ${categoryFilter}`);
+    }
 
     // Get all expenses for the entire year
     const yearStart = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0)); // Jan 1
@@ -895,13 +983,46 @@ exports.getMonthlySpending = async (req, res) => {
       }
     ]);
 
-    console.log(`Found ${expenses.length} expense groups for year ${year}`);
+    
+    //  Fetch all budgets for the year with their allocations
+    const budgets = await Budget.find({
+      userId,
+      'period.year': year
+    }).sort({ 'period.month': 1 });
+
+    console.log(`Found ${budgets.length} budgets for year ${year}`);
+
+    // Create a budget lookup map (month -> budget data)
+    const budgetMap = {};
+    for (const budget of budgets) {
+      const month = budget.period.month;
+      
+      // Get allocations for this budget
+      const allocations = await CategoryAllocation.find({ 
+        userId, 
+        budget: budget._id 
+      });
+
+      budgetMap[month] = {
+        total: budget.total,
+        spent: budget.spent,
+        remaining: budget.remaining,
+        categories: allocations.reduce((acc, alloc) => {
+          acc[alloc.category] = {
+            allocated: alloc.allocatedAmount,
+            percentage: alloc.percentage
+          };
+          return acc;
+        }, {})
+      };
+    }
 
     // Initialize 12 months with empty data
     const monthlyData = Array.from({ length: 12 }, (_, i) => ({
       month: i + 1, // 1-12
       total: 0,
-      categories: {}
+      categories: {},
+      budget: budgetMap[i + 1] || null //  Include budget for this month
     }));
 
     // Fill in the actual expense data
@@ -913,6 +1034,7 @@ exports.getMonthlySpending = async (req, res) => {
     });
 
     console.log(`Monthly totals:`, monthlyData.map(m => `${m.month}: ${m.total}`).join(', '));
+    console.log(`Budgets available for months:`, Object.keys(budgetMap).join(', '));
 
     res.json({
       year,
@@ -943,7 +1065,7 @@ exports.getWeeklySpending = async (req, res) => {
       ? { month: parseInt(req.query.month), year: parseInt(req.query.year) }
       : getCurrentPeriod();
 
-    console.log(`\n=== Getting weekly spending for: ${period.month}/${period.year} ===`);
+    console.log(`\n Getting weekly spending for: ${period.month}/${period.year} ===`);
 
     const { startDate, endDate } = getPeriodDateRange(period.month, period.year);
 
@@ -983,6 +1105,73 @@ exports.getWeeklySpending = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+exports.getHistoricalBudgets = async (req, res) => {
+  try {
+    const rawUserId = getUserId(req);
+    if (!rawUserId) {
+      return res.status(400).json({ message: "User ID required" });
+    }
+
+    const userId = toObjectId(rawUserId);
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid User ID format" });
+    }
+
+    const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
+
+    console.log(`\n=== Fetching historical budgets for year: ${year} ===`);
+
+    // Get all budgets for the specified year
+    const budgets = await Budget.find({
+      userId,
+      'period.year': year
+    }).sort({ 'period.month': 1 });
+
+    console.log(`Found ${budgets.length} budgets for year ${year}`);
+
+    // Create a map of month -> budget
+    const budgetByMonth = {};
+    
+    for (const budget of budgets) {
+      const month = budget.period.month;
+      
+      // Get allocations for this budget
+      const allocations = await CategoryAllocation.find({ 
+        userId, 
+        budget: budget._id 
+      });
+
+      budgetByMonth[month] = {
+        month: month,
+        year: budget.period.year,
+        total: budget.total,
+        spent: budget.spent,
+        remaining: budget.remaining,
+        categories: allocations.map(alloc => ({
+          name: alloc.category,
+          allocated: alloc.allocatedAmount,
+          percentage: alloc.percentage
+        }))
+      };
+    }
+
+    console.log(`Budget months found: ${Object.keys(budgetByMonth).join(', ')}`);
+
+    res.json({
+      year,
+      budgets: budgetByMonth
+    });
+
+  } catch (error) {
+    console.error("Error fetching historical budgets:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
 // Get AI Insights & Suggestions
 exports.getAIInsights = async (req, res) => {
   try {
@@ -1124,7 +1313,7 @@ Rules:
 
     // Log token usage
     const usage = response.usage;
-    console.log('\n📊 AI INSIGHTS TOKEN USAGE:');
+    console.log('\n AI INSIGHTS TOKEN USAGE:');
     console.log('Prompt tokens:', usage.prompt_tokens);
     console.log('Completion tokens:', usage.completion_tokens);
     console.log('Total tokens:', usage.total_tokens);
@@ -1374,7 +1563,10 @@ exports.updateExpense = async (req, res) => {
     });
   }
 };
-// In budgetController.js - Remove getCategoryEmoji function and emoji field
+
+
+
+
 
 exports.getRestockItems = async (req, res) => {
   try {
@@ -1388,7 +1580,17 @@ exports.getRestockItems = async (req, res) => {
       return res.status(400).json({ message: "Invalid User ID format" });
     }
 
-    const categoryFilter = req.query.category;
+    console.log('\n RESTOCK ITEMS REQUEST');
+    console.log(`User ID: ${userId}`);
+
+    // Optional: Allow override for debugging
+    const showAllItems = req.query.showAll === 'true';
+    
+    if (showAllItems) {
+      console.log(' Debug mode: Showing ALL items (filter disabled)');
+    } else {
+      console.log(' Child filter ACTIVE: Only showing items for ages 0-12');
+    }
 
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
@@ -1398,18 +1600,26 @@ exports.getRestockItems = async (req, res) => {
       date: { $gte: sixMonthsAgo }
     };
 
-    if (categoryFilter && categoryFilter !== 'All') {
-      query.category = categoryFilter;
+    const expenses = await Expense.find(query).sort({ date: 1 });
+    console.log(`Found ${expenses.length} expenses in last 6 months`);
+
+    if (expenses.length === 0) {
+      return res.json({
+        success: true,
+        items: [],
+        totalItems: 0,
+        childItemsFilter: !showAllItems,
+        message: "No expenses found in the last 6 months"
+      });
     }
 
-    const expenses = await Expense.find(query).sort({ date: 1 });
-
-    console.log(` Found ${expenses.length} expenses in last 6 months${categoryFilter ? ` for category: ${categoryFilter}` : ''}`);
-
+    // Group expenses by product name
     const productGroups = {};
 
     expenses.forEach(expense => {
-      const productName = (expense.description ).trim();
+      const productName = (expense.description || '').trim();
+      if (!productName) return;
+      
       const productKey = productName.toLowerCase();
       
       if (!productGroups[productKey]) {
@@ -1428,7 +1638,13 @@ exports.getRestockItems = async (req, res) => {
       });
     });
 
-    console.log(` Identified ${Object.keys(productGroups).length} unique products`);
+    console.log(`Identified ${Object.keys(productGroups).length} unique products`);
+    
+console.log('\n DEBUG - All Product Names Found:');
+Object.values(productGroups).forEach(group => {
+  console.log(`  - "${group.productName}" (${group.purchases.length} purchases, category: ${group.category})`);
+});
+console.log('');
 
     const eligibleProducts = Object.entries(productGroups).filter(
       ([key, group]) => group.purchases.length >= 2
@@ -1436,6 +1652,17 @@ exports.getRestockItems = async (req, res) => {
 
     console.log(` ${eligibleProducts.length} products with recurring purchase patterns`);
 
+    if (eligibleProducts.length === 0) {
+      return res.json({
+        success: true,
+        items: [],
+        totalItems: 0,
+        childItemsFilter: !showAllItems,
+        message: "No recurring purchases found. Items purchased at least twice will appear here."
+      });
+    }
+
+    // Calculate restock patterns
     const restockItems = [];
 
     for (const [key, group] of eligibleProducts) {
@@ -1453,7 +1680,6 @@ exports.getRestockItems = async (req, res) => {
       );
 
       if (averageInterval > 90) {
-        console.log(` Skipping "${group.productName}" - interval too long (${averageInterval} days)`);
         continue;
       }
 
@@ -1463,18 +1689,13 @@ exports.getRestockItems = async (req, res) => {
       );
 
       if (daysSinceLastPurchase < averageInterval) {
-  
-  continue;
-}
+        continue;
+      }
 
-// Item needs restocking
-const status = 'NEEDS_RESTOCK';
+      const status = 'NEEDS_RESTOCK';
+      const nextRestockDate = new Date(lastPurchase.date);
+      nextRestockDate.setDate(nextRestockDate.getDate() + averageInterval);
 
-
-const nextRestockDate = new Date(lastPurchase.date);
-nextRestockDate.setDate(nextRestockDate.getDate() + averageInterval);
-
-      
       const reminderPref = await RestockReminder.findOne({ 
         userId, 
         productName: group.productName 
@@ -1495,31 +1716,66 @@ nextRestockDate.setDate(nextRestockDate.getDate() + averageInterval);
       });
     }
 
+    console.log(` ${restockItems.length} items need restocking`);
+
+    //  AI-POWERED CHILD FILTER (DEFAULT: ON)
+    let filteredItems = [];
+    let unfilteredCount = restockItems.length;
+    
+    if (!showAllItems && restockItems.length > 0) {
+      console.log('\nAI FILTERING FOR CHILD ITEMS ');
+      
+      const productNames = restockItems.map(item => item.productName);
+      const classifications = await classifyChildProducts(productNames);
+      
+      filteredItems = restockItems.filter(item => {
+        const isChildProduct = classifications[item.productName] === true;
+        
+        if (isChildProduct) {
+          console.log(` INCLUDED: ${item.productName} (${item.category})`);
+        } else {
+          console.log(`EXCLUDED: ${item.productName} (${item.category}) - Not a child item`);
+        }
+        
+        return isChildProduct;
+      });
+      
+      console.log(`\n FINAL RESULT: ${filteredItems.length} child products (filtered out ${unfilteredCount - filteredItems.length} non-child items)`);
+    } else {
+      filteredItems = restockItems;
+      if (showAllItems) {
+        console.log('  Returning ALL items (debug mode)\n');
+      }
+    }
+
     const statusPriority = { 
       'OVERDUE': 1, 
       'DUE_SOON': 2, 
       'ON_TRACK': 3, 
       'RECENTLY_BOUGHT': 4
     };
-    restockItems.sort((a, b) => statusPriority[a.status] - statusPriority[b.status]);
-
-    console.log(` Returning ${restockItems.length} restock items`);
+    filteredItems.sort((a, b) => statusPriority[a.status] - statusPriority[b.status]);
 
     res.json({
       success: true,
-      items: restockItems,
-      totalItems: restockItems.length
+      items: filteredItems,
+      totalItems: filteredItems.length,
+      childItemsFilter: !showAllItems,
+      unfilteredCount: showAllItems ? null : unfilteredCount,
+      message: filteredItems.length === 0 
+        ? "No child items (0-12 age) need restocking at this time"
+        : `Found ${filteredItems.length} child items that need restocking`
     });
 
   } catch (error) {
-    console.error("Error getting restock items:", error);
+    console.error(" Error getting restock items:", error);
     res.status(500).json({ 
+      success: false,
       message: "Failed to get restock items",
       error: error.message 
     });
   }
 };
-
 // Toggle restock reminder for a product
 exports.toggleRestockReminder = async (req, res) => {
   try {
@@ -1723,6 +1979,7 @@ module.exports = {
   addManualExpense: exports.addManualExpense,
   getMonthlySpending: exports.getMonthlySpending,
   getWeeklySpending: exports.getWeeklySpending,
+  getHistoricalBudgets: exports.getHistoricalBudgets,
   uploadMiddleware: exports.uploadMiddleware,
   getExpensesByYear: exports.getExpensesByYear,
    getAIInsights: exports.getAIInsights, 
