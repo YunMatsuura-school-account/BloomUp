@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { NewLogoBloomUpWhite } from "../icons";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { LogoBloomUpWhite } from "../icons";
 // import "../assets/css/login.css";
 
 export default function Login() {
@@ -9,87 +9,6 @@ export default function Login() {
   const [message, setMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Check if user came from a logout or explicit navigation
-  useEffect(() => {
-    // Check if user explicitly wants to logout (clear any existing token)
-    const urlParams = new URLSearchParams(location.search);
-    const forceLogout = urlParams.get("logout") === "true";
-
-    if (forceLogout) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("token");
-      localStorage.removeItem("authToken");
-      sessionStorage.clear();
-      return;
-    }
-
-    const validateAndRedirect = async () => {
-      const token = localStorage.getItem("accessToken");
-      if (!token) return;
-
-      try {
-        // Verify token is still valid by calling /api/auth/me
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/auth/me`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        if (response.ok) {
-          // Token is valid, but only auto-redirect if user didn't come from signup
-          // This allows users to login with a different account
-          const fromSignup = location.state?.fromSignup;
-          if (!fromSignup) {
-            navigate("/dashboard", { replace: true });
-          }
-        } else {
-          // Token is invalid/expired, clear it
-          localStorage.removeItem("accessToken");
-        }
-      } catch (error) {
-        // On error, clear the token
-        console.error("Token validation error:", error);
-        localStorage.removeItem("accessToken");
-      }
-    };
-
-    validateAndRedirect();
-  }, [navigate, location]);
-
-  // Prevent back navigation to protected routes after logout
-  useEffect(() => {
-    const handlePopState = (event) => {
-      const currentToken = localStorage.getItem("accessToken");
-      if (!currentToken) {
-        const protectedRoutes = [
-          "/dashboard",
-          "/user-dashboard",
-          "/account",
-          "/settings",
-          "/calendar",
-          "/articles",
-          "/family",
-          "/child-dashboard",
-        ];
-
-        const currentPath = window.location.pathname;
-        const isProtectedRoute = protectedRoutes.some((route) =>
-          currentPath.startsWith(route)
-        );
-
-        if (isProtectedRoute) {
-          window.history.replaceState(null, "", "/login");
-          navigate("/login", { replace: true });
-        }
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();

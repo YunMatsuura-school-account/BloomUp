@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import greyPersonIcon from "../../icons/greyPersonIcon.svg";
-import orangePencilIcon from "../../icons/orangePencilIcon.svg";
-import trashBinIcon from "../../icons/trashBinIcon.svg";
-import plusIcon from "../../icons/plusIcon.svg";
-import ChildAvatar from "../../components/ChildAvatar";
+import personIcon from "../../icons/person_icon.png";
+import pencilIcon from "../../icons/pencil_icon.png";
+import plusIcon from "../../icons/plus_icon.png";
 
 export default function Account() {
   const BASE = import.meta.env.VITE_BACKEND_URL;
@@ -14,6 +12,7 @@ export default function Account() {
   const [familyName, setFamilyName] = useState("");
   const [children, setChildren] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showBellOverlay, setShowBellOverlay] = useState(false);
 
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) {
@@ -119,37 +118,26 @@ export default function Account() {
     })(); // invoked immediately
   }, [BASE, navigate]);
 
+  // ESCキーでオーバーレイを閉じる
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setShowBellOverlay(false);
+    };
+    if (showBellOverlay) {
+      document.addEventListener("keydown", handleEsc);
+      return () => document.removeEventListener("keydown", handleEsc);
+    }
+  }, [showBellOverlay]);
+
   if (loading) {
     return <p className="text-white p-6">Loading...</p>;
   }
 
   return (
-    <div className=" page-surface">
-      <div className="p-6">
-        {/**
-         * Legacy top bar (bell + user buttons) kept commented for reference.
-         * Replaced by shared <Header /> to unify design across app.
-         * If you need the old behavior, restore this block.
-         */}
-        {false &&
-          // <div className="flex justify-end items-center gap-4 mb-6">
-          //   <button
-          //     onClick={() => setShowBellOverlay(true)}
-          //     className="p-2 rounded-full hover:bg-gray-200 transition-colors"
-          //   >
-          //     <img src={bell_icon} alt="Notifications" className="w-6 h-6" />
-          //   </button>
-          //   <button
-          //     onClick={() => navigate("/user-dashboard")}
-          //     className="p-2 rounded-full hover:bg-gray-200 transition-colors"
-          //   >
-          //     <img src={personIcon} alt="User" className="w-6 h-6" />
-          //   </button>
-          // </div>
-          null}
-        <h2 className="text-[40px] font-bold text-black/100 text-center mb-8">
-          Your Family
-        </h2>
+    <div className=" page-surface p-6">
+      <h2 className="text-[40px] font-bold text-black/100 text-center mb-8">
+        Your Family
+      </h2>
 
         <div className="mb-2 flex items-center justify-between md:justify-center">
           <div className="text-black/100 font-semibold text-lg">
@@ -204,42 +192,31 @@ export default function Account() {
                   </div>
                 </div>
 
-                <div className="flex justify-end flex-1 gap-2">
-                  <button
-                    className="w-12 h-12 flex items-center justify-center"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate("/add-child", {
-                        state: {
-                          mode: "edit",
-                          childId: child._id,
-                          child: child,
-                          userId: userId,
-                          returnPath: "/account",
-                        },
-                      });
-                    }}
-                  >
-                    <img
-                      src={orangePencilIcon}
-                      alt="edit"
-                      className="w-12 h-12"
-                    />
-                  </button>
-                  <button
-                    className="w-12 h-12 flex items-center justify-center"
-                    onClick={(e) => handleDeleteChild(child._id, e)}
-                  >
-                    <img
-                      src={trashBinIcon}
-                      alt="delete"
-                      className="w-10 h-10"
-                    />
-                  </button>
-                </div>
-              </button>
-            );
-          })}
+              <div className="flex justify-end flex-1">
+                <button
+                  className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate("/add-child", {
+                      state: {
+                        mode: "edit",
+                        childId: child._id,
+                        child: child,
+                        userId: userId,
+                      },
+                    });
+                  }}
+                >
+                  <img
+                    src={pencilIcon}
+                    alt="edit"
+                    className="w-12 h-12 invert opacity-80"
+                  />
+                </button>
+              </div>
+            </button>
+          );
+        })}
 
           <button
             className="rounded-2xl border-2 border-dashed border-gray-400/60 
@@ -293,6 +270,30 @@ export default function Account() {
           </button>
         </div>
       </div>
+
+      {/* Notification Overlay*/}
+      {showBellOverlay && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowBellOverlay(false)}
+        >
+          <div
+            className="bg-white rounded-xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Upcoming Events</h3>
+              <button
+                onClick={() => setShowBellOverlay(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <UpcomingEvents selectedChild={null} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,8 +9,6 @@ import {
   NewLogoBloomUpGreen,
 } from "../icons";
 import { useChild } from "../contexts/ChildContext";
-import { logout } from "../utils/auth";
-import ChildAvatar from "./ChildAvatar";
 
 /**
  * Reusable Sidebar component aligned to Figma specs (compact scale)

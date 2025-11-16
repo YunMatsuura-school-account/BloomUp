@@ -12,7 +12,6 @@ export default function AddChild() {
   const userId = state?.userId;
   const editChild = state?.child || null;
   const childId = state?.childId || null;
-  let returnPath = state?.returnPath || null;
   const isEdit = !!editChild && !!childId;
 
   // Get the previous page path dynamically
@@ -112,20 +111,7 @@ export default function AddChild() {
         },
         body: JSON.stringify(formData),
       });
-      if (res.ok) {
-        if (returnPath) {
-          navigate(returnPath); // returns to the previous page if returnPath is provided
-        } else if (isEdit) {
-          navigate("/family-setup"); // returns to FamilySetup for edit without returnPath
-        } else {
-          navigate("/dashboard"); // returns to Dashboard for new child without returnPath
-        }
-      } else {
-        const errorData = await res
-          .json()
-          .catch(() => ({ message: "Unknown error" }));
-        alert(`Failed to save: ${errorData.message || "Unknown error"}`);
-      }
+      if (res.ok) navigate("/family-setup"); // returns to FamilySetup; it will re-fetch
     } catch (e) {
       console.error(e);
       alert(`Error: ${e.message || "Unknown error occurred"}`);

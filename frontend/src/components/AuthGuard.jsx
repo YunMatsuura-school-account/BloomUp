@@ -13,41 +13,7 @@ const AuthGuard = ({ children }) => {
   // Check auth on mount and on every route change
   useEffect(() => {
     checkAuth();
-  }, [location.pathname]);
-
-  // Prevent back navigation to protected routes after logout
-  useEffect(() => {
-    const handlePopState = (event) => {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        // If no token, prevent accessing protected routes via back button
-        const protectedRoutes = [
-          "/dashboard",
-          "/user-dashboard",
-          "/account",
-          "/settings",
-          "/calendar",
-          "/articles",
-          "/family",
-          "/child-dashboard",
-        ];
-
-        const currentPath = window.location.pathname;
-        const isProtectedRoute = protectedRoutes.some((route) =>
-          currentPath.startsWith(route)
-        );
-
-        if (isProtectedRoute) {
-          // Replace current history entry with login
-          window.history.replaceState(null, "", "/login");
-          navigate("/login", { replace: true });
-        }
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [navigate]);
+  }, []);
 
   const checkAuth = async () => {
     // Prevent multiple simultaneous auth checks
