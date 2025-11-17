@@ -1,7 +1,37 @@
 # BloomUP Backend Documentation
 
+**Status:** Pre-Beta Demo Ready  
+**Last Updated:** Pre-Beta Freeze
+
 ## Overview
 Backend built with Node.js, Express, and MongoDB (Mongoose) providing REST API for authentication, user management, child profiles, budget tracking, AI insights, and more.
+
+---
+
+## Recent Features & Updates (Pre-Beta)
+
+### Password Security Enhancement
+- **Implemented:** Secure password hashing using bcryptjs
+- **Location:** `controllers/authController.js`
+- **Features:**
+  - Passwords hashed with bcrypt (salt rounds: 10) before storage
+  - Secure password verification during login
+  - Password change functionality with current password verification
+
+### AI Insights Integration
+- **Service:** OpenAI GPT-4o-mini
+- **Endpoint:** `/api/ai/insights/budget`
+- **Features:**
+  - Top spending category analysis
+  - Budget suggestions and recommendations
+  - Spending predictions
+
+### Budget Management
+- **Endpoints:** Complete CRUD for budgets and expenses
+- **Features:**
+  - Category-based budget allocation
+  - Expense tracking with receipt images
+  - Budget overview and statistics
 
 ---
 
@@ -17,7 +47,7 @@ Backend built with Node.js, Express, and MongoDB (Mongoose) providing REST API f
 
 ### Authentication
 - **JSON Web Token** (`^9.0.2`): JWT for user authentication and authorization
-- **bcryptjs** (`^2.4.3`): Password hashing and verification
+- **bcryptjs** (`^3.0.3`): Password hashing and verification using bcrypt algorithm
 
 ### File Upload
 - **Multer** (`^2.0.2`): Middleware for handling multipart/form-data (file uploads)
@@ -301,9 +331,12 @@ node scripts/seedBCVaccinationData.js
 ## Security Considerations
 
 ### Authentication
-- Passwords hashed before storage (implement hashing in authController)
+- **Password Security:** Passwords are hashed using bcryptjs before storage in MongoDB
+  - Implemented in `authController.js` signup and login functions
+  - Uses bcrypt.hash() with salt rounds (10) for secure password hashing
+  - Password verification uses bcrypt.compare() during login
 - JWT tokens expire after set time
-- Protected routes require valid token
+- Protected routes require valid token via `authMiddleware.js`
 
 ### File Uploads
 - Validate file types and sizes
@@ -374,3 +407,22 @@ res.status(400).json({ success: false, message: "Error message" });
 - Test authentication flows after making changes
 - Document new API endpoints here
 - Keep `.env` file secure and never commit it to version control
+
+---
+
+## Quick Reference: All Dependencies
+
+### Production Dependencies
+- `bcryptjs` ^3.0.3 - Password hashing
+- `cors` ^2.8.5 - CORS middleware
+- `dotenv` ^17.2.3 - Environment variables
+- `express` ^5.1.0 - Web framework
+- `jsonwebtoken` ^9.0.2 - JWT authentication
+- `mongodb` ^5.9.2 - MongoDB driver
+- `mongoose` ^7.6.3 - MongoDB ODM
+- `multer` ^2.0.2 - File upload middleware
+- `openai` ^6.5.0 - OpenAI API client
+
+### Development Dependencies
+- `@types/node` ^24.7.2 - TypeScript types
+- `nodemon` ^3.1.10 - Development server auto-restart
