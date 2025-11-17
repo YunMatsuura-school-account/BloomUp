@@ -261,7 +261,7 @@ const AIInsights = () => {
               onClick={handleAdjustBudget}
               className="bg-[#238D88] text-white font-semibold text-base leading-[22.4px] py-[15px] px-[136px] rounded-[15px] hover:bg-[#1a6d68] transition-colors"
             >
-              Adjust Budget
+              Refresh
             </button>
           </div>
         )}
