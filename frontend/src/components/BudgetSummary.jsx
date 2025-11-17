@@ -193,9 +193,9 @@ const BudgetSummary = () => {
     (!overview.categories || overview.categories.length === 0);
 
   return (
-    <div className="space-y-[23px] h-full flex flex-col">
+    <div className="space-y-0 h-full flex flex-col">
       <h2 className="text-lg font-medium text-black">Budget Summary</h2>
-      <div className="flex flex-col gap-[23px] flex-1">
+      <div className="flex flex-col flex-1">
         {loading ? (
           <div className="flex-1 bg-white rounded-[15px] flex items-center justify-center">
             <div className="flex flex-col items-center gap-4 text-[#238D88]">
@@ -254,7 +254,7 @@ const BudgetSummary = () => {
             </div>
           </div>
         ) : (
-          <div className="flex-1 bg-[#EFEFEF] rounded-[15px] p-6 flex flex-col gap-6">
+          <div className="flex-1 bg-[#EFEFEF] rounded-[15px] p-6 flex flex-col gap-6 min-h-0">
             {/* Main Chart Card */}
             <div className="bg-white rounded-[15px] p-6 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-6">

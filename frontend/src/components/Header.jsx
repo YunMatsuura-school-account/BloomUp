@@ -71,7 +71,7 @@ export default function Header() {
   return (
     <>
       <header
-        className="w-full bg-[#F5F5F5] flex items-center justify-between md:justify-end"
+        className="w-full bg-[#efefef] flex items-center justify-between md:justify-end"
         style={{
           height: "95px",
           padding: "29px 59px",

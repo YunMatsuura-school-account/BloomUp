@@ -135,7 +135,7 @@ const AIInsights = () => {
         AI Insight & Suggestion
       </h2>
 
-      <div className="bg-white rounded-2xl py-9 px-[45px] flex-1 flex flex-col">
+      <div className="bg-white rounded-2xl py-9 px-[45px] flex-1 flex flex-col min-h-0">
         {loading ? (
           <div className="flex flex-col items-center justify-center gap-6 flex-1">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#238D88]"></div>
