@@ -145,10 +145,10 @@ const Articles = () => {
         onFilterChange={setCurrentFilter}
       />
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 pb-4 sm:pb-6 lg:pb-8">
         {/* Saved Tab Content - Using ArticleCategory Layout */}
         {currentFilter === 'Saved' ? (
-          <div className="py-2 sm:py-4">
+          <div>
             {/* Category Header */}
             {savedArticles.length > 0 && (
               <div className="mb-8 sm:mb-12 -mx-3 sm:-mx-4 lg:-mx-8">
@@ -180,7 +180,8 @@ const Articles = () => {
                   savedArticles.map((article) => (
                     <div 
                       key={article._id}
-                      className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200 flex flex-col sm:flex-row"
+                      className="rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200 flex flex-col sm:flex-row"
+                      style={{ backgroundColor: '#EFEFEF' }}
                       onClick={() => viewArticle(article, true)}
                     >
                       <img 
@@ -208,7 +209,7 @@ const Articles = () => {
           </div>
         ) : (
           /* Regular Content (when not on Saved tab) */
-          <>
+          <div className="pt-4 sm:pt-6 lg:pt-8">
             {/* Featured Article */}
             {featuredArticle && (
               <div className="mb-6 sm:mb-8">
@@ -321,7 +322,7 @@ const Articles = () => {
                 </div>
               </section>
             )}
-          </>
+          </div>
         )}
       </main>
     </div>

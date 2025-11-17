@@ -154,7 +154,7 @@ const ArticleCategory = () => {
         onFilterChange={handleCategoryChange}
       />
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8 lg:py-12">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 pb-4 sm:pb-8 lg:pb-12">
         {/* Category Header */}
         {randomArticle ? (
           <div className="mb-8 sm:mb-12 -mx-3 sm:-mx-4 lg:-mx-8">
@@ -211,7 +211,8 @@ const ArticleCategory = () => {
                 {displayedArticles.map((article) => (
                   <div 
                     key={article._id}
-                    className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200 flex flex-col sm:flex-row"
+                    className="rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200 flex flex-col sm:flex-row"
+                    style={{ backgroundColor: '#EFEFEF' }}
                     onClick={() => viewArticle(article)}
                   >
                     <img 
