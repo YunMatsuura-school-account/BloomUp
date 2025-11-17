@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
 import ArticleHeader from '../components/ArticleHeader';
-import '../styles/articles.css';
 
 const ArticleCategory = () => {
   const [articles, setArticles] = useState([]);
@@ -17,26 +16,24 @@ const ArticleCategory = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
-  const { category } = useParams(); // Get category from URL
+  const { category } = useParams();
 
   const categories = ['Health', 'Education', 'Finances', 'Routines', 'Parenting', 'Saved'];
   const ARTICLES_PER_PAGE = 5;
 
-  // CRITICAL FIX: Set category from URL params immediately
   useEffect(() => {
     console.log('📍 URL category changed:', category);
     if (category) {
       setCurrentCategory(category);
     }
-  }, [category]); // Re-run whenever URL category changes
+  }, [category]);
 
-  // CRITICAL FIX: Fetch articles when currentCategory changes
   useEffect(() => {
     if (currentCategory) {
       console.log('🔄 Current category changed, fetching articles for:', currentCategory);
       fetchArticles();
     }
-  }, [currentCategory]); // Re-fetch when category changes
+  }, [currentCategory]);
 
   const fetchArticles = async () => {
     try {
@@ -52,7 +49,6 @@ const ArticleCategory = () => {
       console.log('📦 Response received:', response.data);
       
       if (response.data.success) {
-        // Client-side filter as safety net
         const filteredArticles = response.data.data.filter(
           article => article.category === currentCategory
         );
@@ -60,7 +56,6 @@ const ArticleCategory = () => {
         console.log('✅ Filtered articles:', filteredArticles.length);
         
         setArticles(filteredArticles);
-        // Show first 5 articles initially
         setDisplayedArticles(filteredArticles.slice(0, ARTICLES_PER_PAGE));
         setHasMore(filteredArticles.length > ARTICLES_PER_PAGE);
         setPage(1);
@@ -84,7 +79,6 @@ const ArticleCategory = () => {
   const handleLoadMore = () => {
     setLoadingMore(true);
     
-    // Simulate slight delay for better UX
     setTimeout(() => {
       const nextPage = page + 1;
       const startIndex = 0;
@@ -100,7 +94,6 @@ const ArticleCategory = () => {
 
   const handleCategoryChange = (newCategory) => {
     console.log('🔀 Category change requested:', newCategory);
-    // The navigation will trigger the useEffect hooks above
     if (newCategory === 'Saved') {
       navigate('/articles', { state: { filter: 'Saved' } });
     } else if (newCategory === 'All') {
@@ -125,14 +118,14 @@ const ArticleCategory = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{ backgroundColor: '#EFEFEF' }}>
         <ArticleHeader 
           categories={categories} 
           currentFilter={currentCategory}
           onFilterChange={handleCategoryChange}
         />
         <div className="flex items-center justify-center h-96">
-          <div className="text-gray-600 text-lg">Loading {currentCategory} articles...</div>
+          <div className="text-gray-600 text-base sm:text-lg">Loading {currentCategory} articles...</div>
         </div>
       </div>
     );
@@ -140,46 +133,46 @@ const ArticleCategory = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{ backgroundColor: '#EFEFEF' }}>
         <ArticleHeader 
           categories={categories} 
           currentFilter={currentCategory}
           onFilterChange={handleCategoryChange}
         />
         <div className="flex items-center justify-center h-96">
-          <div className="text-red-600 text-lg">{error}</div>
+          <div className="text-red-600 text-base sm:text-lg">{error}</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: '#EFEFEF' }}>
       <ArticleHeader 
         categories={categories} 
         currentFilter={currentCategory}
         onFilterChange={handleCategoryChange}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8 lg:py-12">
         {/* Category Header */}
         {randomArticle ? (
-          <div className="mb-12 -mx-4 sm:-mx-6 lg:-mx-8">
+          <div className="mb-8 sm:mb-12 -mx-3 sm:-mx-4 lg:-mx-8">
             <div 
-              className="relative h-64 sm:h-80 bg-cover bg-center"
+              className="relative h-48 sm:h-64 lg:h-80 bg-cover bg-center"
               style={{ backgroundImage: `url('${randomArticle.image}')` }}
             >
               <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                <h2 className="text-4xl sm:text-5xl font-bold text-white text-center">
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white text-center px-4">
                   {currentCategory}
                 </h2>
               </div>
             </div>
           </div>
         ) : (
-          <div className="mb-12 -mx-4 sm:-mx-6 lg:-mx-8">
-            <div className="relative h-64 sm:h-80 bg-gradient-to-r from-teal-500 to-teal-600 flex items-center justify-center">
-              <h2 className="text-4xl sm:text-5xl font-bold text-white text-center">
+          <div className="mb-8 sm:mb-12 -mx-3 sm:-mx-4 lg:-mx-8">
+            <div className="relative h-48 sm:h-64 lg:h-80 bg-gradient-to-r from-teal-500 to-teal-600 flex items-center justify-center">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white text-center px-4">
                 {currentCategory}
               </h2>
             </div>
@@ -188,12 +181,12 @@ const ArticleCategory = () => {
 
         {/* Articles Container */}
         <section>
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 sm:gap-6">
             {displayedArticles.length === 0 ? (
               <div className="text-center py-12">
                 <div className="mb-4">
                   <svg 
-                    className="w-16 h-16 mx-auto text-gray-400" 
+                    className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400" 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
@@ -206,7 +199,7 @@ const ArticleCategory = () => {
                     />
                   </svg>
                 </div>
-                <p className="text-gray-500 text-lg mb-2">
+                <p className="text-gray-500 text-base sm:text-lg mb-2">
                   No articles found in {currentCategory}
                 </p>
                 <p className="text-gray-400 text-sm">
@@ -218,19 +211,19 @@ const ArticleCategory = () => {
                 {displayedArticles.map((article) => (
                   <div 
                     key={article._id}
-                    className="horizontal-card fade-in cursor-pointer"
+                    className="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200 flex flex-col sm:flex-row"
                     onClick={() => viewArticle(article)}
                   >
                     <img 
                       src={article.image} 
                       alt={article.title} 
                       loading="lazy"
+                      className="w-full sm:w-48 md:w-56 lg:w-64 h-48 sm:h-40 md:h-44 lg:h-48 object-cover"
                     />
-                    <div className="horizontal-card-content flex-1 p-6">
-                      <p className="card-category">{article.category}</p>
-                      <h3 className="card-title mb-2">{article.title}</h3>
-                      <p className="card-description">{article.description}</p>
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex-1 p-4 sm:p-5 lg:p-6 flex flex-col">
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 line-clamp-2">{article.title}</h3>
+                      <p className="text-sm sm:text-base text-gray-700 line-clamp-2 sm:line-clamp-3 mb-auto">{article.description}</p>
+                      <div className="flex items-center justify-between mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
                         <span className="text-xs text-gray-500">By: {article.author || 'Staff'}</span>
                         {article.viewCount > 0 && (
                           <span className="text-xs text-gray-500">{article.viewCount} views</span>
@@ -242,16 +235,16 @@ const ArticleCategory = () => {
 
                 {/* Load More Button */}
                 {hasMore && (
-                  <div className="flex justify-center mt-8">
+                  <div className="flex justify-center mt-6 sm:mt-8">
                     <button
                       onClick={handleLoadMore}
                       disabled={loadingMore}
-                      className="px-8 py-3 bg-white border-2 border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-wait min-w-[200px]"
+                      className="px-6 sm:px-8 py-2.5 sm:py-3 bg-white border-2 border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px] sm:min-w-[200px] text-sm sm:text-base"
                     >
                       {loadingMore ? (
                         <span className="flex items-center justify-center gap-2">
                           <svg 
-                            className="animate-spin h-5 w-5 text-gray-600" 
+                            className="animate-spin h-4 w-4 sm:h-5 sm:w-5 text-gray-600" 
                             xmlns="http://www.w3.org/2000/svg" 
                             fill="none" 
                             viewBox="0 0 24 24"
