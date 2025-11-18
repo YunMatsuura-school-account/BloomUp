@@ -133,12 +133,13 @@ export default function AddChild() {
   };
 
   // Create a temporary child object for displaying the avatar
+  // Spread editChild first, then override with selectedAvatar values to ensure latest selection is shown
   const displayChild = {
+    ...(editChild || {}),
     name: form.name || editChild?.name || "",
     avatarIndex: selectedAvatar.avatarIndex,
     avatarName: selectedAvatar.avatarName,
     backgroundColor: selectedAvatar.backgroundColor,
-    ...(editChild || {}),
   };
 
   const handleDelete = async () => {

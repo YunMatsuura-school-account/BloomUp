@@ -7,9 +7,6 @@ const getUserId = (user) => {
   return user.id || user._id || user.userId;
 };
 
-// @desc    Get all articles with optional filters
-// @route   GET /api/articles
-// @access  Public
 exports.getArticles = async (req, res) => {
   try {
     const { category, search, featured, limit = 50, page = 1 } = req.query;
@@ -61,9 +58,6 @@ exports.getArticles = async (req, res) => {
   }
 };
 
-// @desc    Get single article by ID
-// @route   GET /api/articles/:id
-// @access  Public
 exports.getArticleById = async (req, res) => {
   try {
     const article = await Article.findById(req.params.id);
@@ -92,9 +86,6 @@ exports.getArticleById = async (req, res) => {
   }
 };
 
-// @desc    Get articles by category
-// @route   GET /api/articles/category/:category
-// @access  Public
 exports.getArticlesByCategory = async (req, res) => {
   try {
     const { category } = req.params;
@@ -103,14 +94,14 @@ exports.getArticlesByCategory = async (req, res) => {
     const validCategories = ['Health', 'Education', 'Finances', 'Routines', 'Parenting'];
     
     // DEBUG LOGGING
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🔍 GET ARTICLES BY CATEGORY');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📥 Requested category:', category);
-    console.log('📋 Valid categories:', validCategories);
+    console.log('');
+    console.log(' GET ARTICLES BY CATEGORY');
+    console.log('');
+    console.log(' Requested category:', category);
+    console.log(' Valid categories:', validCategories);
     
     if (!validCategories.includes(category)) {
-      console.log('❌ Invalid category provided:', category);
+      console.log(' Invalid category provided:', category);
       return res.status(400).json({
         success: false,
         message: 'Invalid category',
@@ -121,13 +112,13 @@ exports.getArticlesByCategory = async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // EXACT MATCH QUERY - CRITICAL!
+    // EXACT MATCH QUERY
     const query = { 
       category: category,  // Must match EXACTLY
       status: 'published' 
     };
     
-    console.log('🔎 MongoDB Query:', JSON.stringify(query, null, 2));
+    console.log(' MongoDB Query:', JSON.stringify(query, null, 2));
 
     // Execute query
     const articles = await Article.find(query)
@@ -138,13 +129,13 @@ exports.getArticlesByCategory = async (req, res) => {
 
     const total = await Article.countDocuments(query);
     
-    console.log('📊 Query Results:');
+    console.log('Query Results:');
     console.log('   - Found:', articles.length, 'articles');
     console.log('   - Total:', total);
     
     // CRITICAL VERIFICATION - Check if returned articles match category
     if (articles.length > 0) {
-      console.log('📄 First article details:');
+      console.log(' First article details:');
       console.log('   - Title:', articles[0].title);
       console.log('   - Category:', articles[0].category);
       console.log('   - Status:', articles[0].status);
@@ -153,36 +144,36 @@ exports.getArticlesByCategory = async (req, res) => {
       const mismatchedArticles = articles.filter(a => a.category !== category);
       
       if (mismatchedArticles.length > 0) {
-        console.error('🚨 CRITICAL ERROR: Found articles with WRONG category!');
-        console.error('🚨 Expected category:', category);
-        console.error('🚨 Wrong articles:', mismatchedArticles.map(a => ({
+        console.error(' CRITICAL ERROR: Found articles with WRONG category!');
+        console.error(' Expected category:', category);
+        console.error(' Wrong articles:', mismatchedArticles.map(a => ({
           id: a._id,
           title: a.title,
           category: a.category
         })));
-        console.error('🚨 This should NEVER happen! Database integrity issue!');
+        console.error(' This should NEVER happen! Database integrity issue!');
       } else {
-        console.log('✅ All articles match requested category');
+        console.log(' All articles match requested category');
       }
       
       // Log all categories found
       const categoriesFound = [...new Set(articles.map(a => a.category))];
-      console.log('📂 Unique categories in results:', categoriesFound);
+      console.log(' Unique categories in results:', categoriesFound);
     } else {
-      console.log('⚠️ No articles found for category:', category);
+      console.log(' No articles found for category:', category);
       
       // Check if ANY articles exist at all
       const anyArticles = await Article.countDocuments({ status: 'published' });
-      console.log('ℹ️ Total published articles in database:', anyArticles);
+      console.log(' Total published articles in database:', anyArticles);
       
       if (anyArticles > 0) {
         // Show what categories DO exist
         const existingCategories = await Article.distinct('category', { status: 'published' });
-        console.log('ℹ️ Categories that exist:', existingCategories);
+        console.log(' Categories that exist:', existingCategories);
       }
     }
     
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    console.log('\n');
 
     res.status(200).json({
       success: true,
@@ -192,7 +183,7 @@ exports.getArticlesByCategory = async (req, res) => {
       data: articles
     });
   } catch (error) {
-    console.error('❌ ERROR in getArticlesByCategory:', error);
+    console.error(' ERROR in getArticlesByCategory:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch articles',
@@ -201,9 +192,6 @@ exports.getArticlesByCategory = async (req, res) => {
   }
 };
 
-// @desc    Get related articles (same category, excluding current)
-// @route   GET /api/articles/:id/related
-// @access  Public
 exports.getRelatedArticles = async (req, res) => {
   try {
     const article = await Article.findById(req.params.id);
@@ -239,9 +227,6 @@ exports.getRelatedArticles = async (req, res) => {
   }
 };
 
-// @desc    Get user's saved articles
-// @route   GET /api/articles/saved/me
-// @access  Private
 exports.getSavedArticles = async (req, res) => {
   try {
     const userId = getUserId(req.user);
@@ -286,9 +271,6 @@ exports.getSavedArticles = async (req, res) => {
   }
 };
 
-// @desc    Save/bookmark an article
-// @route   POST /api/articles/:id/save
-// @access  Private
 exports.saveArticle = async (req, res) => {
   try {
     const userId = getUserId(req.user);
@@ -347,9 +329,6 @@ exports.saveArticle = async (req, res) => {
   }
 };
 
-// @desc    Unsave/remove bookmark from article
-// @route   DELETE /api/articles/:id/save
-// @access  Private
 exports.unsaveArticle = async (req, res) => {
   try {
     const userId = getUserId(req.user);
@@ -387,9 +366,6 @@ exports.unsaveArticle = async (req, res) => {
   }
 };
 
-// @desc    Check if article is saved by user
-// @route   GET /api/articles/:id/is-saved
-// @access  Private
 exports.isArticleSaved = async (req, res) => {
   try {
     const userId = getUserId(req.user);
@@ -420,9 +396,6 @@ exports.isArticleSaved = async (req, res) => {
   }
 };
 
-// @desc    Create new article (Admin only)
-// @route   POST /api/articles
-// @access  Private/Admin
 exports.createArticle = async (req, res) => {
   try {
     const article = await Article.create(req.body);
@@ -442,9 +415,6 @@ exports.createArticle = async (req, res) => {
   }
 };
 
-// @desc    Update article (Admin only)
-// @route   PUT /api/articles/:id
-// @access  Private/Admin
 exports.updateArticle = async (req, res) => {
   try {
     const article = await Article.findByIdAndUpdate(
@@ -478,9 +448,6 @@ exports.updateArticle = async (req, res) => {
   }
 };
 
-// @desc    Delete article (Admin only)
-// @route   DELETE /api/articles/:id
-// @access  Private/Admin
 exports.deleteArticle = async (req, res) => {
   try {
     const article = await Article.findByIdAndDelete(req.params.id);
@@ -508,9 +475,6 @@ exports.deleteArticle = async (req, res) => {
   }
 };
 
-// @desc    Get article statistics
-// @route   GET /api/articles/stats
-// @access  Public
 exports.getArticleStats = async (req, res) => {
   try {
     const stats = await Article.aggregate([
@@ -549,9 +513,6 @@ exports.getArticleStats = async (req, res) => {
   }
 };
 
-// @desc    Get recommended articles based on user context
-// @route   GET /api/articles/recommended
-// @access  Private
 exports.getRecommendedArticles = async (req, res) => {
   try {
     const userId = getUserId(req.user);
@@ -603,7 +564,7 @@ exports.getRecommendedArticles = async (req, res) => {
       return available[Math.floor(Math.random() * available.length)];
     };
 
-    // Category mapping: CalendarEvent default categories → Article categories
+    // Category mapping: CalendarEvent default categories  Article categories
     const categoryMapping = {
       'General Category': 'Parenting',
       'Shopping': 'Finances',

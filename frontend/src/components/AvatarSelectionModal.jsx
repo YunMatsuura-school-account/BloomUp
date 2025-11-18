@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FoxAvatar,
   CapybaraAvatar,
@@ -45,6 +45,18 @@ const AvatarSelectionModal = ({
   const [selectedColor, setSelectedColor] = useState(
     initialColor || BACKGROUND_COLORS[0]
   );
+
+  // Update state when modal opens or initial values change
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedAvatar(
+        initialAvatar !== null && initialAvatar !== undefined
+          ? initialAvatar
+          : 0
+      );
+      setSelectedColor(initialColor || BACKGROUND_COLORS[0]);
+    }
+  }, [isOpen, initialAvatar, initialColor]);
 
   if (!isOpen) return null;
 
