@@ -22,7 +22,7 @@ exports.updateFamilyName = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, imageUrl } = req.body;
     const userId = req.params.id;
     
     // Check if user exists and is authorized to update
@@ -33,6 +33,7 @@ exports.updateUser = async (req, res) => {
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
+    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
 
     const updated = await User.findByIdAndUpdate(
       userId,
@@ -196,6 +197,8 @@ const uploadUser = multer({
 });
 
 // POST /api/users/:id/photo
+// Uploads the file but does NOT update the database
+// The imageUrl will be saved when PATCH /api/users/:id is called
 exports.uploadUserPhoto = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -211,22 +214,9 @@ exports.uploadUserPhoto = async (req, res) => {
 
     const publicPath = `/static/user-images/${req.file.filename}`;
     
-    // UserのimageUrlを更新
-    const updated = await User.findByIdAndUpdate(
-      userId,
-      { $set: { imageUrl: publicPath } },
-      { new: true }
-    );
-
-    if (!updated) {
-      // ファイルはアップロード済みだが、更新に失敗した場合は削除
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (unlinkErr) {
-        console.error("Error deleting uploaded file:", unlinkErr);
-      }
-      return res.status(404).json({ message: "User not found" });
-    }
+    // Note: We do NOT update the database here
+    // The imageUrl will be saved when the user clicks "Save Changes"
+    // This allows users to preview the image before saving
 
     res.status(200).json({ url: publicPath });
   } catch (err) {

@@ -75,6 +75,7 @@ export default function Settings() {
   );
   const [name, setName] = useState(state?.user?.name ?? "");
   const [email, setEmail] = useState(state?.user?.email ?? "");
+  const [pendingImageUrl, setPendingImageUrl] = useState(null); // Temporary image URL before saving
   const [currentPw, setCurrentPw] = useState("");
   const [emailNotification, setEmailNotification] = useState(false); // Probably omit
   const [reminder, setReminder] = useState(false);
@@ -147,10 +148,11 @@ export default function Settings() {
 
   const profileChanged =
     name.trim() !== (me?.name ?? "") || email.trim() !== (me?.email ?? "");
+  const imageChanged = pendingImageUrl !== null && pendingImageUrl !== (me?.imageUrl ?? "");
   const pwAllFilled = !!currentPw && !!newPw && !!confirmPw;
 
   const canSave =
-    !saving && !loading && (profileChanged || (pwAllFilled && !pwError));
+    !saving && !loading && (profileChanged || imageChanged || (pwAllFilled && !pwError));
 
   const handleDelete = async () => {
 
@@ -202,20 +204,28 @@ export default function Settings() {
         return navigate("/login");
       }
 
-      //   update profile
+      //   update profile (including image if changed)
       const needProfileUpdate =
-        name.trim() !== (me?.name ?? "") || email.trim() !== (me?.email ?? "");
+        name.trim() !== (me?.name ?? "") || 
+        email.trim() !== (me?.email ?? "") || 
+        (pendingImageUrl !== null && pendingImageUrl !== (me?.imageUrl ?? ""));
       if (needProfileUpdate && userId) {
+        const updateData = {
+          name: name.trim(),
+          email: email.trim(),
+        };
+        // Include imageUrl if there's a pending change
+        if (pendingImageUrl !== null) {
+          updateData.imageUrl = pendingImageUrl;
+        }
+        
         const res1 = await fetch(`${BASE}/api/users/${userId}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            name: name.trim(),
-            email: email.trim(),
-          }),
+          body: JSON.stringify(updateData),
         });
         if (!res1.ok) {
           const msg = await res1.json().catch(() => null);
@@ -225,10 +235,12 @@ export default function Settings() {
         const updated = await res1.json().catch(() => null);
         setMe((m) => ({
           ...(m || {}),
-          ...(updated || {}),
+          ...(updated?.user || updated || {}),
           name: name.trim(),
           email: email.trim(),
         }));
+        // Clear pending image URL after successful save
+        setPendingImageUrl(null);
       }
 
       //   change password
@@ -290,10 +302,12 @@ export default function Settings() {
               <AvatarDropUpload
                 mode="user"
                 userId={userId}
-                currentUrl={me?.imageUrl ?? ""}
-                onUploaded={(url) =>
-                  setMe((m) => ({ ...(m || {}), imageUrl: url }))
-                }
+                currentUrl={pendingImageUrl ?? me?.imageUrl ?? ""}
+                onUploaded={(url) => {
+                  // Store the uploaded URL temporarily, don't update me.imageUrl yet
+                  // It will be saved when user clicks "Save Changes"
+                  setPendingImageUrl(url);
+                }}
                 showEditButton={false}
               />
             </div>
