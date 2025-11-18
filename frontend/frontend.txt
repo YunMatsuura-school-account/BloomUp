@@ -1,16 +1,43 @@
 # BloomUP Frontend Documentation
 
+**Status:** Pre-Beta Demo Ready  
+**Last Updated:** Pre-Beta Freeze
+
 ## Overview
 Frontend built with React, Vite, React Router, and TailwindCSS for a family finance and child management application.
 
 ---
 
-## Recent Changes & Features
+## Recent Changes & Features (Pre-Beta)
 
-### AI Insights Loader Implementation (Latest)
-**Date:** Current Session
-**File Modified:** `src/components/AIInsights.jsx`
+### UI/UX Enhancements
+- **Budget Summary Component:**
+  - Custom donut charts with rounded corners
+  - Main chart: Full circle with rounded progress arcs
+  - Category charts: 70% visible with 30% gap at bottom
+  - Responsive design with proper spacing and alignment
+  
+- **AI Insights Component:**
+  - Empty state design matching Figma specifications
+  - Loading states with spinners
+  - Session storage caching for insights data
+  - Smart refresh logic based on budget activity
 
+- **Calendar Component:**
+  - FullCalendar integration with multiple views
+  - Vaccination time CTA section with Google Maps integration
+  - Upcoming events component with empty state
+
+- **Component Alignment:**
+  - Budget Summary and AI Insights components aligned for consistent layout
+  - Proper flex layouts and spacing
+
+### Chart Visualization
+- **Chart.js Integration:**
+  - Doughnut charts for budget visualization
+  - Custom SVG circles for category breakdowns
+  - Rounded corners on progress arcs
+  - Responsive chart sizing
 
 ---
 
@@ -25,13 +52,20 @@ Frontend built with React, Vite, React Router, and TailwindCSS for a family fina
 - **React Router DOM** (`^7.9.4`): Client-side routing for navigation
 
 ### Styling
-- **TailwindCSS** (`^3.4.14`): Utility-first CSS framework
+- **TailwindCSS** (`^3.4.18`): Utility-first CSS framework
 - **PostCSS** (`^8.5.6`): CSS transformer
 - **Autoprefixer** (`^10.4.21`): Adds vendor prefixes to CSS
 
 ### Data Visualization
-- **Chart.js** (`^4.5.1`): Charting library
+- **Chart.js** (`^4.5.1`): Charting library for creating charts
 - **React Chart.js 2** (`^5.3.1`): React wrapper for Chart.js
+
+### Calendar Integration
+- **@fullcalendar/react** (`^6.1.19`): React component for FullCalendar
+- **@fullcalendar/daygrid** (`^6.1.19`): Day grid view plugin
+- **@fullcalendar/timegrid** (`^6.1.19`): Time grid view plugin
+- **@fullcalendar/list** (`^6.1.19`): List view plugin
+- **@fullcalendar/interaction** (`^6.1.19`): Interaction plugin for drag/drop and selection
 
 ### HTTP Requests
 - **Axios** (`^1.12.2`): Promise-based HTTP client for API calls
@@ -77,10 +111,13 @@ Frontend built with React, Vite, React Router, and TailwindCSS for a family fina
 frontend/
 ├── src/
 │   ├── components/          # Reusable UI components
-│   │   ├── AIInsights.jsx    # AI insights with loader (RECENTLY UPDATED)
+│   │   ├── AIInsights.jsx    # AI insights with empty state and caching
+│   │   ├── BudgetSummary.jsx # Budget summary with donut charts
+│   │   ├── Budget.jsx        # Budget management page
+│   │   ├── UpcomingEvents.jsx # Upcoming events component with empty state
 │   │   ├── AuthGuard.jsx     # Authentication wrapper
 │   │   ├── Dashboard.jsx     # Main dashboard page
-│   │   ├── Budget.jsx        # Budget management
+│   │   ├── Header.jsx        # Navigation header
 │   │   └── ...
 │   ├── pages/                # Page components
 │   │   ├── Login.jsx
@@ -112,10 +149,26 @@ frontend/
 - Uses ChildContext for selected child state
 
 #### AIInsights (`src/components/AIInsights.jsx`)
-- Fetches AI-generated budget insights
-- **NEW:** Shows loading spinner while fetching data
+- Fetches AI-generated budget insights from OpenAI
+- Shows loading spinner while fetching data
 - Displays top spending category, suggestions, and predictions
+- Empty state with Figma-inspired design when no budget data exists
+- Session storage caching to prevent redundant API calls
 - Uses `useChild` context to get current user
+
+#### BudgetSummary (`src/components/BudgetSummary.jsx`)
+- Displays budget overview with donut charts
+- Main chart: Full circle showing total spent amount
+- Category charts: Four smaller donut charts (70% visible, 30% gap)
+- Rounded corners on progress arcs
+- Empty state with icon when no budget data exists
+- Responsive grid layout
+
+#### UpcomingEvents (`src/components/UpcomingEvents.jsx`)
+- Displays upcoming calendar events
+- Empty state with calendar icon when no events exist
+- Integrates with calendar API
+- Navigation to calendar page
 
 ### Routing Structure
 ```
@@ -228,6 +281,11 @@ npm run lint
 - **Package Manager:** npm
 - **Build Tool:** Vite 7.1.7
 - **React Version:** 18.3.1
+- **React Router:** 7.9.4
+- **TailwindCSS:** 3.4.18
+- **Chart.js:** 4.5.1
+- **FullCalendar:** 6.1.19
+- **Axios:** 1.12.2
 
 ---
 
@@ -239,4 +297,36 @@ npm run lint
 - Use TailwindCSS classes instead of custom CSS when possible
 - Always include loading states for async operations
 - Test authentication flows after making changes
+
+---
+
+## Quick Reference: All Dependencies
+
+### Production Dependencies
+- `@fullcalendar/daygrid` ^6.1.19 - Calendar day grid view
+- `@fullcalendar/interaction` ^6.1.19 - Calendar interactions
+- `@fullcalendar/list` ^6.1.19 - Calendar list view
+- `@fullcalendar/react` ^6.1.19 - React calendar component
+- `@fullcalendar/timegrid` ^6.1.19 - Calendar time grid view
+- `axios` ^1.12.2 - HTTP client
+- `chart.js` ^4.5.1 - Charting library
+- `dotenv` ^17.2.3 - Environment variables
+- `react` ^18.3.1 - React library
+- `react-chartjs-2` ^5.3.1 - React Chart.js wrapper
+- `react-dom` ^18.3.1 - React DOM renderer
+- `react-router-dom` ^7.9.4 - React routing
+
+### Development Dependencies
+- `@eslint/js` ^9.36.0 - ESLint JavaScript config
+- `@types/react` ^19.1.16 - React TypeScript types
+- `@types/react-dom` ^19.1.9 - React DOM TypeScript types
+- `@vitejs/plugin-react` ^5.0.4 - Vite React plugin
+- `autoprefixer` ^10.4.21 - CSS vendor prefixes
+- `eslint` ^9.36.0 - JavaScript linter
+- `eslint-plugin-react-hooks` ^5.2.0 - React hooks linting
+- `eslint-plugin-react-refresh` ^0.4.22 - React refresh linting
+- `globals` ^16.4.0 - ESLint globals
+- `postcss` ^8.5.6 - CSS transformer
+- `tailwindcss` ^3.4.18 - Utility-first CSS framework
+- `vite` ^7.1.7 - Build tool and dev server
 
