@@ -4,13 +4,12 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["DM Sans", "system-ui", "sans-serif"],
       },
       colors: {
-        'custom-teal': '#238D88', // <-- Add this
+        'custom-teal': '#238D88',
       },
     },
   },
   plugins: [],
 };
-

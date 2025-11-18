@@ -3,13 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
 import ArticleHeader from '../components/ArticleHeader';
-import '../styles/articles.css';
 
 const ArticleSingle = () => {
   const [article, setArticle] = useState(null);
   const [relatedArticles, setRelatedArticles] = useState([]);
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [previousArticle, setPreviousArticle] = useState(null);
+  const [nextArticle, setNextArticle] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
@@ -31,15 +32,13 @@ const ArticleSingle = () => {
     if (location.state?.article) {
       const stateArticle = location.state.article;
       
-      // Check if we have full article data (has content) or just preview data
       if (stateArticle.content) {
-        // Full article data available, use it
         setArticle(stateArticle);
         setLoading(false);
         fetchRelatedArticles(stateArticle._id);
         checkIfSaved(stateArticle._id);
+        fetchCategoryArticlesForNavigation(stateArticle);
       } else {
-        // Only preview data (from related articles), fetch full data
         console.log('Preview data only, fetching full article...');
         fetchArticle(stateArticle._id);
       }
@@ -61,6 +60,7 @@ const ArticleSingle = () => {
         setArticle(response.data.data);
         fetchRelatedArticles(articleId);
         checkIfSaved(articleId);
+        fetchCategoryArticlesForNavigation(response.data.data);
       }
     } catch (error) {
       console.error('Error fetching article:', error);
@@ -81,6 +81,42 @@ const ArticleSingle = () => {
       }
     } catch (error) {
       console.error('Error fetching related articles:', error);
+    }
+  };
+
+  const fetchCategoryArticlesForNavigation = async (currentArticle) => {
+    try {
+      // Fetch all articles in the same category
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/articles/category/${currentArticle.category}`
+      );
+      
+      if (response.data.success) {
+        const categoryArticles = response.data.data;
+        
+        // Find current article index
+        const currentIndex = categoryArticles.findIndex(
+          art => art._id === currentArticle._id
+        );
+        
+        if (currentIndex !== -1) {
+          // Set previous article (if exists)
+          if (currentIndex > 0) {
+            setPreviousArticle(categoryArticles[currentIndex - 1]);
+          } else {
+            setPreviousArticle(null);
+          }
+          
+          // Set next article (if exists)
+          if (currentIndex < categoryArticles.length - 1) {
+            setNextArticle(categoryArticles[currentIndex + 1]);
+          } else {
+            setNextArticle(null);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching category articles for navigation:', error);
     }
   };
 
@@ -147,7 +183,7 @@ const ArticleSingle = () => {
       error: 'bg-red-500'
     };
     
-    notification.className = `${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg fixed top-5 right-5 z-[100]`;
+    notification.className = `${colors[type]} text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg fixed top-5 right-3 sm:right-5 z-[100] text-sm sm:text-base`;
     notification.textContent = message;
     notification.style.animation = 'slideIn 0.3s ease-in-out';
     
@@ -160,11 +196,10 @@ const ArticleSingle = () => {
   };
 
   const viewArticle = (selectedArticle) => {
-    // Pass complete article data with category context
     navigate(`/articles/${selectedArticle._id}`, { 
       state: { 
         article: selectedArticle,
-        fromCategory: article?.category // Use current article's category
+        fromCategory: article?.category
       } 
     });
     window.scrollTo(0, 0);
@@ -188,6 +223,30 @@ const ArticleSingle = () => {
     }
   };
 
+  const handlePreviousArticle = () => {
+    if (previousArticle) {
+      navigate(`/articles/${previousArticle._id}`, { 
+        state: { 
+          article: previousArticle,
+          fromCategory: article?.category
+        } 
+      });
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const handleNextArticle = () => {
+    if (nextArticle) {
+      navigate(`/articles/${nextArticle._id}`, { 
+        state: { 
+          article: nextArticle,
+          fromCategory: article?.category
+        } 
+      });
+      window.scrollTo(0, 0);
+    }
+  };
+
   const getCurrentFilter = () => {
     if (fromPage === 'saved') return 'Saved';
     if (fromCategory) return fromCategory;
@@ -196,14 +255,14 @@ const ArticleSingle = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{ backgroundColor: '#EFEFEF' }}>
         <ArticleHeader 
           categories={categories}
           currentFilter={getCurrentFilter()}
           onFilterChange={handleCategoryChange}
         />
         <div className="flex items-center justify-center h-96">
-          <div className="text-gray-600 text-lg">Loading article...</div>
+          <div className="text-gray-600 text-base sm:text-lg">Loading article...</div>
         </div>
       </div>
     );
@@ -211,32 +270,53 @@ const ArticleSingle = () => {
 
   if (!article) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{ backgroundColor: '#EFEFEF' }}>
         <ArticleHeader 
           categories={categories}
           onFilterChange={handleCategoryChange}
         />
         <div className="flex items-center justify-center h-96">
-          <div className="text-gray-600 text-lg">Article not found</div>
+          <div className="text-gray-600 text-base sm:text-lg">Article not found</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: '#EFEFEF' }}>
       <ArticleHeader 
         categories={categories}
         currentFilter={getCurrentFilter()}
         onFilterChange={handleCategoryChange}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-12">
-        <div className="flex gap-6 items-start">
-          {/* Go Back Button - Hidden on mobile, positioned to the left */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
+          {/* Back Arrow - Positioned to the left of article */}
           <button
             onClick={handleGoBack}
-            className="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg hover:bg-gray-100 transition-all duration-200 flex-shrink-0"
+            className="hidden lg:block flex-shrink-0 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            aria-label="Go back"
+          >
+            <svg 
+              className="w-6 h-6" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth="2" 
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+
+          {/* Mobile Back Button */}
+          <button
+            onClick={handleGoBack}
+            className="lg:hidden inline-flex items-center gap-2 text-sm font-medium text-gray-700 mb-4"
           >
             <svg 
               className="w-5 h-5" 
@@ -248,133 +328,180 @@ const ArticleSingle = () => {
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
                 strokeWidth="2" 
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                d="M15 19l-7-7 7-7"
               />
             </svg>
-            Go Back
+            Back
           </button>
 
-          {/* Article Content */}
-          <article className="bg-white rounded-lg shadow-sm flex-1">
-            <div className="p-6 sm:p-8">
-              {/* Category and Saved Status */}
-              <div className="flex items-center gap-3 mb-4">
-                <p className="text-sm text-gray-600 font-semibold uppercase">{article.category}</p>
-                {isSaved && <p className="text-sm text-amber-600 font-semibold uppercase">Saved</p>}
-              </div>
-
-            <div className="mb-6 pb-6 border-b border-gray-200">
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="flex-1">
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 leading-tight">
-                    {article.link ? (
-                      <a href={article.link} target="_blank" rel="noopener noreferrer" className="hover:text-gray-700">
-                        {article.title}
-                      </a>
-                    ) : (
-                      article.title
-                    )}
-                  </h1>
-                  <p className="text-gray-700 leading-relaxed text-sm">
-                    {article.description}
-                  </p>
+          {/* Main Article Content */}
+          <article className="flex-1 rounded-lg overflow-hidden">
+            <div className="px-6 pb-6 lg:px-8 lg:pb-8">
+              {/* Category and Save Status */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+                    {article.category}
+                  </span>
+                  {isSaved && (
+                    <span className="text-sm font-semibold text-amber-600 uppercase tracking-wide flex items-center gap-1">
+                      <svg 
+                        className="w-4 h-4" 
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          d="M5 5a2 2 0 012-2h6a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                        />
+                      </svg>
+                      Saved
+                    </span>
+                  )}
                 </div>
                 <button 
-                  className={`flex-shrink-0 bookmark-btn transition-all duration-300 mt-2 ${isSaved ? 'saved' : ''}`}
+                  className={`transition-all duration-300 ${isSaved ? 'text-amber-500' : 'text-gray-400 hover:text-amber-500'}`}
                   onClick={toggleSave}
                   title={isSaved ? 'Remove from saved' : 'Save article'}
                 >
                   <svg 
-                    className="w-8 h-8" 
-                    fill={isSaved ? '#F59E0B' : 'none'}
-                    stroke={isSaved ? '#F59E0B' : 'currentColor'} 
+                    className="w-7 h-7" 
+                    fill={isSaved ? 'currentColor' : 'none'}
+                    stroke="currentColor" 
                     viewBox="0 0 24 24"
+                    strokeWidth={isSaved ? 0 : 2}
                   >
                     <path 
                       strokeLinecap="round" 
                       strokeLinejoin="round" 
-                      strokeWidth="2" 
                       d="M5 5a2 2 0 012-2h6a2 2 0 012 2v16l-7-3.5L5 21V5z"
                     />
                   </svg>
                 </button>
               </div>
-              <div className="flex items-center gap-4 text-xs text-gray-600">
-                <span>By: {article.author || 'Staff Writer'}</span>
+
+              {/* Title */}
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3 leading-tight">
+                {article.link ? (
+                  <a href={article.link} target="_blank" rel="noopener noreferrer" className="hover:text-gray-700">
+                    {article.title}
+                  </a>
+                ) : (
+                  article.title
+                )}
+              </h1>
+
+              {/* Description */}
+              <p className="text-gray-700 text-base leading-relaxed mb-4">
+                {article.description}
+              </p>
+
+              {/* Metadata */}
+              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mb-6 pb-6 border-b border-gray-200">
+                <span>By: {article.author || 'Joe Casper for CNN news'}</span>
                 <span>•</span>
-                <span>{new Date(article.createdAt).toLocaleDateString('en-US', { 
+                <span>Published: {new Date(article.createdAt).toLocaleDateString('en-US', { 
                   year: 'numeric', 
                   month: 'long', 
                   day: 'numeric' 
                 })}</span>
-                {article.viewCount > 0 && (
-                  <>
-                    <span>•</span>
-                    <span>{article.viewCount} views</span>
-                  </>
-                )}
               </div>
-            </div>
 
-            <div className="mb-8">
-              <img 
-                src={article.image} 
-                alt={article.title} 
-                className="w-full h-auto rounded-lg object-cover"
-              />
-            </div>
-
-            <div className="prose max-w-none">
-              <div className="text-gray-700 leading-relaxed text-sm whitespace-pre-line">
-                {article.content}
-              </div>
-            </div>
-
-            {article.image1 && (
-              <div className="mt-8">
+              {/* Main Image */}
+              <div className="mb-6">
                 <img 
-                  src={article.image1} 
-                  alt="Article illustration" 
+                  src={article.image} 
+                  alt={article.title} 
                   className="w-full h-auto rounded-lg object-cover"
                 />
+                {/* Image Caption */}
+                <p className="text-xs text-gray-500 mt-2 italic">
+                  Between 2010 and 2019, there were declines in at least one kind of vaccination in 21 of 36 "high-income countries" measured in a new study.
+                </p>
               </div>
-            )}
-          </div>
-        </article>
-        </div>
 
-        {/* Related Articles */}
-        {relatedArticles.length > 0 && (
-          <section className="mt-16 mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8">You might also like</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {relatedArticles.map((relatedArticle) => (
-                <div 
-                  key={relatedArticle._id}
-                  className="saved-article-card-wireframe fade-in cursor-pointer"
-                  onClick={() => viewArticle(relatedArticle)}
-                >
-                  <img 
-                    src={relatedArticle.image} 
-                    alt={relatedArticle.title} 
-                    loading="lazy"
-                  />
-                  <div className="saved-article-card-content">
-                    <p className="text-xs text-gray-600 font-medium uppercase mb-1">
-                      {relatedArticle.category}
-                    </p>
-                    <h3 className="text-base font-bold text-gray-900 mb-1 leading-tight line-clamp-2">
-                      {relatedArticle.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
-                      {relatedArticle.description}
-                    </p>
-                  </div>
+              {/* Article Content */}
+              <div className="prose prose-base max-w-none">
+                <div className="text-gray-800 leading-relaxed text-base whitespace-pre-line">
+                  {article.content}
                 </div>
-              ))}
+              </div>
+
+              {/* Additional Image */}
+              {article.image1 && (
+                <div className="mt-8">
+                  <img 
+                    src={article.image1} 
+                    alt="Article illustration" 
+                    className="w-full h-auto rounded-lg object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Navigation Buttons */}
+              <div className="flex items-center justify-center gap-4 mt-8 pt-8 border-t border-gray-200">
+                <button
+                  onClick={handlePreviousArticle}
+                  disabled={!previousArticle}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 min-w-[140px] ${
+                    previousArticle 
+                      ? 'bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400' 
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed border-2 border-gray-200'
+                  }`}
+                >
+                  Go Back
+                </button>
+                <button
+                  onClick={handleNextArticle}
+                  disabled={!nextArticle}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 min-w-[140px] ${
+                    nextArticle 
+                      ? 'bg-teal-600 text-white hover:bg-teal-700' 
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  Next Article
+                </button>
+              </div>
             </div>
-          </section>
-        )}
+          </article>
+
+          {/* Related Articles Sidebar */}
+          {relatedArticles.length > 0 && (
+            <aside className="lg:w-80 xl:w-96">
+              <div className="rounded-lg px-6 pb-6 sticky top-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">You might also like</h2>
+                <div className="space-y-4">
+                  {relatedArticles.slice(0, 3).map((relatedArticle) => (
+                    <div 
+                      key={relatedArticle._id}
+                      className="cursor-pointer group bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
+                      onClick={() => viewArticle(relatedArticle)}
+                    >
+                      <div className="flex gap-3">
+                        <img 
+                          src={relatedArticle.image} 
+                          alt={relatedArticle.title} 
+                          loading="lazy"
+                          className="w-24 h-24 object-cover rounded-lg flex-shrink-0 group-hover:opacity-90 transition-opacity"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-bold text-gray-900 mb-1 leading-tight line-clamp-2 group-hover:text-gray-700 transition-colors">
+                            {relatedArticle.title}
+                          </h3>
+                          <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                            {relatedArticle.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </aside>
+          )}
+        </div>
       </main>
     </div>
   );

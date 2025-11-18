@@ -61,52 +61,81 @@ const ArticleSearchModal = ({ isOpen, onClose }) => {
   return (
     <div 
       id="searchModal"
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
       onClick={handleModalClick}
     >
       <div 
-        className="bg-white rounded-lg p-8 w-full max-w-2xl mx-4 relative"
+        className="bg-white rounded-2xl w-full max-w-2xl mx-auto relative shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Close Button */}
         <button 
-          className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 transition"
+          className="absolute top-6 right-6 text-black hover:text-gray-600 transition-colors z-10"
           onClick={onClose}
+          aria-label="Close search"
         >
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          <svg 
+            className="w-7 h-7" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+            strokeWidth="2.5"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              d="M6 18L18 6M6 6l12 12" 
+            />
           </svg>
         </button>
 
-        <div className="mb-6">
-          <p className="text-2xl font-semibold text-gray-700 mb-4">
-            What are you looking for?
-          </p>
-          <input 
-            type="text" 
-            placeholder="Search articles..." 
-            className="w-full border-b-2 border-gray-300 focus:border-teal-500 focus:outline-none text-lg py-2"
-            value={query}
-            onChange={(e) => handleSearch(e.target.value)}
-            autoFocus
-          />
+        {/* Search Input Section */}
+        <div className="px-8 pt-16 pb-8">
+          <div className="relative">
+            <input 
+              type="text" 
+              placeholder="Tell us what are you looking for?" 
+              className="w-full border-b-2 border-black text-gray-500 placeholder-gray-400 text-base py-3 pr-12 focus:outline-none focus:border-black transition-colors"
+              value={query}
+              onChange={(e) => handleSearch(e.target.value)}
+              autoFocus
+            />
+            {/* Search Icon - Right Side */}
+            <div className="absolute right-0 top-1/2 -translate-y-1/2">
+              <svg 
+                className="w-6 h-6 text-black" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                strokeWidth="2"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                />
+              </svg>
+            </div>
+          </div>
         </div>
 
-        <div className="max-h-96 overflow-y-auto">
+        {/* Results Section */}
+        <div className="max-h-96 overflow-y-auto px-8 pb-8">
           {loading && (
-            <p className="text-gray-500 text-center py-4">Searching...</p>
+            <p className="text-gray-500 text-center py-8">Searching...</p>
           )}
           {!loading && results.length === 0 && query.length > 0 && (
-            <p className="text-gray-500 text-center py-4">No articles found</p>
+            <p className="text-gray-500 text-center py-8">No articles found</p>
           )}
           {!loading && results.map((article) => (
             <div 
               key={article._id}
-              className="p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition"
+              className="py-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors -mx-8 px-8 last:border-b-0"
               onClick={() => handleArticleClick(article)}
             >
-              <h4 className="font-semibold text-gray-900">{article.title}</h4>
-              <p className="text-sm text-gray-600 mt-1">{article.description}</p>
-              <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-xs text-gray-700 rounded">
+              <h4 className="font-semibold text-gray-900 mb-1">{article.title}</h4>
+              <p className="text-sm text-gray-600 mb-2 line-clamp-2">{article.description}</p>
+              <span className="inline-block px-2 py-1 bg-gray-100 text-xs text-gray-700 rounded">
                 {article.category}
               </span>
             </div>
