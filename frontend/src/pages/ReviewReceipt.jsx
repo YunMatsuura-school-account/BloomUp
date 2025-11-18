@@ -13,52 +13,60 @@ export default function ReviewReceipt() {
 
   const categories = ["Medical", "Education", "Consumable", "Clothes", "Entertainment", "Transport", "Other"];
 
-  useEffect(() => {
-    console.log("ReviewReceipt - Location state:", location.state);
-    
-    const data = location.state?.receiptData?.receiptData;
-    
-    if (data?.expenses && data.expenses.length > 0) {
-      setReceiptInfo({
-        merchantName: data.merchantName,
-        totalAmount: data.totalAmount,
-        date: data.date,
-        currency: data.currency
-      });
+ useEffect(() => {
+  console.log("ReviewReceipt - Location state:", location.state);
+  
+  const data = location.state?.receiptData?.receiptData;
+  
+  if (data?.expenses && data.expenses.length > 0) {
+    setReceiptInfo({
+      merchantName: data.merchantName,
+      totalAmount: data.totalAmount,
+      date: data.date,
+      currency: data.currency
+    });
 
-      console.log(` Processing ${data.expenses.length} items from receipt`);
+    console.log(` Processing ${data.expenses.length} items from receipt`);
 
-      // Map each item from the receipt
-      const formattedExpenses = data.expenses.map((exp, idx) => {
-        console.log(`  Item ${idx + 1}: ${exp.description} - ${exp.category} - Qty: ${exp.quantity} - $${exp.amount}`);
-        
-        return {
-          id: idx,
-          date: exp.date || new Date().toISOString().split('T')[0],
-          items: exp.description || "Unknown Item", // Item name
-          description: data.merchantName || "Unknown Merchant", // Store name
-          category: exp.category || "Other",
-          quantity: exp.quantity || 1,
-          amount: parseFloat(exp.amount) || 0
-        };
-      });
+    // Map each item from the receipt
+    const formattedExpenses = data.expenses.map((exp, idx) => {
+      console.log(`  Item ${idx + 1}: ${exp.description} - ${exp.category} - Qty: ${exp.quantity} - $${exp.amount}`);
       
-      console.log(`Created ${formattedExpenses.length} expense rows for review`);
-      setExpenses(formattedExpenses);
-    } else {
-      console.warn(" No expenses found in receipt data");
-      setExpenses([{
-        id: 0,
-        date: new Date().toISOString().split('T')[0],
-        items: "",
-        description: "",
+      return {
+        id: idx,
+        date: exp.date || new Date().toISOString().split('T')[0],
+        items: exp.description || "Unknown Item",
+        description: data.merchantName || "Unknown Merchant",
+        category: exp.category || "Other",
+        quantity: exp.quantity || 1,
+        amount: parseFloat(exp.amount) || 0
+      };
+    });
+    
+    // ADD DISCOUNT LINE ITEM IF THERE'S A DIFFERENCE
+    const itemsTotal = formattedExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const receiptTotal = data.totalAmount || 0;
+    const difference = itemsTotal - receiptTotal;
+    
+    if (Math.abs(difference) > 0.01) { // If there's more than 1 cent difference
+      console.log(`Discount detected: $${difference.toFixed(2)}`);
+      formattedExpenses.push({
+        id: formattedExpenses.length,
+        date: data.date || new Date().toISOString().split('T')[0],
+        items: "Discount",
+        description: data.merchantName || "Unknown Merchant",
         category: "Other",
         quantity: 1,
-        amount: 0
-      }]);
+        amount: -difference // Negative amount for discount
+      });
     }
-  }, [location.state]);
-
+    
+    console.log(`Created ${formattedExpenses.length} expense rows for review`);
+    setExpenses(formattedExpenses);
+  } else {
+    // ... rest of the code
+  }
+}, [location.state]);
   const handleChange = (id, field, value) => {
     setExpenses(prev => prev.map(exp => 
       exp.id === id ? { ...exp, [field]: value } : exp

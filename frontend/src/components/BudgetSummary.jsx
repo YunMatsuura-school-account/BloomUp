@@ -139,6 +139,7 @@ const BudgetSummary = () => {
     elements: {
       arc: {
         borderWidth: 0, // no bold edges
+        borderRadius: 8, // rounded corners for progress arc
       },
     },
   };
@@ -192,9 +193,9 @@ const BudgetSummary = () => {
     (!overview.categories || overview.categories.length === 0);
 
   return (
-    <div className="space-y-[23px] h-full flex flex-col">
+    <div className="space-y-0 h-full flex flex-col">
       <h2 className="text-lg font-medium text-black">Budget Summary</h2>
-      <div className="flex flex-col gap-[23px] flex-1">
+      <div className="flex flex-col flex-1">
         {loading ? (
           <div className="flex-1 bg-white rounded-[15px] flex items-center justify-center">
             <div className="flex flex-col items-center gap-4 text-[#238D88]">
@@ -253,19 +254,24 @@ const BudgetSummary = () => {
             </div>
           </div>
         ) : (
-          <>
-            {/* Budget Chart Section - Figma: 609x320px */}
-            <div className="bg-white rounded-[15px] py-[15px] px-5 pb-[18px] h-80">
-              <h3 className="text-xs font-medium text-black leading-4 mb-[35px]">
+          <div className="flex-1 bg-[#EFEFEF] rounded-[15px] p-6 flex flex-col gap-6 min-h-0">
+            {/* Main Chart Card */}
+            <div className="bg-white rounded-[15px] p-6 shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-6">
                 Expenses for {monthLabel}
               </h3>
 
-              {/* Chart Container - Exact Figma sizing: 178x178px */}
-              <div className="flex justify-center items-center">
-                <div className="relative w-[178px] h-[178px]">
-                  <Doughnut data={budgetData} options={chartOptions} />
+              {/* Large Donut Chart - Full Circle */}
+              <div className="flex justify-center items-center py-6">
+                <div className="relative w-[280px] h-[280px]">
+                  <Doughnut
+                    data={budgetData}
+                    options={chartOptions}
+                    strokeLinecap="round"
+                    style={{ transform: "rotate(222deg)" }}
+                  />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <p className="text-2xl font-medium text-black leading-4">
+                    <p className="text-4xl font-bold text-black">
                       $
                       {overview.spent.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
@@ -277,38 +283,62 @@ const BudgetSummary = () => {
               </div>
             </div>
 
-            {/* Category Cards Grid - Figma: 609x320px container, 2x2 grid */}
-            <div className="grid grid-cols-2 gap-y-[18px] gap-x-[10px] h-80">
+            {/* Category Cards Grid */}
+            <div className="grid grid-cols-2 gap-4">
               {categories.map((category, index) => (
                 <div
                   key={`${category.name}-${index}`}
-                  className="bg-white rounded-[15px] px-[18px] py-[3px] flex items-center justify-center relative overflow-hidden"
+                  className="bg-white rounded-[15px] p-5 shadow-sm flex flex-col items-center gap-0 relative min-h-[160px]"
                 >
-                  {/* Donut Background - progress ring using conic-gradient */}
-                  <div
-                    className="absolute w-[118px] h-[118px] rounded-full left-1/2 -translate-x-1/2 top-0"
-                    style={{
-                      background: `conic-gradient(#238D88 ${Math.round(
-                        (categories[index]?.percent || 0) * 360
-                      )}deg, #E5E7EB 0deg)`,
-                    }}
-                  ></div>
-                  {/* Donut inner cutout to create ring */}
-                  <div className="absolute w-[86px] h-[86px] rounded-full bg-white left-1/2 -translate-x-1/2 top-[16px]"></div>
-
-                  {/* Content Container - Figma: 118x118px with specific padding */}
-                  <div className="relative z-10 w-[118px] h-[118px] flex flex-col items-center justify-end gap-[30px] pt-[15px] px-6 pb-2">
-                    <p className="text-base font-medium text-black leading-4">
-                      {category.amount}
-                    </p>
-                    <p className="text-base font-semibold text-black leading-4">
-                      {category.name}
-                    </p>
+                  {/* Donut Background Ring with 30% gap at bottom */}
+                  <div className="relative w-[130px] h-[130px] -mb-3">
+                    <svg
+                      className="w-full h-full"
+                      viewBox="0 0 100 100"
+                      style={{ transform: "rotate(157deg)" }}
+                    >
+                      {/* Background track (gray) - 70% of circle */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="45"
+                        fill="none"
+                        stroke="#E5E7EB"
+                        strokeWidth="10"
+                        strokeDasharray="178 283"
+                        strokeLinecap="round"
+                      />
+                      {/* Progress arc (teal) */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="45"
+                        fill="none"
+                        stroke="#238D88"
+                        strokeWidth="10"
+                        strokeDasharray={`${
+                          (categories[index]?.percent || 0) * 178
+                        } 283`}
+                        strokeLinecap="round"
+                        style={{ transition: "stroke-dasharray 0.3s ease" }}
+                      />
+                    </svg>
+                    {/* Center amount */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <p className="text-lg font-bold text-black">
+                        {category.amount}
+                      </p>
+                    </div>
                   </div>
+
+                  {/* Category Name */}
+                  <p className="text-lg font-bold text-black text-center -mt-3">
+                    {category.name}
+                  </p>
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
