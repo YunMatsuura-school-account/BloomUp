@@ -40,8 +40,16 @@ const Dashboard = () => {
             const vaccRes = await fetch(vaccUrl);
             if (vaccRes.ok) {
               const vaccData = await vaccRes.json();
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
               vaccinationEvents = (vaccData?.recommendations || [])
-                .filter((r) => r?.recommendedDate)
+                .filter((r) => {
+                  if (!r?.recommendedDate) return false;
+                  const vaccDate = new Date(r.recommendedDate);
+                  vaccDate.setHours(0, 0, 0, 0);
+                  // Only show future vaccinations
+                  return vaccDate >= today;
+                })
                 .map((r) => ({
                   title: `${r.name} vaccination`,
                   date: r.recommendedDate,

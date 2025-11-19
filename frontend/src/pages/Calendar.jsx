@@ -630,8 +630,11 @@ export default function CalendarPage() {
               .filter((r) => {
                 if (!r?.recommendedDate) return false;
                 const vaccDate = new Date(r.recommendedDate);
+                vaccDate.setHours(0, 0, 0, 0); // Normalize to start of day
                 const startDate = new Date(start);
+                startDate.setHours(0, 0, 0, 0);
                 const endDate = new Date(end);
+                endDate.setHours(23, 59, 59, 999); // Include entire end date
                 // Only include vaccinations within the current calendar view range
                 return vaccDate >= startDate && vaccDate <= endDate;
               })
