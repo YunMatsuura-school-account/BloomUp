@@ -57,10 +57,14 @@ const Dashboard = () => {
         // Fetch calendar events (all event types: custom events, appointments, etc.)
         let calendarEventList = [];
         try {
-          // Calculate date range: 2 months back to 3 months ahead for calendar navigation
+          // Calculate date range: 2 months back to 10 years ahead to include all vaccination dates
           const now = new Date();
           const startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-          const endDate = new Date(now.getFullYear(), now.getMonth() + 3, 0);
+          const endDate = new Date(
+            now.getFullYear() + 10,
+            now.getMonth() + 3,
+            0
+          );
 
           const params = new URLSearchParams();
           params.set("start", startDate.toISOString());
