@@ -27,6 +27,10 @@ export default function Signup() {
       confirmPassword
     );
     e.preventDefault();
+    if (password.length < 8) {
+      setMessage("Password must be at least 8 characters long!");
+      return;
+    }
     if (password !== confirmPassword) {
       setMessage("Passwords do not match!");
       return;
