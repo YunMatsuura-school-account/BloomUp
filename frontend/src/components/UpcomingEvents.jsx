@@ -203,7 +203,6 @@
 
 // export default UpcomingEvents;
 
-
 // frontend/src/components/UpcomingEvents.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -248,7 +247,7 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
         setLoading(true);
         const base = import.meta.env.VITE_BACKEND_URL || "";
         const { start, end } = getCurrentMonthRange();
-        
+
         const params = new URLSearchParams();
         params.set("start", start.toISOString());
         params.set("end", end.toISOString());
@@ -293,46 +292,31 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
     fetchUpcoming();
   }, [selectedChild?._id]);
 
-  // Calculate if scroll is needed (more than 4 events)
-  const hasMoreEvents = events.length > 4;
   const totalEvents = events.length;
 
-  // Format date time range for display
-  const formatDateTimeRange = (startDateString, endDateString) => {
-    if (!startDateString) return "";
-    
+  // Format date segments for display
+  const getDateSegments = (startDateString, endDateString) => {
+    if (!startDateString) return null;
     const startDate = new Date(startDateString);
     const endDate = endDateString ? new Date(endDateString) : null;
-    
-    const startTime = startDate.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    const startDateStr = startDate.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-    
+    const optionsDate = { month: "short", day: "2-digit" };
+    const optionsTime = { hour: "2-digit", minute: "2-digit" };
+
+    const start = {
+      date: startDate.toLocaleDateString("en-US", optionsDate),
+      time: startDate.toLocaleTimeString("en-US", optionsTime),
+    };
+
     if (!endDate) {
-      return `${startDateStr} ${startTime}`;
+      return { start, end: null };
     }
-    
-    const endTime = endDate.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    const endDateStr = endDate.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-    
-    // If same day, show: "Nov 5 10:00 - 12:00"
-    if (startDateStr === endDateStr) {
-      return `${startDateStr} ${startTime} - ${endTime}`;
-    }
-    
-    // If different days, show: "Nov 5 10:00 - Nov 6 12:00"
-    return `${startDateStr} ${startTime} - ${endDateStr} ${endTime}`;
+
+    const end = {
+      date: endDate.toLocaleDateString("en-US", optionsDate),
+      time: endDate.toLocaleTimeString("en-US", optionsTime),
+    };
+
+    return { start, end };
   };
 
   // Truncate description to 30 words
@@ -346,9 +330,9 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
   };
 
   const toggleReadMore = (eventId) => {
-    setExpandedDescriptions(prev => ({
+    setExpandedDescriptions((prev) => ({
       ...prev,
-      [eventId]: !prev[eventId]
+      [eventId]: !prev[eventId],
     }));
   };
 
@@ -358,112 +342,152 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
     }
   };
 
+  const getTitleParts = (event) => {
+    const childName = selectedChild?.name?.trim();
+    const title = event.title || "Event";
+
+    if (childName) {
+      return {
+        primary: childName,
+        secondary: title !== childName ? title : "",
+      };
+    }
+
+    const words = title.split(" ");
+    if (words.length <= 1) {
+      return { primary: title, secondary: "" };
+    }
+    return {
+      primary: words[0],
+      secondary: words.slice(1).join(" "),
+    };
+  };
+
   return (
     <div className="h-full flex flex-col">
       <h2 className="text-lg font-medium text-black mb-3">Upcoming Events</h2>
 
-      <div className="bg-white rounded-lg shadow-sm border flex-1 flex flex-col">
-        {/* Fixed height container with conditional vertical scroll */}
-        <div 
-          className={`flex-1 ${hasMoreEvents ? 'overflow-y-auto' : 'overflow-hidden'}`}
-          style={{ maxHeight: hasMoreEvents ? '400px' : 'none' }}
-        >
+      <div className="bg-[#EFEFEF] rounded-lg flex flex-col h-[520px]">
+        <div className="flex-1 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent scrollbar-none">
           {loading && (
             <div className="flex items-center justify-center h-20 p-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#238D88]"></div>
-              <span className="ml-2 text-gray-600 text-sm">Loading events...</span>
+              <span className="ml-2 text-gray-600 text-sm">
+                Loading events...
+              </span>
             </div>
           )}
 
           {!loading && events.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-40 p-6 text-center">
-              <CalendarIcon className="w-10 h-10 text-gray-400 mb-3" />
-              <h3 className="text-base font-semibold text-gray-800 mb-1">
-                No events this month
-              </h3>
-              <p className="text-xs text-gray-600 mb-3">
-                Add events to see them here
-              </p>
-              <button
-                onClick={() => navigate("/calendar")}
-                className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-4 py-2 text-[#1C1C1C] font-semibold text-xs hover:bg-[#E0B108] transition-colors"
-              >
-                Add Event +
-              </button>
+            <div className="relative m-4 flex-1 min-h-[220px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[380px] xl:min-h-[444px] rounded-2xl bg-[#FBFCFD] flex items-center justify-center">
+              <div className="absolute inset-3 rounded-2xl border-2 border-dashed border-[#F3BE08] pointer-events-none" />
+              <div className="relative flex flex-col items-center text-center gap-3 px-6">
+                <CalendarIcon className="w-10 h-10 text-[#232527]" />
+                <div>
+                  <h3 className="text-lg font-semibold text-[#1F2A37]">
+                    No upcoming events yet!
+                  </h3>
+                  <p className="text-sm text-[#6F717A] mt-1">
+                    Start by adding events to see here.
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate("/calendar")}
+                  className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-6 py-2 font-semibold text-sm text-[#1C1C1C] shadow-[0_8px_20px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
+                >
+                  Add Event&nbsp;+
+                </button>
+              </div>
             </div>
           )}
 
           {!loading && events.length > 0 && (
-            <div className="p-4 space-y-3">
-              {events.map((event) => (
-                <div
-                  key={event._id}
-                  onClick={() => handleEventCardClick(event)}
-                  className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-gray-100"
-                >
-                  {/* First Line: Start and End Date Time */}
-                  <div className="flex justify-end mb-2">
-                    <p className="text-xs font-semibold text-gray-600 whitespace-nowrap">
-                      {formatDateTimeRange(event.startDate, event.endDate)}
-                    </p>
-                  </div>
+            <div className="px-4 pt-4 pb-2 space-y-4">
+              {events.map((event) => {
+                const dateSegments = getDateSegments(
+                  event.startDate,
+                  event.endDate
+                );
+                const titleParts = getTitleParts(event);
 
-                  {/* Second Line: Child avatar on left, title and description on right */}
-                  <div className="flex gap-2">
-                    {/* Child Avatar - Left side */}
-                    {selectedChild && (
-                      <div className="flex-shrink-0">
-                        <ChildAvatar 
-                          child={selectedChild} 
-                          width={36} 
-                          height={36}
-                        />
+                return (
+                  <div
+                    key={event._id}
+                    onClick={() => handleEventCardClick(event)}
+                    className="bg-white rounded-2xl border border-[#F4F4F5] p-4 transition cursor-pointer"
+                  >
+                    {/* Date range */}
+                    {dateSegments && (
+                      <div className="flex justify-end mb-3">
+                        <p className="text-sm font-semibold text-[#0F172A] whitespace-nowrap">
+                          <span className="text-[#0F172A]">
+                            {dateSegments.start.date}
+                          </span>{" "}
+                          {dateSegments.start.time}
+                          {dateSegments.end && (
+                            <>
+                              <span className="mx-1 text-[#C9CDD6]">~</span>
+                              <span className="text-[#0F172A]">
+                                {dateSegments.end.date}
+                              </span>{" "}
+                              {dateSegments.end.time}
+                            </>
+                          )}
+                        </p>
                       </div>
                     )}
-                    
-                    {/* Title and Description - Right side */}
-                    <div className="flex-1 min-w-0">
-                      {/* Event Title */}
-                      <h3 className="text-sm font-semibold text-black leading-tight mb-1 line-clamp-1">
-                        {event.title}
-                      </h3>
-                      
-                      {/* Event Description */}
-                      {event.notes && (
-                        <div>
-                          <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">
-                            {truncateDescription(event.notes, event._id)}
-                          </p>
-                          {event.notes.split(" ").length > 30 && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleReadMore(event._id);
-                              }}
-                              className="text-[#238D88] text-xs font-medium mt-1 hover:text-[#1a6b67] transition-colors"
-                            >
-                              {expandedDescriptions[event._id] ? "Read Less" : "Read More"}
-                            </button>
-                          )}
+
+                    <div className="flex gap-3 items-start">
+                      {selectedChild && (
+                        <div className="flex-shrink-0">
+                          <ChildAvatar
+                            child={selectedChild}
+                            width={48}
+                            height={48}
+                          />
                         </div>
                       )}
+
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base font-semibold text-[#111827] leading-tight">
+                          <span className="block">{titleParts.primary}</span>
+                          {titleParts.secondary && (
+                            <span className="block">
+                              {titleParts.secondary}
+                            </span>
+                          )}
+                        </h3>
+
+                        {event.notes && (
+                          <div className="mt-2">
+                            <p className="text-sm text-[#4B5563] leading-relaxed">
+                              {truncateDescription(event.notes, event._id)}
+                            </p>
+                            {event.notes.split(" ").length > 30 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleReadMore(event._id);
+                                }}
+                                className="text-[#238D88] text-xs font-medium mt-1 hover:text-[#1a6b67] transition-colors"
+                              >
+                                {expandedDescriptions[event._id]
+                                  ? "Read Less"
+                                  : "Read More"}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
 
-        {/* Event count footer - only show when there are events */}
-        {!loading && events.length > 0 && (
-          <div className="border-t border-gray-200 px-4 py-2">
-            <p className="text-xs text-gray-500 text-center">
-              {totalEvents} event{totalEvents !== 1 ? 's' : ''} this month
-              {hasMoreEvents && " •"}
-            </p>
-          </div>
-        )}
+        {/* Removed footer text as per latest request */}
       </div>
     </div>
   );
