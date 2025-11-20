@@ -152,7 +152,7 @@ export default function Sidebar({
               showDropdown,
               setShowDropdown
             )}
-            {children.length > 3 && (
+            {children.length > 4 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -258,8 +258,8 @@ function renderChips(
   showDropdown,
   setShowDropdown
 ) {
-  const visibleChildren = children.slice(0, 3);
-  const hiddenChildren = children.slice(3);
+  const visibleChildren = children.slice(0, 4);
+  const hiddenChildren = children.slice(4);
 
   return (
     <>
