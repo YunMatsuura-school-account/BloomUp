@@ -39,7 +39,7 @@ function DashboardLayout() {
           {!isArticlesPage && !isChildDashboardPage && <Header />}
 
           {/* Scrollable content area */}
-          <div className="flex-1 overflow-y-auto p-0">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-0">
             <Outlet />
           </div>
         </div>
