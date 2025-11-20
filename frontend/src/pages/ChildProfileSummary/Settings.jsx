@@ -1,20 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, memo, useCallback } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom"; // useLocation: receive state info from navigate()
 import AvatarDropUpload from "../../components/AvatarDropUpload";
 import cameraIcon from "../../icons/cameraIcon.svg";
+import chevronLeftIcon from "../../icons/chevron-left.svg";
 
 // Hoisted helper components to avoid remounting inputs on each render
-function Field({ label, hint, children }) {
+function Field({ label, mobileLabel, hint, children }) {
+  const displayLabel = mobileLabel !== undefined ? mobileLabel : label;
   return (
     <label className="block">
-      <div className="mb-1 text-xs text-black/70">{label}</div>
+      <div className="mb-1 text-xs md:text-base text-black/70 md:font-medium md:hidden" style={{ fontFamily: "'Inter', sans-serif", fontSize: "14.81px", fontWeight: "500" }}>{displayLabel}</div>
+      <div className="hidden md:block">
+        <div className="mb-1 text-base text-black/70 font-medium" style={{ fontFamily: "'Inter', sans-serif", fontSize: "16px" }}>{label}</div>
+      </div>
       {children}
       {hint ? <div className="mt-1 text-xs text-red-500">{hint}</div> : null}
     </label>
   );
 }
 
-function ToggleRow({ title, description, checked, onChange }) {
+const ToggleRow = memo(function ToggleRow({ title, description, checked, onChange }) {
   return (
     <div className="flex items-center justify-between rounded-lg px-4 py-3" style={{ backgroundColor: "#FFFFFF" }}>
       <div>
@@ -30,20 +35,21 @@ function ToggleRow({ title, description, checked, onChange }) {
         />
 
         <span
-          className={`h-6 w-10 rounded-full transition-colors ${
-            checked ? "bg-teal-600" : "bg-gray-400"
+          className={`md:h-[15px] h-6 md:w-[26px] w-10 rounded-full transition-colors ${
+            checked ? "" : "bg-gray-400"
           }`}
+          style={checked ? { backgroundColor: "#21005D" } : {}}
         >
           <span
-            className={`block h-5 w-5 bg-white rounded-full transition-transform translate-y-[2px] ${
-              checked ? "translate-x-[22px]" : "translate-x-[2px]"
+            className={`block md:h-[13px] md:w-[13px] h-5 w-5 bg-white rounded-full transition-transform md:translate-y-[1px] translate-y-[2px] ${
+              checked ? "md:translate-x-[13px] translate-x-[22px]" : "md:translate-x-[1px] translate-x-[2px]"
             }`}
           />
         </span>
       </label>
     </div>
   );
-}
+});
 
 function EyeIcon() {
   return (
@@ -151,8 +157,8 @@ export default function Settings() {
   const imageChanged = pendingImageUrl !== null && pendingImageUrl !== (me?.imageUrl ?? "");
   const pwAllFilled = !!currentPw && !!newPw && !!confirmPw;
 
-  const canSave =
-    !saving && !loading && (profileChanged || imageChanged || (pwAllFilled && !pwError));
+  // Desktop: Always allow save (canSave is always true for desktop)
+  const canSave = true;
 
   const handleDelete = async () => {
 
@@ -276,18 +282,37 @@ export default function Settings() {
     }
   };
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
+  const handleReminderChange = useCallback((checked) => {
+    setReminder(checked);
+  }, []);
+
   return (
-    <div className="min-h-screen px-6 lg:px-12 py-8" style={{ backgroundColor: "#FFFFFF" }}>
-      <h1 className="text-center text-[22px] font-semibold text-black/90 mb-6">
+    <div className="px-6 lg:px-12 py-8" style={{ backgroundColor: "#FFFFFF", minHeight: "100%" }}>
+      {/* Back button - Mobile only */}
+      <div className="md:hidden mb-4">
+        <button
+          type="button"
+          onClick={handleGoBack}
+          className="flex items-center gap-2 text-black/90 hover:opacity-80 transition-opacity"
+          aria-label="Go back"
+        >
+          <img src={chevronLeftIcon} alt="Back" className="w-5 h-5" />
+          <span className="font-semibold" style={{ fontFamily: "'Inter', sans-serif", fontSize: "24px" }}>Settings</span>
+        </button>
+      </div>
+
+      {/* Desktop: Hide header */}
+      <h1 className="md:hidden text-center text-[22px] font-semibold text-black/90 mb-6">
         Edit user
       </h1>
 
       {/* Personal information */}
       <section className="rounded-2xl p-6 md:p-8 md:px-16 md:py-12 max-w-3xl md:max-w-4xl mx-auto space-y-4" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}>
-        <div className="md:max-w-md md:mx-auto space-y-4">
-        <h2 className="text-center text-sm text-black/70">
-          Personal information
-        </h2>
+        <div className="md:max-w-[442.35px] md:mx-auto space-y-4">
 
         {/* Avatar */}
         <div className="flex justify-center">
@@ -325,7 +350,12 @@ export default function Settings() {
           </div>
         </div>
 
-        <Field label="User name">
+        {/* Desktop: Edit user heading below avatar */}
+        <h1 className="hidden md:block text-center mb-6" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "18px", lineHeight: "18px" }}>
+          Edit user
+        </h1>
+
+        <Field label="User name" mobileLabel="Personal information">
           <input
             className="w-full rounded-lg px-4 py-2 outline-none"
             style={{ backgroundColor: "#FFFFFF" }}
@@ -362,7 +392,7 @@ export default function Settings() {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black/70"
               onClick={() => setShowCurrentPw((v) => !v)}
             >
-              {showCurrentPw ? <EyeOffIcon /> : <EyeIcon />}
+              {showCurrentPw ? <EyeIcon /> : <EyeOffIcon />}
             </button>
           </div>
         </Field>
@@ -383,7 +413,7 @@ export default function Settings() {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black/70"
               onClick={() => setShowNewPw((v) => !v)}
             >
-              {showNewPw ? <EyeOffIcon /> : <EyeIcon />}
+              {showNewPw ? <EyeIcon /> : <EyeOffIcon />}
             </button>
           </div>
         </Field>
@@ -404,7 +434,7 @@ export default function Settings() {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-black/50 hover:text-black/70"
               onClick={() => setShowConfirmPw((v) => !v)}
             >
-              {showConfirmPw ? <EyeOffIcon /> : <EyeIcon />}
+              {showConfirmPw ? <EyeIcon /> : <EyeOffIcon />}
             </button>
           </div>
         </Field>
@@ -412,9 +442,9 @@ export default function Settings() {
       </section>
 
       {/* Notification */}
-      <section className="rounded-2xl p-6 md:p-8 md:px-16 md:py-12 max-w-3xl md:max-w-4xl mx-auto space-y-5 mt-6" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}>
+      <section className="rounded-2xl p-6 md:p-8 md:px-16 md:py-12 max-w-3xl md:max-w-4xl mx-auto space-y-5 md:mt-6" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)", marginTop: "64px" }}>
         <div className="md:max-w-md md:mx-auto space-y-5">
-        <h2 className="text-center text-sm text-black/70">Notification</h2>
+        <h2 className="text-center text-sm md:text-lg md:font-semibold text-black/70" style={{ fontFamily: "'Inter', sans-serif", fontSize: "18px" }}>Notification</h2>
 
         {/* <ToggleRow
           title="Email Notifications"
@@ -426,26 +456,31 @@ export default function Settings() {
           title="Reminders"
           description="Get reminders for events"
           checked={reminder}
-          onChange={setReminder}
+          onChange={handleReminderChange}
         />
         </div>
       </section>
 
       {/* Delete account */}
-      <section className="rounded-2xl p-6 md:p-8 md:px-16 md:py-12 max-w-3xl md:max-w-4xl mx-auto space-y-4 mt-6" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}>
-        <div className="md:max-w-md md:mx-auto space-y-4">
-        <h2 className="text-center text-sm text-black/70">
+      <section className="rounded-2xl p-6 md:p-8 md:px-16 md:py-12 max-w-3xl md:max-w-4xl mx-auto space-y-4 md:mt-6" style={{ backgroundColor: "rgba(0, 143, 136, 0.15)", marginTop: "32px" }}>
+        <div className="md:max-w-[780px] md:mx-auto space-y-4">
+        <h2 className="text-center text-sm md:text-lg md:font-semibold text-black/70" style={{ fontFamily: "'Inter', sans-serif", fontSize: "18px" }}>
           Delete your account
         </h2>
-        <p className="text-xs text-black/60 text-center">
-          When you delete your account, you lose access to BloomUp services, and
-          we permanently delete your personal data.
+        <p className="text-xs md:text-sm text-black/60 text-center">
+          When you delete your account, you lose access to Front account services, and we permanently delete your personal data. You can cancel the deletion for 14 days
         </p>
         <div className="flex justify-center">
           <button
             type="button"
-            className="px-5 py-2 rounded-lg text-black/80 hover:bg-gray-50"
-            style={{ backgroundColor: "#FFFFFF" }}
+            className="px-5 py-2 md:px-0 md:py-0 rounded-lg text-black/80 hover:bg-gray-50 md:font-medium border border-gray-300"
+            style={{ 
+              backgroundColor: "#FFFFFF",
+              width: "354.5px",
+              height: "54px",
+              fontFamily: "'Inter', sans-serif",
+              fontSize: "16px"
+            }}
             onClick={() => handleDelete()}
             disabled={deleting} // disable button during the button cannot be clicked. This avoid trying to delete multiple times.
           >
@@ -456,31 +491,52 @@ export default function Settings() {
       </section>
 
       {/* Save button */}
-      <div className="max-w-3xl md:max-w-4xl mx-auto mt-8">
-        <div className="md:max-w-md md:mx-auto">
+      <div className="max-w-3xl md:max-w-4xl mx-auto mt-8 mb-8">
+        <div className="flex justify-center md:max-w-[442.35px] md:mx-auto md:flex md:gap-4">
+        {/* Desktop: Delete button on the left */}
+        <button
+          type="button"
+          className="hidden md:block px-5 py-2 rounded-lg text-black/80 hover:bg-gray-50 font-medium border border-gray-300"
+          style={{ 
+            backgroundColor: "#FFFFFF",
+            width: "354.5px",
+            height: "54px",
+            fontFamily: "'Inter', sans-serif",
+            fontSize: "16px"
+          }}
+          onClick={() => handleDelete()}
+          disabled={deleting}
+        >
+          {deleting ? "Deleting..." : "Delete"}
+        </button>
         <button
           disabled={!canSave}
           onClick={handleSave}
-          className={`w-full rounded-lg py-3 ${
+          className={`rounded-lg text-white md:w-[354.5px] ${
             canSave
-              ? "text-white"
+              ? ""
               : "bg-gray-400 text-gray-200 cursor-not-allowed"
           }`}
-          style={canSave ? { backgroundColor: "#238D88" } : {}}
+          style={canSave ? { backgroundColor: "#238D88", height: "54px", width: "354.5px" } : { height: "54px", width: "354.5px" }}
         >
-          {saving ? "Saving..." : "Save Changes"}
+          {saving ? "Saving..." : (
+            <>
+              <span className="md:hidden">Save changes</span>
+              <span className="hidden md:inline">Save</span>
+            </>
+          )}
         </button>
         </div>
       </div>
 
-      {/* Back link */}
-      <div className="max-w-3xl md:max-w-4xl mx-auto mt-4 text-center">
+      {/* Back link - Commented out for both mobile and desktop */}
+      {/* <div className="max-w-3xl md:max-w-4xl mx-auto mt-4 text-center">
         <div className="md:max-w-md md:mx-auto">
-        <Link to="/dashboard" className="text-sm text-gray-600 underline">
-          Back to Dashboard
-        </Link>
+          <Link to="/dashboard" className="text-sm text-gray-600 underline">
+            Back to Dashboard
+          </Link>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 

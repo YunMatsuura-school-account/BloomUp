@@ -11,85 +11,106 @@ export default function ReviewReceipt() {
   const API_URL = "http://localhost:8888/api/budget";
   const getToken = () => localStorage.getItem("accessToken");
 
-  const categories = ["Medical", "Education", "Consumable", "Clothes", "Entertainment", "Transport", "Other"];
+  const categories = [
+    "Medical",
+    "Education",
+    "Consumable",
+    "Clothes",
+    "Entertainment",
+    "Transport",
+    "Other",
+  ];
 
- useEffect(() => {
-  console.log("ReviewReceipt - Location state:", location.state);
-  
-  const data = location.state?.receiptData?.receiptData;
-  
-  if (data?.expenses && data.expenses.length > 0) {
-    setReceiptInfo({
-      merchantName: data.merchantName,
-      totalAmount: data.totalAmount,
-      date: data.date,
-      currency: data.currency
-    });
+  useEffect(() => {
+    console.log("ReviewReceipt - Location state:", location.state);
 
-    console.log(` Processing ${data.expenses.length} items from receipt`);
+    const data = location.state?.receiptData?.receiptData;
 
-    // Map each item from the receipt
-    const formattedExpenses = data.expenses.map((exp, idx) => {
-      console.log(`  Item ${idx + 1}: ${exp.description} - ${exp.category} - Qty: ${exp.quantity} - $${exp.amount}`);
-      
-      return {
-        id: idx,
-        date: exp.date || new Date().toISOString().split('T')[0],
-        items: exp.description || "Unknown Item",
-        description: data.merchantName || "Unknown Merchant",
-        category: exp.category || "Other",
-        quantity: exp.quantity || 1,
-        amount: parseFloat(exp.amount) || 0
-      };
-    });
-    
-    // ADD DISCOUNT LINE ITEM IF THERE'S A DIFFERENCE
-    const itemsTotal = formattedExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-    const receiptTotal = data.totalAmount || 0;
-    const difference = itemsTotal - receiptTotal;
-    
-    if (Math.abs(difference) > 0.01) { // If there's more than 1 cent difference
-      console.log(`Discount detected: $${difference.toFixed(2)}`);
-      formattedExpenses.push({
-        id: formattedExpenses.length,
-        date: data.date || new Date().toISOString().split('T')[0],
-        items: "Discount",
-        description: data.merchantName || "Unknown Merchant",
-        category: "Other",
-        quantity: 1,
-        amount: -difference // Negative amount for discount
+    if (data?.expenses && data.expenses.length > 0) {
+      setReceiptInfo({
+        merchantName: data.merchantName,
+        totalAmount: data.totalAmount,
+        date: data.date,
+        currency: data.currency,
       });
+
+      console.log(` Processing ${data.expenses.length} items from receipt`);
+
+      // Map each item from the receipt
+      const formattedExpenses = data.expenses.map((exp, idx) => {
+        console.log(
+          `  Item ${idx + 1}: ${exp.description} - ${exp.category} - Qty: ${
+            exp.quantity
+          } - $${exp.amount}`
+        );
+
+        return {
+          id: idx,
+          date: exp.date || new Date().toISOString().split("T")[0],
+          items: exp.description || "Unknown Item",
+          description: data.merchantName || "Unknown Merchant",
+          category: exp.category || "Other",
+          quantity: exp.quantity || 1,
+          amount: parseFloat(exp.amount) || 0,
+        };
+      });
+
+      // ADD DISCOUNT LINE ITEM IF THERE'S A DIFFERENCE
+      const itemsTotal = formattedExpenses.reduce(
+        (sum, exp) => sum + exp.amount,
+        0
+      );
+      const receiptTotal = data.totalAmount || 0;
+      const difference = itemsTotal - receiptTotal;
+
+      if (Math.abs(difference) > 0.01) {
+        // If there's more than 1 cent difference
+        console.log(`Discount detected: $${difference.toFixed(2)}`);
+        formattedExpenses.push({
+          id: formattedExpenses.length,
+          date: data.date || new Date().toISOString().split("T")[0],
+          items: "Discount",
+          description: data.merchantName || "Unknown Merchant",
+          category: "Other",
+          quantity: 1,
+          amount: -difference, // Negative amount for discount
+        });
+      }
+
+      console.log(
+        `Created ${formattedExpenses.length} expense rows for review`
+      );
+      setExpenses(formattedExpenses);
+    } else {
+      // ... rest of the code
     }
-    
-    console.log(`Created ${formattedExpenses.length} expense rows for review`);
-    setExpenses(formattedExpenses);
-  } else {
-    // ... rest of the code
-  }
-}, [location.state]);
+  }, [location.state]);
   const handleChange = (id, field, value) => {
-    setExpenses(prev => prev.map(exp => 
-      exp.id === id ? { ...exp, [field]: value } : exp
-    ));
+    setExpenses((prev) =>
+      prev.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp))
+    );
   };
 
   const handleRemoveExpense = (id) => {
     if (expenses.length > 1) {
-      setExpenses(prev => prev.filter(exp => exp.id !== id));
+      setExpenses((prev) => prev.filter((exp) => exp.id !== id));
     }
   };
 
   const handleAddExpense = () => {
-    const newId = Math.max(...expenses.map(e => e.id), 0) + 1;
-    setExpenses(prev => [...prev, {
-      id: newId,
-      date: new Date().toISOString().split('T')[0],
-      items: "",
-      description: receiptInfo?.merchantName || "",
-      category: "Other",
-      quantity: 1,
-      amount: 0
-    }]);
+    const newId = Math.max(...expenses.map((e) => e.id), 0) + 1;
+    setExpenses((prev) => [
+      ...prev,
+      {
+        id: newId,
+        date: new Date().toISOString().split("T")[0],
+        items: "",
+        description: receiptInfo?.merchantName || "",
+        category: "Other",
+        quantity: 1,
+        amount: 0,
+      },
+    ]);
   };
 
   const handleSave = async () => {
@@ -100,7 +121,7 @@ export default function ReviewReceipt() {
       return;
     }
 
-    const validExpenses = expenses.filter(exp => exp.amount > 0);
+    const validExpenses = expenses.filter((exp) => exp.amount > 0);
     if (validExpenses.length === 0) {
       alert("Please add at least one expense with a valid amount.");
       return;
@@ -110,64 +131,77 @@ export default function ReviewReceipt() {
     setLoading(true);
 
     try {
-    const savedExpenses = [];
-    
-    // Save EACH item separately - NO GROUPING
-    for (const expense of validExpenses) {
-      
+      const savedExpenses = [];
 
-      const response = await fetch(`${API_URL}/add-manual`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          amount: parseFloat(expense.amount),
-          category: expense.category,
-          productName: expense.items,           
-          merchantName: expense.description,    //
-          date: expense.date,
-          quantity: parseInt(expense.quantity)
-        })
-      });
+      // Save EACH item separately - NO GROUPING
+      for (const expense of validExpenses) {
+        const response = await fetch(`${API_URL}/add-manual`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: parseFloat(expense.amount),
+            category: expense.category,
+            productName: expense.items,
+            merchantName: expense.description, //
+            date: expense.date,
+            quantity: parseInt(expense.quantity),
+          }),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to save ${expense.items}`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(
+            errorData.message || `Failed to save ${expense.items}`
+          );
+        }
+
+        const data = await response.json();
+        console.log(`  Saved expense ID: ${data.expense._id}\n`);
+        savedExpenses.push(data);
       }
 
-      const data = await response.json();
-      console.log(`  Saved expense ID: ${data.expense._id}\n`);
-      savedExpenses.push(data);
+      console.log(
+        `\nSuccessfully saved ${savedExpenses.length} individual expenses!`
+      );
+      alert(
+        `Successfully saved ${savedExpenses.length} expense(s)! Each item is tracked separately.`
+      );
+
+      // Navigate back and trigger refresh
+      navigate("/dashboard/budget", {
+        state: {
+          refreshData: true,
+          message: `${savedExpenses.length} expenses added from receipt`,
+        },
+      });
+    } catch (err) {
+      console.error(" Save error:", err);
+      alert("Failed to save expenses: " + err.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    console.log(`\nSuccessfully saved ${savedExpenses.length} individual expenses!`);
-    alert(`Successfully saved ${savedExpenses.length} expense(s)! Each item is tracked separately.`);
-    
-    // Navigate back and trigger refresh
-    navigate("/dashboard/budget", { 
-      state: { refreshData: true, message: `${savedExpenses.length} expenses added from receipt` } 
-    });
-  } catch (err) {
-    console.error(" Save error:", err);
-    alert("Failed to save expenses: " + err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const totalAmount = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+  const totalAmount = expenses.reduce(
+    (sum, exp) => sum + (parseFloat(exp.amount) || 0),
+    0
+  );
 
   return (
     <>
       {/* Backdrop Blur Overlay */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-[9998]" 
-        style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-        onClick={() => navigate("/dashboard/budget")} 
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-[9998]"
+        style={{
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+        }}
+        onClick={() => navigate("/dashboard/budget")}
       />
-      
+
       {/* Modal Container */}
       <div className="fixed inset-0 flex items-center justify-center z-[9999] p-5 pointer-events-none">
         <div className="pointer-events-auto bg-white rounded-2xl shadow-2xl max-w-7xl w-full max-h-[90vh] overflow-y-auto">
@@ -175,13 +209,22 @@ export default function ReviewReceipt() {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-2xl font-semibold m-0 mb-2 font-sans">Review and Edit Receipt</h2>
+                <h2 className="text-2xl font-semibold m-0 mb-2 font-sans">
+                  Review and Edit Receipt
+                </h2>
                 {receiptInfo && (
                   <div className="text-sm text-gray-600 font-sans">
-                    <span className="font-medium">{receiptInfo.merchantName || "Unknown Merchant"}</span>
-                    {receiptInfo.date && <span className="ml-3">• {receiptInfo.date}</span>}
+                    <span className="font-medium">
+                      {receiptInfo.merchantName || "Unknown Merchant"}
+                    </span>
+                    {receiptInfo.date && (
+                      <span className="ml-3">• {receiptInfo.date}</span>
+                    )}
                     {receiptInfo.totalAmount && (
-                      <span className="ml-3">• Total: {receiptInfo.currency || "$"}{receiptInfo.totalAmount.toFixed(2)}</span>
+                      <span className="ml-3">
+                        • Total: {receiptInfo.currency || "$"}
+                        {receiptInfo.totalAmount.toFixed(2)}
+                      </span>
                     )}
                   </div>
                 )}
@@ -216,7 +259,9 @@ export default function ReviewReceipt() {
                   <input
                     type="date"
                     value={expense.date}
-                    onChange={(e) => handleChange(expense.id, "date", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(expense.id, "date", e.target.value)
+                    }
                     className="px-2 py-2  rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   />
 
@@ -224,7 +269,9 @@ export default function ReviewReceipt() {
                   <input
                     type="text"
                     value={expense.items}
-                    onChange={(e) => handleChange(expense.id, "items", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(expense.id, "items", e.target.value)
+                    }
                     placeholder="Item name"
                     className="px-2 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   />
@@ -233,7 +280,9 @@ export default function ReviewReceipt() {
                   <input
                     type="text"
                     value={expense.description}
-                    onChange={(e) => handleChange(expense.id, "description", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(expense.id, "description", e.target.value)
+                    }
                     placeholder="Store name"
                     className="px-2 py-2  rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   />
@@ -241,11 +290,15 @@ export default function ReviewReceipt() {
                   {/* Category */}
                   <select
                     value={expense.category}
-                    onChange={(e) => handleChange(expense.id, "category", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(expense.id, "category", e.target.value)
+                    }
                     className="px-2 py-2  rounded text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   >
-                    {categories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
                     ))}
                   </select>
 
@@ -253,7 +306,9 @@ export default function ReviewReceipt() {
                   <input
                     type="number"
                     value={expense.quantity}
-                    onChange={(e) => handleChange(expense.id, "quantity", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(expense.id, "quantity", e.target.value)
+                    }
                     min="1"
                     className="px-2 py-2 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-sans"
                   />
@@ -263,21 +318,30 @@ export default function ReviewReceipt() {
                     type="number"
                     step="0.01"
                     value={expense.amount}
-                    onChange={(e) => handleChange(expense.id, "amount", e.target.value)}
+                    onChange={(e) =>
+                      handleChange(expense.id, "amount", e.target.value)
+                    }
                     placeholder="0.00"
                     className="px-2 py-2  rounded text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#238D88] focus:border-transparent font-numbers"
                   />
 
                   {/* Action Buttons */}
                   <div className="flex gap-1 justify-center">
-                    <button 
+                    <button
                       onClick={() => handleRemoveExpense(expense.id)}
                       disabled={expenses.length === 1}
                       className="bg-transparent border-none cursor-pointer p-1 hover:bg-red-50 rounded disabled:opacity-30 disabled:cursor-not-allowed"
                       title="Delete"
                     >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
-                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#ef4444"
+                        strokeWidth="2"
+                      >
+                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                       </svg>
                     </button>
                   </div>
@@ -291,8 +355,15 @@ export default function ReviewReceipt() {
                 onClick={handleAddExpense}
                 className="text-[#238D88] hover:text-[#1a6d69] text-sm font-medium flex items-center gap-2 bg-transparent border-none cursor-pointer font-sans"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 5v14M5 12h14"/>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 5v14M5 12h14" />
                 </svg>
                 Add Another Item
               </button>
@@ -301,7 +372,8 @@ export default function ReviewReceipt() {
             {/* Summary */}
             <div className="px-4 py-4 bg-gray-50 rounded-lg mt-4 flex justify-between items-center">
               <div className="text-sm text-gray-600 font-sans">
-                Total Items: <span className="font-semibold">{expenses.length}</span>
+                Total Items:{" "}
+                <span className="font-semibold">{expenses.length}</span>
               </div>
               <div className="text-lg font-semibold text-gray-800 font-numbers">
                 Total: ${totalAmount.toFixed(2)}
@@ -319,10 +391,14 @@ export default function ReviewReceipt() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={loading || expenses.every(exp => exp.amount === 0)}
+                disabled={loading || expenses.every((exp) => exp.amount === 0)}
                 className="py-3 px-8 bg-[#238D88] text-white border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-[#1a6d69] disabled:cursor-not-allowed disabled:bg-gray-400 font-sans"
               >
-                {loading ? "Saving..." : `Save ${expenses.filter(e => e.amount > 0).length} Expense(s)`}
+                {loading
+                  ? "Saving..."
+                  : `Save ${
+                      expenses.filter((e) => e.amount > 0).length
+                    } Expense(s)`}
               </button>
             </div>
           </div>

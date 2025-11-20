@@ -124,21 +124,32 @@ function VaccinationSection({ selectedChild, userData }) {
       try {
         setLoading(true);
         const base = import.meta.env.VITE_BACKEND_URL || "";
-        const vaccUrl = `${base}/api/users/${userData.id}/children/${selectedChild._id
-          }/vaccinations/recommendations${selectedChild.dateOfBirth
+        const vaccUrl = `${base}/api/users/${userData.id}/children/${
+          selectedChild._id
+        }/vaccinations/recommendations${
+          selectedChild.dateOfBirth
             ? `?birthDate=${encodeURIComponent(selectedChild.dateOfBirth)}`
             : ""
-          }`;
+        }`;
         const vaccRes = await fetch(vaccUrl);
         if (vaccRes.ok) {
           const vaccData = await vaccRes.json();
+          // Show only upcoming (future) vaccinations
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+
           const upcoming = (vaccData?.recommendations || [])
-            .filter((r) => r?.recommendedDate)
+            .filter((r) => {
+              if (!r?.recommendedDate) return false;
+              const vaccDate = new Date(r.recommendedDate);
+              vaccDate.setHours(0, 0, 0, 0);
+              // Only show vaccinations that are today or in the future
+              return vaccDate >= today;
+            })
             .sort(
               (a, b) =>
                 new Date(a.recommendedDate) - new Date(b.recommendedDate)
-            )
-            .slice(0, 2); // Show top 2 upcoming
+            );
           setVaccinations(upcoming);
         }
       } catch (e) {
@@ -157,7 +168,8 @@ function VaccinationSection({ selectedChild, userData }) {
     const date = new Date(dateString);
     const month = date.toLocaleString("en-US", { month: "short" });
     const day = date.getDate();
-    return `You got this dose ${month} ${day}.`;
+    const year = date.getFullYear();
+    return `Due on ${month} ${day}, ${year}.`;
   };
 
   return (
@@ -187,7 +199,7 @@ function VaccinationSection({ selectedChild, userData }) {
             </a>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {vaccinations.map((vacc, index) => (
               <div
                 key={index}
@@ -306,8 +318,9 @@ export default function CalendarPage() {
           params.set("child", selectedChild._id);
         }
 
-        const url = `${import.meta.env.VITE_BACKEND_URL
-          }/api/calendar?${params.toString()}`;
+        const url = `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/calendar?${params.toString()}`;
         const resp = await fetch(url, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -485,10 +498,10 @@ export default function CalendarPage() {
           prevItems.map((i) =>
             i.productName === selectedRestockItem.productName
               ? {
-                ...i,
-                reminderEnabled: true,
-                nextRestockDate: selectedDate.toISOString(),
-              }
+                  ...i,
+                  reminderEnabled: true,
+                  nextRestockDate: selectedDate.toISOString(),
+                }
               : i
           )
         );
@@ -560,6 +573,10 @@ export default function CalendarPage() {
     const end = info.end.toISOString();
 
     try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) return [];
+
+      // Fetch calendar events
       const params = new URLSearchParams();
       params.set("start", start);
       params.set("end", end);
@@ -567,11 +584,12 @@ export default function CalendarPage() {
         params.set("child", selectedChild._id);
       }
 
-      const url = `${import.meta.env.VITE_BACKEND_URL
-        }/api/calendar?${params.toString()}`;
+      const url = `${
+        import.meta.env.VITE_BACKEND_URL
+      }/api/calendar?${params.toString()}`;
       const resp = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
@@ -585,7 +603,7 @@ export default function CalendarPage() {
       const data = await resp.json();
       if (!resp.ok) throw new Error(data?.message || "Failed to load events");
 
-      const fcEvents = (data.events || []).map((ev) => ({
+      let fcEvents = (data.events || []).map((ev) => ({
         id: ev._id,
         title: ev.title, // Only show title, no time
         start: ev.startDate,
@@ -593,6 +611,55 @@ export default function CalendarPage() {
         backgroundColor: ev.color || undefined,
         extendedProps: { raw: ev },
       }));
+
+      // Also fetch vaccination events if a child is selected
+      if (selectedChild?._id && userData?.id && selectedChild?.dateOfBirth) {
+        try {
+          const base = import.meta.env.VITE_BACKEND_URL || "";
+          const vaccUrl = `${base}/api/users/${userData.id}/children/${
+            selectedChild._id
+          }/vaccinations/recommendations${
+            selectedChild.dateOfBirth
+              ? `?birthDate=${encodeURIComponent(selectedChild.dateOfBirth)}`
+              : ""
+          }`;
+          const vaccRes = await fetch(vaccUrl);
+          if (vaccRes.ok) {
+            const vaccData = await vaccRes.json();
+            const vaccinationEvents = (vaccData?.recommendations || [])
+              .filter((r) => {
+                if (!r?.recommendedDate) return false;
+                const vaccDate = new Date(r.recommendedDate);
+                vaccDate.setHours(0, 0, 0, 0); // Normalize to start of day
+                const startDate = new Date(start);
+                startDate.setHours(0, 0, 0, 0);
+                const endDate = new Date(end);
+                endDate.setHours(23, 59, 59, 999); // Include entire end date
+                // Only include vaccinations within the current calendar view range
+                return vaccDate >= startDate && vaccDate <= endDate;
+              })
+              .map((r) => ({
+                id: `vacc-${r.name}-${r.recommendedDate}`, // Unique ID for vaccination
+                title: `${r.name} vaccination`,
+                start: r.recommendedDate,
+                backgroundColor: "#006F69", // Vaccination color
+                extendedProps: {
+                  raw: {
+                    title: `${r.name} vaccination`,
+                    startDate: r.recommendedDate,
+                    type: "vaccination",
+                    color: "#006F69",
+                  },
+                },
+              }));
+            fcEvents = [...fcEvents, ...vaccinationEvents];
+          }
+        } catch (vaccErr) {
+          console.error("Error fetching vaccination events:", vaccErr);
+          // Continue with calendar events even if vaccination fetch fails
+        }
+      }
+
       return fcEvents;
     } catch (err) {
       console.error("Error loading events", err);
@@ -712,28 +779,31 @@ export default function CalendarPage() {
         <div className="flex gap-4 mb-4">
           <button
             onClick={() => handleViewChange("dayGridMonth")}
-            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${currentView === "dayGridMonth"
-              ? "bg-[#238D88] text-white border-[#238D88]"
-              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-              }`}
+            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${
+              currentView === "dayGridMonth"
+                ? "bg-[#238D88] text-white border-[#238D88]"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+            }`}
           >
             Month
           </button>
           <button
             onClick={() => handleViewChange("timeGridWeek")}
-            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${currentView === "timeGridWeek"
-              ? "bg-[#238D88] text-white border-[#238D88]"
-              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-              }`}
+            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${
+              currentView === "timeGridWeek"
+                ? "bg-[#238D88] text-white border-[#238D88]"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+            }`}
           >
             Week
           </button>
           <button
             onClick={() => handleViewChange("timeGridDay")}
-            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${currentView === "timeGridDay"
-              ? "bg-[#238D88] text-white border-[#238D88]"
-              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-              }`}
+            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${
+              currentView === "timeGridDay"
+                ? "bg-[#238D88] text-white border-[#238D88]"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+            }`}
           >
             Day
           </button>
@@ -793,16 +863,17 @@ export default function CalendarPage() {
               eventDisplay="block"
               height="500px"
               // Add these props to remove time display
-              eventTimeFormat={{ // Optional: if you want to control time format
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
+              eventTimeFormat={{
+                // Optional: if you want to control time format
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
               }}
               // For month view, events typically don't show time by default
               // But if they do, you can use eventContent to customize
               eventContent={(eventInfo) => {
                 return {
-                  html: `<div class="fc-event-title">${eventInfo.event.title}</div>`
+                  html: `<div class="fc-event-title">${eventInfo.event.title}</div>`,
                 };
               }}
             />
@@ -927,9 +998,9 @@ export default function CalendarPage() {
         event={
           selectedRestockItem
             ? {
-              title: `Restock: ${selectedRestockItem.productName}`,
-              startDate: selectedRestockItem.nextRestockDate,
-            }
+                title: `Restock: ${selectedRestockItem.productName}`,
+                startDate: selectedRestockItem.nextRestockDate,
+              }
             : null
         }
         customDaysPreview={customRestockDays}

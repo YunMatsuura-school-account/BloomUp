@@ -11,8 +11,18 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
   // Calendar data
   const daysOfWeek = ["Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"];
   const monthNames = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
 
   // Build year options based on events to include future years
@@ -84,14 +94,14 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
     (events || []).forEach((ev) => {
       if (!ev || !ev.date) return;
       const startDate = new Date(ev.date);
-      
+
       // Only include events that start in the current month
       if (startDate < monthStart || startDate > monthEnd) {
         return; // Event doesn't belong to current month
       }
 
       const day = startDate.getDate();
-      
+
       let derivedColor = "#F3BE08"; // default calendar/school
       if (ev.type === "vaccination") derivedColor = "#006F69";
       else if (ev.type === "school") derivedColor = "#F3BE08";
@@ -156,7 +166,7 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
 
   return (
     <div className="space-y-5 h-full flex flex-col">
-      <h2 className="text-lg font-medium text-black">Schedule</h2>
+      <h2 className="text-2xl font-semibold text-black">Schedule</h2>
 
       <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.2)] p-0 overflow-hidden flex-1 flex flex-col">
         {/* Calendar Header */}

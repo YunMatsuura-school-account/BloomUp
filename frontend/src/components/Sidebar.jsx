@@ -132,7 +132,7 @@ export default function Sidebar({
       />
 
       <aside
-        className={`fixed md:relative z-50 left-0 top-0 h-full md:h-screen w-[300px] md:w-[300px] bg-white text-[#232527] transition-transform duration-300 md:transition-none shadow-md md:shadow-none flex flex-col ${
+        className={`fixed md:relative z-50 left-0 top-0 h-full md:h-screen w-[300px] md:w-[300px] bg-white text-[#232527] transition-transform duration-300 md:transition-none shadow-md md:shadow-none flex flex-col no-scrollbar ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
@@ -152,7 +152,7 @@ export default function Sidebar({
               showDropdown,
               setShowDropdown
             )}
-            {children.length > 3 && (
+            {children.length > 4 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -185,7 +185,7 @@ export default function Sidebar({
         </div>
 
         {/* Side_Nav: centered items - scrollable */}
-        <nav className="px-4 mt-6 flex-1 overflow-y-auto">
+        <nav className="px-4 mt-6 flex-1 overflow-y-auto no-scrollbar">
           <ul className="flex flex-col items-center gap-2">
             {navItems.map((item) => (
               <li
@@ -212,7 +212,7 @@ export default function Sidebar({
         </nav>
 
         {/* Bottom Sign out - sticky to bottom */}
-        <div className="flex-shrink-0 px-6 py-5 border-t border-gray-200">
+        <div className="flex-shrink-0 px-6 py-5 border-gray-200">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 justify-start rounded-[12px] px-0 text-[#636363] hover:text-[#238D88] transition-colors"
@@ -258,8 +258,8 @@ function renderChips(
   showDropdown,
   setShowDropdown
 ) {
-  const visibleChildren = children.slice(0, 3);
-  const hiddenChildren = children.slice(3);
+  const visibleChildren = children.slice(0, 4);
+  const hiddenChildren = children.slice(4);
 
   return (
     <>

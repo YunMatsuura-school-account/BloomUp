@@ -114,8 +114,8 @@ const BudgetSummary = () => {
           Math.max(overview.spent, 0),
           Math.max(overview.total - overview.spent, 0),
         ],
-        backgroundColor: ["#238D88", "#E5E7EB"],
-        hoverBackgroundColor: ["#238D88", "#E5E7EB"],
+        backgroundColor: ["#238D88", "rgba(229,231,235,0.6)"],
+        hoverBackgroundColor: ["#238D88", "rgba(229,231,235,0.6)"],
         borderColor: "transparent",
         borderWidth: 0,
         spacing: 0,
@@ -133,7 +133,7 @@ const BudgetSummary = () => {
         enabled: true,
       },
     },
-    cutout: "85%", // thin donut ring per Figma
+    cutout: "90%", // very thin arc
     maintainAspectRatio: true,
     responsive: true,
     elements: {
@@ -194,7 +194,9 @@ const BudgetSummary = () => {
 
   return (
     <div className="space-y-0 h-full flex flex-col">
-      <h2 className="text-lg font-medium text-black">Budget Summary</h2>
+      <h2 className="text-2xl font-semibold text-black ml-1 pb-4">
+        Budget Summary
+      </h2>
       <div className="flex flex-col flex-1">
         {loading ? (
           <div className="flex-1 bg-white rounded-[15px] flex items-center justify-center">
@@ -254,16 +256,16 @@ const BudgetSummary = () => {
             </div>
           </div>
         ) : (
-          <div className="flex-1 bg-[#EFEFEF] rounded-[15px] p-6 flex flex-col gap-6 min-h-0">
+          <div className="flex-1 bg-[#EFEFEF] rounded-[15px] p-0 flex flex-col gap-6 min-h-0">
             {/* Main Chart Card */}
             <div className="bg-white rounded-[15px] p-6 shadow-sm">
-              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-6">
+              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-0">
                 Expenses for {monthLabel}
               </h3>
 
               {/* Large Donut Chart - Full Circle */}
-              <div className="flex justify-center items-center py-6">
-                <div className="relative w-[280px] h-[280px]">
+              <div className="flex justify-center items-center py-2">
+                <div className="relative w-[300px] h-[300px]">
                   <Doughnut
                     data={budgetData}
                     options={chartOptions}
@@ -271,7 +273,7 @@ const BudgetSummary = () => {
                     style={{ transform: "rotate(222deg)" }}
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <p className="text-4xl font-bold text-black">
+                    <p className="text-4xl font-medium text-black">
                       $
                       {overview.spent.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
@@ -288,51 +290,51 @@ const BudgetSummary = () => {
               {categories.map((category, index) => (
                 <div
                   key={`${category.name}-${index}`}
-                  className="bg-white rounded-[15px] p-5 shadow-sm flex flex-col items-center gap-0 relative min-h-[160px]"
+                  className="bg-white rounded-[15px] p-6 shadow-sm flex flex-col items-center gap-2 relative min-h-[200px]"
                 >
                   {/* Donut Background Ring with 30% gap at bottom */}
-                  <div className="relative w-[130px] h-[130px] -mb-3">
+                  <div className="relative w-[180px] h-[180px] mb-[-70px]">
                     <svg
                       className="w-full h-full"
                       viewBox="0 0 100 100"
-                      style={{ transform: "rotate(157deg)" }}
+                      style={{ transform: "rotate(159deg)" }}
                     >
                       {/* Background track (gray) - 70% of circle */}
                       <circle
                         cx="50"
                         cy="50"
-                        r="45"
+                        r="43"
                         fill="none"
                         stroke="#E5E7EB"
-                        strokeWidth="10"
-                        strokeDasharray="178 283"
+                        strokeWidth="5"
+                        strokeDasharray="168 270"
                         strokeLinecap="round"
                       />
                       {/* Progress arc (teal) */}
                       <circle
                         cx="50"
                         cy="50"
-                        r="45"
+                        r="43"
                         fill="none"
                         stroke="#238D88"
-                        strokeWidth="10"
+                        strokeWidth="5"
                         strokeDasharray={`${
-                          (categories[index]?.percent || 0) * 178
-                        } 283`}
+                          (categories[index]?.percent || 0) * 168
+                        } 270`}
                         strokeLinecap="round"
                         style={{ transition: "stroke-dasharray 0.3s ease" }}
                       />
                     </svg>
                     {/* Center amount */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <p className="text-lg font-bold text-black">
+                    <div className="absolute inset-0 flex items-center justify-center translate-y-[-6px]">
+                      <p className="text-2xl font-medium text-black">
                         {category.amount}
                       </p>
                     </div>
                   </div>
 
                   {/* Category Name */}
-                  <p className="text-lg font-bold text-black text-center -mt-3">
+                  <p className="text-lg font-semibold text-black text-center mt-1">
                     {category.name}
                   </p>
                 </div>

@@ -130,141 +130,144 @@ const AIInsights = () => {
   const showEmptyState = !loading && !hasBudgetActivity;
 
   return (
-    <div className="space-y-5 h-full flex flex-col">
-      <h2 className="text-lg font-medium text-black">
+    <div className="h-full flex flex-col">
+      <h2 className="text-2xl font-semibold text-black ml-1 pb-4">
         AI Insight & Suggestion
       </h2>
 
-      <div className="bg-white rounded-2xl py-9 px-[45px] flex-1 flex flex-col min-h-0">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center gap-6 flex-1">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#238D88]"></div>
-            <p className="text-large font-medium text-black leading-7">
-              Loading AI insights…
-            </p>
-          </div>
-        ) : showEmptyState ? (
-          <div className="flex-1 flex flex-col items-center justify-center w-full">
-            <div className="relative w-full max-w-3xl bg-white rounded-[32px] border border-gray-200 shadow-md overflow-hidden px-6 py-8 min-h-[420px] sm:min-h-[480px]">
-              <div className="space-y-4 opacity-50 pointer-events-none select-none">
-                <div className="h-12 rounded-2xl bg-gradient-to-r from-[#F4F4F4] to-white border border-gray-200 flex items-center px-5 text-sm text-gray-400">
-                  📊 This month’s top spending: Education (36%), up 12% from
-                  last month.
+      <div className="flex-1 bg-[#EFEFEF] rounded-[15px] p-0 flex flex-col min-h-0">
+        <div className="flex-1 bg-white rounded-[20px] px-[45px] py-9 flex flex-col min-h-0 shadow-sm">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center gap-6 flex-1">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#238D88]"></div>
+              <p className="text-large font-medium text-black leading-7">
+                Loading AI insights…
+              </p>
+            </div>
+          ) : showEmptyState ? (
+            <div className="flex-1 flex flex-col items-center justify-center w-full">
+              <div className="relative w-full max-w-3xl bg-white rounded-[32px] border border-gray-200 shadow-md overflow-hidden px-6 py-8 min-h-[420px] sm:min-h-[480px]">
+                <div className="space-y-4 opacity-50 pointer-events-none select-none">
+                  <div className="h-12 rounded-2xl bg-gradient-to-r from-[#F4F4F4] to-white border border-gray-200 flex items-center px-5 text-sm text-gray-400">
+                    📊 This month’s top spending: Education (36%), up 12% from
+                    last month.
+                  </div>
+                  <div className="rounded-2xl border border-gray-200 bg-gradient-to-r from-[#FEFDF9] to-[#FBFBFB] px-5 py-4 flex flex-col gap-2">
+                    <p className="text-base font-semibold text-gray-700">
+                      💡 Suggestion
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Consider lowering Consumables by 10% to balance next
+                      month’s budget.
+                    </p>
+                  </div>
+                  <button
+                    disabled
+                    className="h-12 rounded-2xl bg-gray-200 text-gray-500 font-semibold"
+                  >
+                    Refresh
+                  </button>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-gradient-to-r from-[#FEFDF9] to-[#FBFBFB] px-5 py-4 flex flex-col gap-2">
-                  <p className="text-base font-semibold text-gray-700">
-                    💡 Suggestion
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Consider lowering Consumables by 10% to balance next month’s
-                    budget.
-                  </p>
-                </div>
-                <button
-                  disabled
-                  className="h-12 rounded-2xl bg-gray-200 text-gray-500 font-semibold"
-                >
-                  Refresh
-                </button>
-              </div>
 
-              <div className="absolute inset-x-6 top-1/2 -translate-y-1/2 bg-white rounded-[24px] border border-gray-200 shadow-[0_20px_45px_rgba(35,141,136,0.08)] px-8 py-10 flex flex-col items-center text-center gap-4">
-                <BulbIcon />
-                <h3 className="text-2xl font-semibold text-[#111111]">
-                  AI Insight & Suggestions
+                <div className="absolute inset-x-6 top-1/2 -translate-y-1/2 bg-white rounded-[24px] border border-gray-200 shadow-[0_20px_45px_rgba(35,141,136,0.08)] px-8 py-10 flex flex-col items-center text-center gap-4">
+                  <BulbIcon />
+                  <h3 className="text-2xl font-semibold text-[#111111]">
+                    AI Insight & Suggestions
+                  </h3>
+                  <p className="text-base text-[#4B4E57] max-w-md">
+                    Once you add your first expenses, BloomUp will show smart
+                    insights here.
+                  </p>
+                  <button
+                    onClick={() => navigate("/dashboard/budget")}
+                    className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-8 py-3 text-[#1C1C1C] font-semibold text-base leading-[22px] shadow-[0_10px_25px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
+                  >
+                    Budget Setup&nbsp;+
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-[44px] flex-1">
+              {/* Main Content Section - Figma: gap 51px, height 437px */}
+              <div className="flex flex-col items-center gap-[41px] w-full">
+                {/* Title */}
+                <h3 className="text-2xl font-semibold text-black leading-4 text-center w-full">
+                  AI Insight & Suggestion
                 </h3>
-                <p className="text-base text-[#4B4E57] max-w-md">
-                  Once you add your first expenses, BloomUp will show smart
-                  insights here.
-                </p>
-                <button
-                  onClick={() => navigate("/dashboard/budget")}
-                  className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-8 py-3 text-[#1C1C1C] font-semibold text-base leading-[22px] shadow-[0_10px_25px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
-                >
-                  Budget Setup&nbsp;+
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-[44px]">
-            {/* Main Content Section - Figma: gap 51px, height 437px */}
-            <div className="flex flex-col items-center gap-[41px] w-full">
-              {/* Title */}
-              <h3 className="text-2xl font-semibold text-black leading-4 text-center w-full">
-                AI Insight & Suggestion
-              </h3>
 
-              {/* Top Spending Text */}
-              {top ? (
-                <p className="text-large font-medium text-black leading-7 text-left w-full">
-                  📊 This month's top spending: {top.category} ({top.percent}%)
-                  {typeof top.deltaFromLastMonth === "number"
-                    ? `, ${
-                        top.deltaFromLastMonth > 0 ? "up" : "down"
-                      } ${Math.abs(top.deltaFromLastMonth)}% from last month.`
-                    : "."}
-                </p>
-              ) : (
-                <p className="text-large font-medium text-black leading-7 text-left w-full">
-                  No insights available yet.
-                </p>
-              )}
-
-              {/* Suggestion & Prediction Cards - Figma: gap 20px */}
-              <div className="flex flex-col items-center gap-5 w-full">
-                {suggestions.length > 0 && (
-                  <div className="bg-[rgba(243,190,8,0.5)] rounded-[15px] py-5 px-[30px] w-full">
-                    <div className="flex flex-col gap-1.5 w-full">
-                      <p className="text-large font-medium text-black leading-7 w-full">
-                        💡 Suggestion
-                      </p>
-                      {suggestions.map((s, idx) => (
-                        <p
-                          key={idx}
-                          className="text-base font-medium text-black leading-[22.4px] w-full"
-                        >
-                          {s.text}
-                          {s.percentChange != null
-                            ? ` (${s.category}: ${
-                                s.percentChange > 0 ? "+" : ""
-                              }${s.percentChange}%)`
-                            : ""}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
+                {/* Top Spending Text */}
+                {top ? (
+                  <p className="text-xl font-semibold text-black leading-8 text-center w-full max-w-3xl mx-auto">
+                    📊 This month's top spending: {top.category} ({top.percent}
+                    %)
+                    {typeof top.deltaFromLastMonth === "number"
+                      ? `, ${
+                          top.deltaFromLastMonth > 0 ? "up" : "down"
+                        } ${Math.abs(top.deltaFromLastMonth)}% from last month.`
+                      : "."}
+                  </p>
+                ) : (
+                  <p className="text-xl font-semibold text-black leading-8 text-center w-full max-w-3xl mx-auto">
+                    No insights available yet.
+                  </p>
                 )}
 
-                {predictions.length > 0 && (
-                  <div className="bg-[rgba(243,190,8,0.5)] rounded-[15px] py-5 px-[30px] w-full">
-                    <div className="flex flex-col gap-1.5 w-full">
-                      <p className="text-large font-medium text-black leading-7 w-full">
-                        🔮 Prediction
-                      </p>
-                      {predictions.map((p, idx) => (
-                        <p
-                          key={idx}
-                          className="text-base font-medium text-black leading-[22.4px] w-full"
-                        >
-                          {p.text} {p.likelihood ? `(${p.likelihood})` : ""}
+                {/* Suggestion & Prediction Cards - Figma: gap 20px */}
+                <div className="flex flex-col items-center gap-5 w-full max-w-3xl mx-auto">
+                  {suggestions.length > 0 && (
+                    <div className="bg-[rgba(243,190,8,0.5)] rounded-[15px] py-5 px-[30px] w-full">
+                      <div className="flex flex-col gap-1.5 w-full">
+                        <p className="text-large font-medium text-black leading-7 w-full">
+                          💡 Suggestion
                         </p>
-                      ))}
+                        {suggestions.map((s, idx) => (
+                          <p
+                            key={idx}
+                            className="text-base font-medium text-black leading-[22.4px] w-full"
+                          >
+                            {s.text}
+                            {s.percentChange != null
+                              ? ` (${s.category}: ${
+                                  s.percentChange > 0 ? "+" : ""
+                                }${s.percentChange}%)`
+                              : ""}
+                          </p>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            </div>
+                  )}
 
-            {/* Adjust Budget Button - Figma: 461x54px, padding 15px 136px */}
-            <button
-              onClick={handleAdjustBudget}
-              className="bg-[#238D88] text-white font-semibold text-base leading-[22.4px] py-[15px] px-[136px] rounded-[15px] hover:bg-[#1a6d68] transition-colors"
-            >
-              Refresh
-            </button>
-          </div>
-        )}
+                  {predictions.length > 0 && (
+                    <div className="bg-[rgba(243,190,8,0.5)] rounded-[15px] py-5 px-[30px] w-full">
+                      <div className="flex flex-col gap-1.5 w-full">
+                        <p className="text-large font-medium text-black leading-7 w-full">
+                          🔮 Prediction
+                        </p>
+                        {predictions.map((p, idx) => (
+                          <p
+                            key={idx}
+                            className="text-base font-medium text-black leading-[22.4px] w-full"
+                          >
+                            {p.text} {p.likelihood ? `(${p.likelihood})` : ""}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Adjust Budget Button - Figma: 461x54px, padding 15px 136px */}
+              <button
+                onClick={handleAdjustBudget}
+                className="bg-[#238D88] text-white font-semibold text-base leading-[22.4px] py-[15px] px-[136px] rounded-[15px] hover:bg-[#1a6d68] transition-colors"
+              >
+                Refresh
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
