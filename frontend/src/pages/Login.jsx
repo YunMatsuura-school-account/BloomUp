@@ -130,7 +130,10 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col lg:flex-row">
+    <div
+      className="min-h-screen w-full bg-white flex flex-col lg:flex-row"
+      style={{ fontFamily: "DM Sans, sans-serif" }}
+    >
       {/* Left Side - Gradient Background with Text */}
       <div className="hidden lg:flex lg:w-[40%] relative overflow-hidden flex-shrink-0">
         {/* Gradient Background */}
@@ -154,162 +157,165 @@ export default function Login() {
         </div>
 
         {/* Marketing Text */}
-        <div className="absolute left-[50px] right-[50px] top-[38%] flex flex-col gap-[28px] z-10">
+        <div className="absolute left-[50px] right-[50px] top-[30%] flex flex-col gap-6 z-10">
           <h2
-            className="text-white text-[38px] lg:text-[44px] xl:text-[50px] font-extrabold leading-[1.3]"
+            className="text-white text-[40px] lg:text-[48px] xl:text-[54px] font-extrabold leading-[1.15]"
             style={{ fontFamily: "DM Sans, sans-serif" }}
           >
-            Let's make parenting
+            Welcome back to
             <br />
-            easier together.
+            your family hub!
           </h2>
           <p
-            className="text-white text-[16px] lg:text-[18px] xl:text-[20px] font-medium leading-[1.4]"
+            className="text-white text-[16px] lg:text-[18px] xl:text-[20px] font-medium leading-[1.5]"
             style={{ fontFamily: "DM Sans, sans-serif" }}
           >
-            Organize your family life, track budgets,
+            Continue managing your schedules, budgets, and moments.
             <br />
-            and never miss a school event again
-            <br />
-            all in one calm, supportive space made for parents like you.
+            All in one calm and organized space.
           </p>
         </div>
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 lg:w-[60%] flex flex-col items-center justify-start px-4 lg:px-8 xl:px-12">
-        {/* Header Text */}
-        <div className="w-full flex justify-center mt-[60px] lg:mt-[70px] xl:mt-[80px] mb-[40px] lg:mb-[50px]">
+      <div className="flex-1 lg:w-[60%] flex flex-col items-center justify-center px-4 lg:px-12 xl:px-16 py-10">
+        <div className="w-full flex justify-center mb-8">
           <h1
-            className="text-[34px] lg:text-[38px] xl:text-[40px] font-semibold text-center leading-[1.4] text-[#232527]"
+            className="text-[34px] lg:text-[40px] font-semibold text-center leading-[1.4] text-[#232527]"
             style={{ fontFamily: "DM Sans, sans-serif" }}
           >
-            Let's get started
+            Welcome back!
           </h1>
         </div>
 
-        {/* Sign Up Card */}
+        {/* Login Card */}
         <div
-          className="w-full max-w-[500px] lg:max-w-[640px] rounded-[24px] px-[45px] lg:px-[70px] py-[38px] lg:py-[42px] "
-          style={{ background: "rgba(0, 143, 136, 0.15)" }}
+          className="w-full max-w-[580px] rounded-[24px] px-[42px] lg:px-[52px] py-[34px] lg:py-[42px]"
+          style={{ background: "#008F8826" }}
         >
-          <form
-            onSubmit={handleLogin}
-            className="flex flex-col items-center gap-[38px] lg:gap-[42px]"
+          <h2
+            className="text-[20px] lg:text-[24px] font-semibold text-center text-[#161616] mb-8"
+            style={{ fontFamily: "DM Sans, sans-serif" }}
           >
-            {/* Title */}
-            <h2
-              className="text-[22px] lg:text-[23px] xl:text-[24px] font-semibold leading-[1.3] text-center text-[#161616]"
-              style={{ fontFamily: "DM Sans, sans-serif" }}
-            >
-              Login
-            </h2>
+            Log In
+          </h2>
 
-            {/* Form Fields */}
-            <div className="w-full flex flex-col gap-[15px]">
+          <form onSubmit={handleLogin} className="flex flex-col gap-[24px]">
+            {/* Title */}
+            <div className="flex flex-col gap-4 items-center w-full">
               {/* Email */}
-              <div className="flex flex-col gap-[6px]">
+              <div className="flex flex-col gap-2 w-full max-w-[460px]">
                 <label
-                  className="text-[13px] lg:text-[14px] font-medium leading-[1.4] text-[#636363]"
+                  className="text-sm font-medium text-[#2F3E46]"
                   style={{ fontFamily: "DM Sans, sans-serif" }}
                 >
                   Enter email
                 </label>
-                <div className="bg-white rounded-[15px] px-[22px] lg:px-[24px] py-[14px] h-[52px] lg:h-[54px] flex items-center">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full bg-transparent outline-none text-[15px] lg:text-[16px] font-normal leading-[1.4] text-[#232527]"
-                    style={{ fontFamily: "DM Sans, sans-serif" }}
-                  />
-                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full bg-white rounded-[18px] h-[54px] px-5 text-[15px] outline-none focus:ring-2 focus:ring-[#238D88]"
+                  style={{ fontFamily: "DM Sans, sans-serif" }}
+                />
               </div>
 
               {/* Password */}
-              <div className="flex flex-col gap-[6px]">
+              <div className="flex flex-col gap-2 w-full max-w-[460px]">
                 <label
-                  className="text-[13px] lg:text-[14px] font-medium leading-[1.4] text-[#636363]"
+                  className="text-sm font-medium text-[#2F3E46]"
                   style={{ fontFamily: "DM Sans, sans-serif" }}
                 >
                   Password
                 </label>
-                <div className="bg-white rounded-[15px] px-[18px] py-[8px] h-[52px] lg:h-[54px] flex items-center justify-between gap-[10px]">
+                <div className="bg-white rounded-[18px] h-[54px] flex items-center px-4 shadow-inner">
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="flex-1 bg-transparent outline-none text-[15px] lg:text-[16px] font-normal leading-[1.4] text-[#232527]"
+                    className="flex-1 bg-transparent outline-none text-[15px] text-[#232527]"
                     style={{ fontFamily: "DM Sans, sans-serif" }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="flex-shrink-0 w-[18px] h-[18px] lg:w-[20px] lg:h-[20px] flex items-center justify-center"
+                    className="text-[#7A7A7A] hover:text-[#238D88] transition"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     {showPassword ? (
                       <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 20 20"
+                        className="w-5 h-5"
+                        viewBox="0 0 24 24"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="lg:w-5 lg:h-5"
                       >
                         <path
-                          d="M1.67 10S4.17 4.17 10 4.17 18.33 10 18.33 10 15.83 15.83 10 15.83 1.67 10 1.67 10Z"
-                          stroke="#232527"
+                          d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
+                          stroke="currentColor"
                           strokeWidth="1.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
                         <circle
-                          cx="10"
-                          cy="10"
-                          r="2.5"
-                          stroke="#232527"
+                          cx="12"
+                          cy="12"
+                          r="3"
+                          stroke="currentColor"
                           strokeWidth="1.5"
+                        />
+                        <path
+                          d="m3 3 18 18"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
                         />
                       </svg>
                     ) : (
                       <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 20 20"
+                        className="w-5 h-5"
+                        viewBox="0 0 24 24"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="lg:w-5 lg:h-5"
                       >
                         <path
-                          d="M1.67 1.67l16.66 16.66M8.82 8.82a2.5 2.5 0 1 0 3.54 3.54"
-                          stroke="#232527"
+                          d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
+                          stroke="currentColor"
                           strokeWidth="1.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-                        <path
-                          d="M8.23 4.48A8 8 0 0 1 10 4.17c5.83 0 8.33 5.83 8.33 5.83a11 11 0 0 1-1.39 2.23M5.51 5.51A11.33 11.33 0 0 0 1.67 10s2.5 5.83 8.33 5.83a8.12 8.12 0 0 0 4.49-1.34"
-                          stroke="#232527"
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="3"
+                          stroke="currentColor"
                           strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
                         />
                       </svg>
                     )}
                   </button>
                 </div>
+
+                {/* <div className="w-full flex justify-start">
+                  <button
+                    type="button"
+                    className="text-xs font-medium text-[#636363] underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div> */}
               </div>
             </div>
 
             {/* Actions */}
-            <div className="w-full flex flex-col gap-[12px]">
-              {/* Sign Up Button */}
+            <div className="w-full flex flex-col gap-5">
               <button
                 type="submit"
-                className="w-full bg-[#238D88] rounded-[15px] px-[20px] py-[15px] h-[52px] lg:h-[54px] flex items-center justify-center text-white text-[15px] lg:text-[16px] font-semibold leading-[1.4] hover:bg-[#1d7470] transition-colors"
-                style={{ fontFamily: "DM Sans, sans-serif" }}
+                className="w-full bg-[#238D88] rounded-[20px] h-[52px] text-white text-[16px] font-semibold hover:bg-[#1d7470] transition"
               >
                 Log In
               </button>
@@ -317,17 +323,17 @@ export default function Login() {
               {/* Already have account */}
               <div className="flex items-center justify-center gap-[4px]">
                 <span
-                  className="text-[13px] lg:text-[14px] font-medium leading-[1.4] text-[#636363]"
+                  className="text-sm font-medium text-[#636363]"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
-                  Create an account?
+                  Don’t have an account?
                 </span>
                 <Link to="/signup" className="px-[8px]">
                   <span
-                    className="text-[13px] lg:text-[14px] font-medium leading-[1.4] text-[#404040] border-b border-[#404040]"
+                    className="text-sm font-medium text-[#636363] underline"
                     style={{ fontFamily: "Inter, sans-serif" }}
                   >
-                    Sign Up
+                    Sign up
                   </span>
                 </Link>
               </div>
