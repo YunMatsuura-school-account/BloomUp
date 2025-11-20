@@ -21,6 +21,8 @@ function DashboardLayout() {
   const isArticlesPage = location.pathname.startsWith("/articles");
   // Check if current route is a child-dashboard page (should not show Dashboard Header on mobile)
   const isChildDashboardPage = location.pathname.startsWith("/child-dashboard");
+  // Check if current route is a settings page (should not show Dashboard Header on desktop)
+  const isSettingsPage = location.pathname === "/settings";
 
   return (
     <ChildProvider>
@@ -32,14 +34,15 @@ function DashboardLayout() {
 
         {/* Main content area */}
         <div className="flex-1 flex flex-col bg-[#414049] overflow-hidden">
-          {/* Dashboard Header - shown on all pages except Articles and child-dashboard (mobile) */}
-          {/* TODO: Re-enable Header for child-dashboard if needed in the future */}
-          {/* Uncomment the line below to restore Header for child-dashboard: */}
-          {/* {!isArticlesPage && <Header />} */}
-          {!isArticlesPage && !isChildDashboardPage && <Header />}
+          {/* Dashboard Header - shown on all pages except Articles, and only on mobile for child-dashboard and settings */}
+          {!isArticlesPage && (
+            <div className={isChildDashboardPage || isSettingsPage ? "md:hidden" : ""}>
+              <Header />
+            </div>
+          )}
 
           {/* Scrollable content area */}
-          <div className="flex-1 overflow-y-auto no-scrollbar p-0">
+          <div className="flex-1 overflow-y-auto no-scrollbar p-0" style={{ minHeight: 0 }}>
             <Outlet />
           </div>
         </div>
