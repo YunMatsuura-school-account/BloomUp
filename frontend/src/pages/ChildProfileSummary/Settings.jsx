@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom"; // useLocation: receive state info from navigate()
 import AvatarDropUpload from "../../components/AvatarDropUpload";
 import cameraIcon from "../../icons/cameraIcon.svg";
+import chevronLeftIcon from "../../icons/chevron-left.svg";
 
 // Hoisted helper components to avoid remounting inputs on each render
 function Field({ label, hint, children }) {
@@ -276,8 +277,25 @@ export default function Settings() {
     }
   };
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="min-h-screen px-6 lg:px-12 py-8" style={{ backgroundColor: "#FFFFFF" }}>
+      {/* Back button - Mobile only */}
+      <div className="md:hidden mb-4">
+        <button
+          type="button"
+          onClick={handleGoBack}
+          className="flex items-center gap-2 text-black/90 font-medium hover:opacity-80 transition-opacity"
+          aria-label="Go back"
+        >
+          <img src={chevronLeftIcon} alt="Back" className="w-5 h-5" />
+          <span>Settings</span>
+        </button>
+      </div>
+
       <h1 className="text-center text-[22px] font-semibold text-black/90 mb-6">
         Edit user
       </h1>

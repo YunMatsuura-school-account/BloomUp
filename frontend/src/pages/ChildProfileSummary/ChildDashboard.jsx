@@ -66,7 +66,7 @@ export default function ChildDashboard() {
     const start = startIso ? new Date(startIso) : null;
     const end = endIso ? new Date(endIso) : null;
     
-    if (!start) return "";
+    if (!start) return [];
     
     const formatDate = (d) => {
       return d.toLocaleDateString(undefined, {
@@ -76,7 +76,7 @@ export default function ChildDashboard() {
     };
     
     const formatTime = (d) => {
-      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
     };
     
     if (start && end) {
@@ -87,17 +87,31 @@ export default function ChildDashboard() {
       
       // If same day, show: "Oct 03 10:00 ~ 14:30"
       if (startDate === endDate) {
-        return `${startDate} ${startTime} ~ ${endTime}`;
+        return [
+          { type: "date", text: startDate },
+          { type: "time", text: startTime },
+          { type: "separator", text: " ~ " },
+          { type: "time", text: endTime }
+        ];
       }
       // If different days, show: "Oct 03 10:00 ~ Oct 06 14:30"
-      return `${startDate} ${startTime} ~ ${endDate} ${endTime}`;
+      return [
+        { type: "date", text: startDate },
+        { type: "time", text: startTime },
+        { type: "separator", text: " ~ " },
+        { type: "date", text: endDate },
+        { type: "time", text: endTime }
+      ];
     }
     
     if (start) {
-      return `${formatDate(start)} ${formatTime(start)}`;
+      return [
+        { type: "date", text: formatDate(start) },
+        { type: "time", text: formatTime(start) }
+      ];
     }
     
-    return "";
+    return [];
   };
 
   const fetchEvents = async (userId, token) => {
@@ -247,7 +261,7 @@ export default function ChildDashboard() {
   return (
     <div className="page-surface">
       {/* Mobile Header - shown only on mobile (md:hidden) */}
-      <div className="md:hidden w-full bg-[#F5F5F5] flex items-center justify-between px-6 py-4">
+      <div className="md:hidden w-full bg-[#FFFFFF] flex items-center justify-between px-6 py-4">
         {/* Bell Icon - Left */}
         <button
           ref={bellRef}
@@ -364,8 +378,31 @@ export default function ChildDashboard() {
                   setIsAddEventModalOpen(true);
                 }}
               >
-                <div className="text-sm text-black/60 text-right">
-                  <span className="font-semibold">{dateTimeRange}</span>
+                <div className="text-sm text-right">
+                  {dateTimeRange.map((part, index) => {
+                    if (part.type === "date") {
+                      return (
+                        <span key={index} className="text-black font-semibold">
+                          {part.text}
+                        </span>
+                      );
+                    } else if (part.type === "time") {
+                      const prevPart = index > 0 ? dateTimeRange[index - 1] : null;
+                      const needsSpace = prevPart && prevPart.type === "date";
+                      return (
+                        <span key={index} className="text-black/60 font-normal">
+                          {needsSpace ? " " : ""}
+                          {part.text}
+                        </span>
+                      );
+                    } else {
+                      return (
+                        <span key={index} className="text-black/60 font-normal">
+                          {part.text}
+                        </span>
+                      );
+                    }
+                  })}
                 </div>
 
                 <div className="mt-3 flex items-start gap-3">

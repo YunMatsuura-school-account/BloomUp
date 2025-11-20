@@ -1,8 +1,8 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import ChildAvatar from "../components/ChildAvatar";
 import AvatarSelectionModal from "../components/AvatarSelectionModal";
-import cameraIcon from "../icons/cameraIcon.svg";
+import pencilIcon from "../icons/pencil.svg";
 import chevronLeftIcon from "../icons/chevron-left.svg";
 
 export default function AddChild() {
@@ -34,6 +34,8 @@ export default function AddChild() {
     gender: "",
     medicalHistory: "",
   });
+
+  const dateInputRef = useRef(null);
 
   // Avatar selection state
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
@@ -220,7 +222,7 @@ export default function AddChild() {
               className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
               aria-label="Change avatar"
             >
-              <img src={cameraIcon} alt="Camera icon" className="w-10 h-10" />
+              <img src={pencilIcon} alt="Edit icon" className="w-10 h-10" />
             </button>
           </div>
         </div>
@@ -250,14 +252,47 @@ export default function AddChild() {
         />
 
         <label className="block text-sm font-medium mb-1">Date of birth</label>
-        <input
-          type="date"
-          name="dateOfBirth"
-          value={form.dateOfBirth}
-          onChange={onChange}
-          className="w-full rounded-lg px-3 py-2 mb-4"
-          style={{ backgroundColor: "#FFFFFF" }}
-        />
+        <div className="relative mb-4">
+          <input
+            ref={dateInputRef}
+            type="date"
+            name="dateOfBirth"
+            value={form.dateOfBirth}
+            onChange={onChange}
+            className="w-full rounded-lg px-3 py-2 pr-10 date-input-custom"
+            style={{ backgroundColor: "#FFFFFF" }}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (dateInputRef.current) {
+                if ('showPicker' in dateInputRef.current) {
+                  dateInputRef.current.showPicker();
+                } else {
+                  dateInputRef.current.click();
+                }
+              }
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+            aria-label="Open date picker"
+          >
+            <svg 
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path 
+                d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z" 
+                stroke="#808080" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
 
         <label className="block text-sm font-medium mb-1">Gender</label>
         <select
