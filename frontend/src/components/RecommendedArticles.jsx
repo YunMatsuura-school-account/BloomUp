@@ -11,7 +11,7 @@ const RecommendedArticles = () => {
         setLoading(true);
         const base = import.meta.env.VITE_BACKEND_URL || "";
         const token = localStorage.getItem("accessToken");
-        
+
         // Try to fetch recommended articles (requires authentication)
         if (token) {
           try {
@@ -20,7 +20,7 @@ const RecommendedArticles = () => {
                 Authorization: `Bearer ${token}`,
               },
             });
-            
+
             if (resp.ok) {
               const json = await resp.json();
               if (json.success && json.data && json.data.length > 0) {
@@ -33,7 +33,7 @@ const RecommendedArticles = () => {
             // Fall through to default fetch
           }
         }
-        
+
         // Fallback: fetch regular articles if recommended fails or no token
         const resp = await fetch(`${base}/api/articles?limit=4&page=1`);
         let json = {};
@@ -102,7 +102,7 @@ const RecommendedArticles = () => {
 
   return (
     <div className="flex flex-col justify-center items-center gap-4 w-full">
-      <h2 className="text-lg font-medium text-black w-full">
+      <h2 className="text-2xl font-semibold text-black w-full">
         Recommended Articles
       </h2>
 

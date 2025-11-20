@@ -365,7 +365,9 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
 
   return (
     <div className="h-full flex flex-col">
-      <h2 className="text-lg font-medium text-black mb-3">Upcoming Events</h2>
+      <h2 className="text-2xl font-semibold text-black ml-6">
+        Upcoming Events
+      </h2>
 
       <div className="bg-[#EFEFEF] rounded-lg flex flex-col h-[520px]">
         <div className="flex-1 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent scrollbar-none">

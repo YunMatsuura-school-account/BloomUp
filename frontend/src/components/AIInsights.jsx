@@ -131,7 +131,7 @@ const AIInsights = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <h2 className="text-lg font-medium text-black mb-3">
+      <h2 className="text-2xl font-semibold text-black ml-7">
         AI Insight & Suggestion
       </h2>
 

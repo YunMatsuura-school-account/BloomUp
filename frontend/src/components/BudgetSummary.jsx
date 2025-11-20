@@ -194,7 +194,7 @@ const BudgetSummary = () => {
 
   return (
     <div className="space-y-0 h-full flex flex-col">
-      <h2 className="text-lg font-medium text-black">Budget Summary</h2>
+      <h2 className="text-2xl font-semibold text-black ml-7">Budget Summary</h2>
       <div className="flex flex-col flex-1">
         {loading ? (
           <div className="flex-1 bg-white rounded-[15px] flex items-center justify-center">
