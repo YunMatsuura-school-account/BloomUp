@@ -6,6 +6,18 @@ import pencilIcon from "../icons/pencil.svg";
 import cameraIcon from "../icons/cameraIcon.svg";
 import chevronLeftIcon from "../icons/chevron-left.svg";
 
+// Background colors for avatars (must match AvatarSelectionModal)
+const BACKGROUND_COLORS = [
+  "#0073E7", // Blue
+  "#8CC7D8", // Light Blue
+  "#0CC68E", // Green
+  "#B76EF6", // Purple
+  "#6400C7", // Dark Purple
+  "#FF95B8", // Pink
+  "#F3BE08", // Yellow
+  "#E95900", // Orange
+];
+
 export default function AddChild() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,9 +55,10 @@ export default function AddChild() {
   // Avatar selection state
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState({
-    avatarIndex: null, // null means no avatar selected (will show initials)
-    avatarName: null,
-    backgroundColor: null,
+    // Default to White Bear (index 4) for Add child, null for Edit child
+    avatarIndex: isEdit ? null : 4, // 4 = White Bear
+    avatarName: isEdit ? null : "White Bear",
+    backgroundColor: isEdit ? null : "#0073E7", // Default background color
   });
 
   useEffect(() => {
@@ -77,6 +90,13 @@ export default function AddChild() {
           backgroundColor: null,
         });
       }
+    } else if (!isEdit) {
+      // Set default White Bear avatar for Add child mode
+      setSelectedAvatar({
+        avatarIndex: 4, // 4 = White Bear
+        avatarName: "White Bear",
+        backgroundColor: BACKGROUND_COLORS[6], // Yellow (#F3BE08) - default background color
+      });
     }
   }, [isEdit, editChild]);
 
@@ -207,7 +227,12 @@ export default function AddChild() {
           style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}
         >
           <div className="md:max-w-[463px] md:mx-auto">
-        {/* Edit child title - Mobile only, shown above avatar */}
+        {/* Title - shown above avatar for both Add child and Edit child (mobile), and Add child (desktop) */}
+        {!isEdit && (
+          <h2 className="text-center font-semibold mb-6" style={{ fontFamily: "'Inter', sans-serif", fontSize: "24px" }}>
+            Add child
+          </h2>
+        )}
         {isEdit && (
           <h2 className="md:hidden text-center font-semibold mb-6" style={{ fontFamily: "'Inter', sans-serif", fontSize: "20px" }}>
             Edit child
@@ -231,21 +256,25 @@ export default function AddChild() {
                 </div>
               </div>
             </button>
-            <button
-              type="button"
-              onClick={() => setIsAvatarModalOpen(true)}
-              className={`absolute -bottom-1 -right-1 w-10 h-10 md:w-[44px] md:h-[44px] rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity ${isEdit ? "border border-black" : ""}`}
-              aria-label="Change avatar"
-            >
-              <img src={isEdit ? cameraIcon : pencilIcon} alt={isEdit ? "Camera icon" : "Edit icon"} className="w-10 h-10 md:w-[44px] md:h-[44px]" />
-            </button>
+            {isEdit && (
+              <button
+                type="button"
+                onClick={() => setIsAvatarModalOpen(true)}
+                className="absolute -bottom-1 -right-1 w-10 h-10 md:w-[44px] md:h-[44px] rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity border border-black"
+                aria-label="Change avatar"
+              >
+                <img src={cameraIcon} alt="Camera icon" className="w-10 h-10 md:w-[44px] md:h-[44px]" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Add child title - always shown, Edit child title - Desktop only */}
-        <h2 className={`text-center ${isEdit ? "hidden md:block font-normal" : "font-semibold"} mb-6`} style={isEdit ? { fontFamily: "'DM Sans', sans-serif", lineHeight: "18px" } : {}}>
-          {isEdit ? "Edit child" : "Add child"}
-        </h2>
+        {/* Edit child title - Desktop only, shown below avatar */}
+        {isEdit && (
+          <h2 className="hidden md:block text-center font-normal mb-6" style={{ fontFamily: "'DM Sans', sans-serif", lineHeight: "18px" }}>
+            Edit child
+          </h2>
+        )}
 
         {/* Avatar Selection Modal */}
         <AvatarSelectionModal
