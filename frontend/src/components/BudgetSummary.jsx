@@ -194,7 +194,9 @@ const BudgetSummary = () => {
 
   return (
     <div className="space-y-0 h-full flex flex-col">
-      <h2 className="text-2xl font-semibold text-black ml-7">Budget Summary</h2>
+      <h2 className="text-2xl font-semibold text-black ml-1 pb-4">
+        Budget Summary
+      </h2>
       <div className="flex flex-col flex-1">
         {loading ? (
           <div className="flex-1 bg-white rounded-[15px] flex items-center justify-center">
@@ -254,7 +256,7 @@ const BudgetSummary = () => {
             </div>
           </div>
         ) : (
-          <div className="flex-1 bg-[#EFEFEF] rounded-[15px] p-6 flex flex-col gap-6 min-h-0">
+          <div className="flex-1 bg-[#EFEFEF] rounded-[15px] p-0 flex flex-col gap-6 min-h-0">
             {/* Main Chart Card */}
             <div className="bg-white rounded-[15px] p-6 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-0">

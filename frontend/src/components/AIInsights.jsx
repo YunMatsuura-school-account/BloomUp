@@ -131,11 +131,11 @@ const AIInsights = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <h2 className="text-2xl font-semibold text-black ml-7">
+      <h2 className="text-2xl font-semibold text-black ml-1 pb-4">
         AI Insight & Suggestion
       </h2>
 
-      <div className="flex-1 bg-[#EFEFEF] rounded-[15px] p-6 flex flex-col min-h-0">
+      <div className="flex-1 bg-[#EFEFEF] rounded-[15px] p-0 flex flex-col min-h-0">
         <div className="flex-1 bg-white rounded-[20px] px-[45px] py-9 flex flex-col min-h-0 shadow-sm">
           {loading ? (
             <div className="flex flex-col items-center justify-center gap-6 flex-1">

@@ -126,31 +126,33 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#EFEFEF]">
-      <div className="px-6 py-5">
-        <div className="w-full max-w-[95%] 2xl:max-w-[1600px] mx-auto space-y-8">
-          {/* Row 1: Budget (left) + AI Insights (right) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
+      <div className="px-4 lg:px-10 py-6">
+        <div className="w-full max-w-[1728px] mx-auto space-y-10">
+          {/* Row 1: Budget Summary & AI Insights */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            <div className="min-w-0">
               <BudgetSummary />
             </div>
-            <div>
+            <div className="min-w-0">
               <AIInsights />
             </div>
           </div>
 
-          {/* Row 2: Calendar (left) + Upcoming Events (right) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
+          {/* Row 2: Schedule & Upcoming Events */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            <div className="min-w-0">
               <ScheduleCalendar events={calendarEvents} />
             </div>
-            <div>
+            <div className="min-w-0">
               <UpcomingEvents selectedChild={selectedChild} />
             </div>
           </div>
 
-          {/* Row 3: Articles full width */}
-          <div>
-            <RecommendedArticles />
+          {/* Row 3: Articles */}
+          <div className="grid grid-cols-12">
+            <div className="col-span-12">
+              <RecommendedArticles />
+            </div>
           </div>
         </div>
       </div>

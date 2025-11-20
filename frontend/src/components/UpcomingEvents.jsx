@@ -365,7 +365,7 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
 
   return (
     <div className="h-full flex flex-col">
-      <h2 className="text-2xl font-semibold text-black ml-6">
+      <h2 className="text-2xl font-semibold text-black ml-1">
         Upcoming Events
       </h2>
 
@@ -404,7 +404,7 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
           )}
 
           {!loading && events.length > 0 && (
-            <div className="px-4 pt-4 pb-2 space-y-4">
+            <div className="px-0 pt-4 pb-2 space-y-4">
               {events.map((event) => {
                 const dateSegments = getDateSegments(
                   event.startDate,
