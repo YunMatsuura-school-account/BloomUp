@@ -266,7 +266,8 @@ export default function CalendarPage() {
   const [selectedRestockItem, setSelectedRestockItem] = useState(null);
   const [showRestockCustomModal, setShowRestockCustomModal] = useState(false);
   const [customRestockDays, setCustomRestockDays] = useState("");
-
+// const [restockCacheInfo, setRestockCacheInfo] = useState(null);
+// const [refreshingRestock, setRefreshingRestock] = useState(false);
   // Load user data
   useEffect(() => {
     const loadUserData = async () => {
@@ -385,37 +386,67 @@ export default function CalendarPage() {
 
   // Fetch ALL restock items (no category filter)
   useEffect(() => {
-    const fetchRestockItems = async () => {
-      try {
-        setLoadingRestock(true);
-        const token = localStorage.getItem("accessToken");
-        if (!token) return;
+  const fetchRestockItems = async () => {
+    try {
+      setLoadingRestock(true);
+      const token = localStorage.getItem("accessToken");
+      if (!token) return;
 
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/budget/restock-items`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log(" Restock items:", data.items);
-          setRestockItems(data.items || []);
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/budget/restock-items`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
-      } catch (error) {
-        console.error("Error fetching restock items:", error);
-      } finally {
-        setLoadingRestock(false);
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("📦 Restock items:", data.items);
+        setRestockItems(data.items || []);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching restock items:", error);
+    } finally {
+      setLoadingRestock(false);
+    }
+  };
 
-    fetchRestockItems();
-  }, []);
+  fetchRestockItems();
+}, []);
+const handleRefreshRestock = async () => {
+  try {
+    setRefreshingRestock(true);
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
 
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/budget/restock-items?refresh=true`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      setRestockItems(data.items || []);
+      setRestockCacheInfo({
+        cached: data.cached,
+        cacheAge: data.cacheAge,
+        nextRefresh: data.nextRefresh
+      });
+    }
+  } catch (error) {
+    console.error("Error refreshing restock items:", error);
+  } finally {
+    setRefreshingRestock(false);
+  }
+};
   // Handle toggle reminder
   const handleToggleReminder = async (item) => {
     const newState = !item.reminderEnabled;
@@ -758,7 +789,48 @@ export default function CalendarPage() {
       year: "numeric",
     });
   }
-
+// Category Icons function
+const getCategoryIcon = (category) => {
+  const iconStyle = "w-8 h-8"; // Adjust size as needed
+  
+  switch(category?.toLowerCase()) {
+    case 'consumable':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="39" height="35" viewBox="0 0 39 35" fill="none" className={iconStyle}>
+          <ellipse cx="15.7694" cy="31.8241" rx="2.67568" ry="2.6757" fill="#238D88" stroke="#238D88"/>
+          <ellipse cx="28.2577" cy="31.8241" rx="2.67568" ry="2.6757" fill="#238D88" stroke="#238D88"/>
+          <path d="M1.5 1.5H5.43266L7.44368 10.1693M7.44368 10.1693C7.44368 10.1693 10.3485 23.6548 11.3317 24.618C12.3148 25.5813 13.298 25.5813 13.298 25.5813H30.995C30.995 25.5813 31.9781 25.5813 32.9613 24.618C33.9445 23.6548 36.894 12.0958 36.894 12.0958C36.894 12.0958 37.5278 10.1693 36.894 10.1693C36.2601 10.1693 7.44368 10.1693 7.44368 10.1693Z" stroke="#238D88" strokeWidth="3" strokeLinecap="round"/>
+        </svg>
+      );
+    
+    case 'medical':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="37" height="34" viewBox="0 0 37 34" fill="none" className={iconStyle}>
+          <path d="M11.6901 8.27778C11.6901 8.27778 11.7136 7.39372 11.6901 4.88889C11.6667 2.38406 12.5507 1.5 15.079 1.5C17.6073 1.5 21.8568 1.5 21.8568 1.5C24.457 1.5122 25.2457 2.38406 25.2457 4.88889C25.2457 7.39372 25.2457 8.27778 25.2457 8.27778M11.6901 8.27778H6.60678C4.65817 8.27778 3.42122 9.97222 3.21789 11.6667L1.52345 28.6111C1.32011 30.3056 2.43845 32 4.91233 32H32.0234C34.4973 32 35.6157 30.3056 35.4123 28.6111L33.7179 11.6667C33.5146 9.97222 32.1251 8.27778 30.329 8.27778H25.2457M11.6901 8.27778H25.2457" stroke="#238D88" strokeWidth="3"/>
+        </svg>
+      );
+    
+    case 'education':
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="91" height="82" viewBox="0 0 91 82" fill="none" className={iconStyle}>
+          <rect x="3.25" y="3.25" width="84" height="75" rx="10" stroke="#232527" strokeWidth="6.5" strokeLinecap="round"/>
+          <line x1="15.5" y1="32" x2="75" y2="32" stroke="#232527" strokeWidth="6.5" strokeLinecap="round"/>
+        </svg>
+      );
+    
+    case 'other':
+    default:
+      return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="33" height="39" viewBox="0 0 33 39" fill="none" className={iconStyle}>
+          <mask id="path-1-outside-1_4234_11619" maskUnits="userSpaceOnUse" x="-0.994141" y="0" width="34" height="39" fill="black">
+            <rect fill="white" x="-0.994141" width="34" height="39"/>
+            <path d="M16.1016 3.1123C16.2886 2.96026 16.5577 2.96285 16.7412 3.11914L29.0645 13.6133C29.4182 13.9148 29.2051 14.4931 28.7402 14.4932H27.0986V35.8408H22.0986V31.1074C22.0985 28.8984 20.3077 27.1074 18.0986 27.1074H15.0986C12.8896 27.1074 11.0988 28.8984 11.0986 31.1074V35.8408H5.09863V14.4932H3.50684C3.03614 14.4932 2.82615 13.9024 3.19141 13.6055L16.1016 3.1123Z"/>
+          </mask>
+          <path d="M16.1016 3.1123L17.9937 5.44032L17.9938 5.4403L16.1016 3.1123ZM16.7412 3.11914L18.6862 0.835097L18.6862 0.835032L16.7412 3.11914ZM29.0645 13.6133L31.0106 11.3302L31.0095 11.3292L29.0645 13.6133ZM28.7402 14.4932V17.4932H28.7403L28.7402 14.4932ZM27.0986 14.4932V11.4932H24.0986V14.4932H27.0986ZM27.0986 35.8408V38.8408H30.0986V35.8408H27.0986ZM22.0986 35.8408H19.0986V38.8408H22.0986V35.8408ZM22.0986 31.1074H25.0986V31.1072L22.0986 31.1074ZM18.0986 27.1074V24.1074V27.1074ZM15.0986 27.1074V24.1074V27.1074ZM11.0986 31.1074L8.09863 31.1072V31.1074H11.0986ZM11.0986 35.8408V38.8408H14.0986V35.8408H11.0986ZM5.09863 35.8408H2.09863V38.8408H5.09863V35.8408ZM5.09863 14.4932H8.09863V11.4932H5.09863V14.4932ZM3.19141 13.6055L1.29923 11.2774L1.29919 11.2775L3.19141 13.6055ZM16.1016 3.1123L17.9938 5.4403C17.0627 6.19707 15.7181 6.18824 14.7963 5.40325L16.7412 3.11914L18.6862 0.835032C17.3972 -0.26253 15.5146 -0.276563 14.2094 0.784313L16.1016 3.1123ZM16.7412 3.11914L14.7962 5.40318L27.1194 15.8973L29.0645 13.6133L31.0095 11.3292L18.6862 0.835097L16.7412 3.11914ZM29.0645 13.6133L27.1183 15.8964C25.3487 14.388 26.4166 11.4932 28.7401 11.4932L28.7402 14.4932L28.7403 17.4932C31.9937 17.4931 33.4876 13.4417 31.0106 11.3302L29.0645 13.6133ZM28.7402 14.4932V11.4932H27.0986V14.4932V17.4932H28.7402V14.4932ZM27.0986 14.4932H24.0986V35.8408H27.0986H30.0986V14.4932H27.0986ZM27.0986 35.8408V32.8408H22.0986V35.8408V38.8408H27.0986V35.8408ZM22.0986 35.8408H25.0986V31.1074H22.0986H19.0986V35.8408H22.0986ZM22.0986 31.1074L25.0986 31.1072C25.0984 27.2417 21.9647 24.1074 18.0986 24.1074V27.1074V30.1074C18.6506 30.1074 19.0986 30.5551 19.0986 31.1076L22.0986 31.1074ZM18.0986 27.1074V24.1074H15.0986V27.1074V30.1074H18.0986V27.1074ZM15.0986 27.1074V24.1074C11.2325 24.1074 8.09891 27.2417 8.09863 31.1072L11.0986 31.1074L14.0986 31.1076C14.0987 30.5551 14.5467 30.1074 15.0986 30.1074V27.1074ZM11.0986 31.1074H8.09863V35.8408H11.0986H14.0986V31.1074H11.0986ZM11.0986 35.8408V32.8408H5.09863V35.8408V38.8408H11.0986V35.8408ZM5.09863 35.8408H8.09863V14.4932H5.09863H2.09863V35.8408H5.09863ZM5.09863 14.4932V11.4932H3.50684V14.4932V17.4932H5.09863V14.4932ZM3.50684 14.4932V11.4932C5.8579 11.4932 6.91179 14.4475 5.08362 15.9335L3.19141 13.6055L1.29919 11.2775C-1.2595 13.3572 0.214373 17.4932 3.50684 17.4932V14.4932ZM3.19141 13.6055L5.08358 15.9335L17.9937 5.44032L16.1016 3.1123L14.2094 0.784286L1.29923 11.2774L3.19141 13.6055Z" fill="#238D88" mask="url(#path-1-outside-1_4234_11619)"/>
+        </svg>
+      );
+  }
+};
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Welcome Section */}
@@ -891,71 +963,79 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* Restock Items Section */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-1">
-            Reminder for restocking items
-          </h3>
-          <p className="text-sm text-gray-500">
-            Enable the toggle to receive reminders for specific items.
-          </p>
-        </div>
+     
+{/* Restock Items Section */}
+<div className="p-6">
+  <div className="mb-6">
+    <h3 className="text-lg font-semibold text-gray-800 mb-1">
+      Reminder for restocking items
+    </h3>
+    <p className="text-sm text-gray-500">
+      Enable the toggle to receive reminders for specific items.
+    </p>
+  </div>
 
-        {loadingRestock ? (
-          <div className="text-center py-12 text-gray-500">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#238D88] mx-auto mb-4"></div>
-            <p className="text-sm">Loading restock items...</p>
-          </div>
-        ) : restockItems.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 mb-3">
-              No recurring purchases found in your history.
-            </p>
-            <div className="border-2 border-dashed border-[#F3BE08] bg-amber-50 rounded-lg p-6 max-w-md mx-auto">
-              <p className="text-gray-700 text-sm">
-                Items you purchase regularly (at least twice) will appear here
-                automatically!
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {restockItems.map((item, index) => (
-              <div
-                key={index}
-                className={`border rounded-lg p-4 transition-all ${item.reminderEnabled}`}
-              >
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-gray-800 mb-1 text-sm leading-tight">
-                      {item.productName}
-                    </h4>
-                    <p className="text-xs text-gray-500">{item.category}</p>
-                  </div>
 
-                  <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={item.reminderEnabled}
-                      onChange={() => handleToggleReminder(item)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-400"></div>
-                  </label>
-                </div>
-
-                <div className="text-xs text-gray-600 mb-3 space-y-1">
-                  <div>
-                    <span className="font-medium">Last purchased:</span>{" "}
-                    {item.lastPurchasedText}
-                  </div>
+  {loadingRestock ? (
+    <div className="text-center py-12 text-gray-500">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#238D88] mx-auto mb-4"></div>
+      <p className="text-sm">Loading restock items...</p>
+    </div>
+  ) : restockItems.length === 0 ? (
+    <div className="text-center py-12">
+      <p className="text-gray-500 mb-3">
+        No recurring purchases found in your history.
+      </p>
+      <div className="border-2 border-dashed border-[#F3BE08] bg-amber-50 rounded-lg p-6 max-w-md mx-auto">
+        <p className="text-gray-700 text-sm">
+          Items you purchase regularly (at least twice) will appear here
+          automatically!
+        </p>
+      </div>
+    </div>
+  ) : (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {restockItems.map((item, index) => (
+        <div
+          key={index}
+          className={`border rounded-lg p-4 bg-white transition-all ${item.reminderEnabled}`}
+        >
+          <div className="flex items-start justify-between gap-3 mb-3">
+            {/* UPDATED: Added icon container with circular background */}
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              {/* Category Icon with Circular Background */}
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-[#238D88]/10 rounded-full flex items-center justify-center">
+                  {getCategoryIcon(item.category)}
                 </div>
               </div>
-            ))}
+              
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-gray-800 mb-1 text-sm leading-tight">
+                  {item.productName}
+                </h4>
+                <p className="text-xs text-gray-500">{item.category}</p>
+                <div>
+                  <p className="text-xs text-gray-500">Last purchased: {item.lastPurchasedText}</p>
+                </div>
+              </div>
+            </div>
+
+            <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+              <input
+                type="checkbox"
+                checked={item.reminderEnabled}
+                onChange={() => handleToggleReminder(item)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-400"></div>
+            </label>
           </div>
-        )}
-      </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
 
       {/* Vaccination Section */}
       <VaccinationSection selectedChild={selectedChild} userData={userData} />

@@ -705,92 +705,57 @@ function Budget() {
   };
 
   const calculateMonthlySpendingData = async () => {
-    try {
-      const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth(); // 0-11
-      const token = getToken();
-
-      if (!token) return;
-
-      console.log('Fetching monthly spending with historical budgets...');
-
-      const response = await fetch(`${API_URL}/monthly-spending?year=${currentYear}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        console.error("Failed to fetch monthly spending data");
-        calculateMonthlySpendingDataFallback();
-        return;
-      }
-
-      const data = await response.json();
-      console.log(' Monthly spending data from API:', data);
-
-      const monthlyData = data.months.map((monthData, index) => {
-        let monthlyBudget = 0;
-        
-        if (monthData.budget) {
-          if (selectedCategory === 'All') {
-            monthlyBudget = monthData.budget.total || 0;
-            console.log(`Month ${index + 1}: Using historical budget: $${monthlyBudget}`);
-          } else {
-            const categoryBudget = monthData.budget.categories[selectedCategory];
-            monthlyBudget = categoryBudget ? categoryBudget.allocated : 0;
-            console.log(`Month ${index + 1} (${selectedCategory}): Using historical budget: $${monthlyBudget}`);
-          }
-        } else {
-          console.log(`Month ${index + 1}: No budget data found`);
-        }
-        
-        const spent = monthData.total || 0;
-        const withinBudget = monthlyBudget > 0 ? Math.min(spent, monthlyBudget) : spent;
-        const overBudget = monthlyBudget > 0 ? Math.max(0, spent - monthlyBudget) : 0;
-
-        return {
-          month: index,
-          spent,
-          withinBudget,
-          overBudget,
-          monthlyBudget,
-          isPastMonth: index < currentMonth
-        };
-      });
-
-      console.log('Final processed monthly data:', monthlyData);
-      setMonthlySpending(monthlyData);
-
-    } catch (error) {
-      console.error("Error in calculateMonthlySpendingData:", error);
-      calculateMonthlySpendingDataFallback();
-    }
-  };
-
-  const calculateMonthlySpendingDataFallback = () => {
+  try {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth(); // 0-11
-    
-    let currentMonthlyBudget = overview.total || 0;
-    if (
-      selectedCategory !== "All" &&
-      overview.categories &&
-      overview.categories.length > 0
-    ) {
-      const categoryData = overview.categories.find(
-        (cat) => cat.name === selectedCategory
-      );
-      currentMonthlyBudget = categoryData ? categoryData.allocated || 0 : 0;
+    const token = getToken();
+
+    if (!token) return;
+
+    console.log('Fetching monthly spending with historical budgets for category:', selectedCategory);
+
+    // First, fetch all expenses for the year
+    const expensesResponse = await fetch(`${API_URL}/expenses/year/${currentYear}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!expensesResponse.ok) {
+      console.error("Failed to fetch expenses data");
+      calculateMonthlySpendingDataFallback();
+      return;
     }
+
+    const allExpenses = await expensesResponse.json();
     
-    const months = Array(12).fill(0);
-    
+    // Filter expenses by selected category if not "All"
     const filteredExpenses = selectedCategory === 'All' 
-      ? expenses 
-      : expenses.filter(exp => exp.category === selectedCategory);
+      ? allExpenses 
+      : allExpenses.filter(exp => exp.category === selectedCategory);
+
+    // Now fetch monthly spending data to get historical budgets
+    const monthlyResponse = await fetch(`${API_URL}/monthly-spending?year=${currentYear}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!monthlyResponse.ok) {
+      console.error("Failed to fetch monthly spending data");
+      calculateMonthlySpendingDataFallback();
+      return;
+    }
+
+    const data = await monthlyResponse.json();
+    console.log('Monthly spending data from API:', data);
+
+    // Calculate monthly spending for the filtered expenses
+    const monthlySpendingByMonth = Array(12).fill(0);
     
     filteredExpenses.forEach(expense => {
       const expenseDate = new Date(expense.date);
@@ -798,13 +763,28 @@ function Budget() {
       
       if (expenseYear === currentYear) {
         const monthIndex = expenseDate.getUTCMonth();
-        months[monthIndex] += expense.amount || 0;
+        monthlySpendingByMonth[monthIndex] += expense.amount || 0;
       }
     });
-    
-    const monthlyData = months.map((spent, index) => {
-      const monthlyBudget = currentMonthlyBudget;
+
+    const monthlyData = data.months.map((monthData, index) => {
+      let monthlyBudget = 0;
       
+      if (monthData.budget) {
+        if (selectedCategory === 'All') {
+          monthlyBudget = monthData.budget.total || 0;
+          console.log(`Month ${index + 1}: Using historical total budget: $${monthlyBudget}`);
+        } else {
+          // Check if the category exists in the historical budget
+          const categoryBudget = monthData.budget.categories?.[selectedCategory];
+          monthlyBudget = categoryBudget ? categoryBudget.allocated : 0;
+          console.log(`Month ${index + 1} (${selectedCategory}): Using historical category budget: $${monthlyBudget}`);
+        }
+      } else {
+        console.log(`Month ${index + 1}: No budget data found`);
+      }
+      
+      const spent = monthlySpendingByMonth[index] || 0;
       const withinBudget = monthlyBudget > 0 ? Math.min(spent, monthlyBudget) : spent;
       const overBudget = monthlyBudget > 0 ? Math.max(0, spent - monthlyBudget) : 0;
 
@@ -818,8 +798,61 @@ function Budget() {
       };
     });
 
+    console.log('Final processed monthly data with category filter:', monthlyData);
     setMonthlySpending(monthlyData);
-  };
+
+  } catch (error) {
+    console.error("Error in calculateMonthlySpendingData:", error);
+    calculateMonthlySpendingDataFallback();
+  }
+};
+
+const calculateMonthlySpendingDataFallback = () => {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth(); // 0-11
+  
+  // Filter expenses by selected category
+  const filteredExpenses = selectedCategory === 'All' 
+    ? expenses 
+    : expenses.filter(exp => exp.category === selectedCategory);
+  
+  const months = Array(12).fill(0);
+  
+  filteredExpenses.forEach(expense => {
+    const expenseDate = new Date(expense.date);
+    const expenseYear = expenseDate.getUTCFullYear();
+    
+    if (expenseYear === currentYear) {
+      const monthIndex = expenseDate.getUTCMonth();
+      months[monthIndex] += expense.amount || 0;
+    }
+  });
+  
+  // Use current budget for all months (fallback behavior)
+  let currentMonthlyBudget = overview.total || 0;
+  if (selectedCategory !== "All" && overview.categories && overview.categories.length > 0) {
+    const categoryData = overview.categories.find((cat) => cat.name === selectedCategory);
+    currentMonthlyBudget = categoryData ? categoryData.allocated || 0 : 0;
+  }
+  
+  const monthlyData = months.map((spent, index) => {
+    const monthlyBudget = currentMonthlyBudget;
+    
+    const withinBudget = monthlyBudget > 0 ? Math.min(spent, monthlyBudget) : spent;
+    const overBudget = monthlyBudget > 0 ? Math.max(0, spent - monthlyBudget) : 0;
+
+    return {
+      month: index,
+      spent,
+      withinBudget,
+      overBudget,
+      monthlyBudget,
+      isPastMonth: index < currentMonth
+    };
+  });
+
+  setMonthlySpending(monthlyData);
+};
 
   const calculateWeeklySpending = () => {
     const currentDate = new Date();
@@ -1401,46 +1434,47 @@ function Budget() {
                 ) : (
                   <>
                     <div className="hidden md:block flex-1 overflow-hidden bg-white rounded-lg shadow-sm">
-                      <div className="overflow-y-auto overflow-x-auto" style={{ maxHeight: 'calc(647px - 180px)' }}>
-                        <table className="w-full min-w-[800px]">
-                          <thead className="sticky top-0 bg-[rgba(35,141,136,0.15)] z-10">
-                            <tr className="border-b-2 border-[#1a6d69]">
-                              <th className="text-left py-4 px-4 text-[12px] md:text-[16px] font-semibold font-sans">Date</th>
-                              <th className="text-left py-4 px-4 text-[12px] md:text-[16px] font-semibold font-sans">Description</th>
-                              <th className="text-left py-4 px-4 text-[12px] md:text-[16px] font-semibold font-sans">Category</th>
-                              <th className="text-center py-4 px-4 text-[12px] md:text-[16px] font-semibold font-sans">Quantity</th>
-                              <th className="text-right py-4 px-4 text-[12px] md:text-[16px] font-semibold font-sans">Amount</th>
-                              <th className="text-center py-4 px-4 text-[12px] md:text-[16px] font-semibold font-sans">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {filteredExpenses.map((expense, index) => (
-                              <tr 
-                                key={expense.id}
-                                className={`border-b ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
-                              >
-                                <td className="py-4 px-4 text-sm text-gray-800 font-medium font-sans">{formatDate(expense.date)}</td>
-                                <td className="py-4 px-4 text-sm text-gray-800 font-sans">{expense.merchantName}</td>
-                                <td className="py-4 px-4 text-sm text-gray-800 font-sans">
-                                  <span className="px-4 py-4 text-sm text-gray-800 font-sans">
-                                    {expense.category || 'Other'}
-                                  </span>
-                                </td>
-                                <td className="py-4 px-4 text-sm text-gray-800 text-center font-sans">{expense.totalQuantity}</td>
-                                <td className="py-4 px-4 text-sm text-gray-900 text-right font-numbers">${expense.totalAmount?.toFixed(2) || '0.00'}</td>
-                                <td className="py-4 px-4 text-center">
-                                  <ThreeDotMenu
-                                    expense={expense.items[0]}
-                                    onEdit={() => setEditingExpense(expense.items[0])}
-                                    onDelete={() => handleDeleteGroupedExpense(expense)}
-                                  />
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+  <div className="flex flex-col h-full" style={{ height: 'calc(647px - 180px)' }}>
+    {/* Fixed Header */}
+    <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] min-w-[800px] bg-[rgba(35,141,136,0.15)] border-b-2 border-[#1a6d69] flex-shrink-0">
+      <div className="text-left py-4 px-4 text-[12px] md:text-[16px] font-semibold font-sans">Date</div>
+      <div className="text-left py-4 px-4 text-[12px] md:text-[16px] font-semibold font-sans">Description</div>
+      <div className="text-left py-4 px-4 text-[12px] md:text-[16px] font-semibold font-sans">Category</div>
+      <div className="text-center py-4 px-4 text-[12px] md:text-[16px] font-semibold font-sans">Quantity</div>
+      <div className="text-right py-4 px-4 text-[12px] md:text-[16px] font-semibold font-sans">Amount</div>
+      <div className="text-center py-4 px-4 text-[12px] md:text-[16px] font-semibold font-sans">Action</div>
+    </div>
+    
+    {/* Scrollable Body */}
+    <div className="flex-1 overflow-y-auto overflow-x-auto">
+      <div className="min-w-[800px]">
+        {filteredExpenses.map((expense, index) => (
+          <div 
+            key={expense.id}
+            className={`grid grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] border-b ${
+              index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
+            }`}
+          >
+            <div className="py-4 px-4 text-sm text-gray-800 font-medium font-sans">{formatDate(expense.date)}</div>
+            <div className="py-4 px-4 text-sm text-gray-800 font-sans">{expense.merchantName}</div>
+            <div className="py-4 px-4 text-sm text-gray-800 font-sans">
+              {expense.category || 'Other'}
+            </div>
+            <div className="py-4 px-4 text-sm text-gray-800 text-center font-sans">{expense.totalQuantity}</div>
+            <div className="py-4 px-4 text-sm text-gray-900 text-right font-numbers">${expense.totalAmount?.toFixed(2) || '0.00'}</div>
+            <div className="py-4 px-4 text-center">
+              <ThreeDotMenu
+                expense={expense.items[0]}
+                onEdit={() => setEditingExpense(expense.items[0])}
+                onDelete={() => handleDeleteGroupedExpense(expense)}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
                    
                     <div className="md:hidden flex-1 overflow-hidden">
                       <div className="overflow-y-auto" style={{ maxHeight: 'calc(647px - 180px)' }}>

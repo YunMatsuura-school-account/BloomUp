@@ -7,6 +7,7 @@ export default function ReviewReceipt() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [receiptInfo, setReceiptInfo] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const API_URL = "http://localhost:8888/api/budget";
   const getToken = () => localStorage.getItem("accessToken");
@@ -20,6 +21,18 @@ export default function ReviewReceipt() {
     "Transport",
     "Other",
   ];
+
+  useEffect(() => {
+    // Check if mobile on component mount and on resize
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     console.log("ReviewReceipt - Location state:", location.state);
@@ -85,6 +98,7 @@ export default function ReviewReceipt() {
       // ... rest of the code
     }
   }, [location.state]);
+
   const handleChange = (id, field, value) => {
     setExpenses((prev) =>
       prev.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp))
@@ -190,6 +204,180 @@ export default function ReviewReceipt() {
     0
   );
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <>
+        {/* Mobile Backdrop */}
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-[9998]"
+          style={{
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+          }}
+          onClick={() => navigate("/dashboard/budget")}
+        />
+
+        {/* Mobile Modal */}
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none">
+          <div className="pointer-events-auto bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4">
+              {/* Mobile Header */}
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h2 className="text-xl font-semibold m-0 mb-1 font-sans">
+                    Review Receipt
+                  </h2>
+                  {receiptInfo && (
+                    <div className="text-xs text-gray-600 font-sans">
+                      <span className="font-medium">
+                        {receiptInfo.merchantName || "Unknown Merchant"}
+                      </span>
+                      {receiptInfo.date && (
+                        <span className="ml-2">• {receiptInfo.date}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* <button
+                  onClick={() => navigate("/dashboard/budget")}
+                  className="bg-transparent border-none text-xl cursor-pointer p-1 text-gray-600 hover:text-gray-800"
+                >
+                  ×
+                </button> */}
+              </div>
+
+              {/* Mobile Expense Cards */}
+              <div className="space-y-3 max-h-96 overflow-y-auto mb-4">
+                {expenses.map((expense) => (
+                  <div
+                    key={expense.id}
+                    className=" rounded-lg p-3 border border-gray-200"
+                  >
+                    <div className="text-sm font-medium text-gray-700 font-sans">
+                        {expense.date}
+                      </div>
+
+
+                    {/* Top Row - Date and Amount */}
+                    <div className="flex justify-between items-center">
+                      <div className="text-base font-semibold text-gray-900 mb-1 font-sans">
+                      {expense.items || "Item name"}
+                    </div>
+                      <div className="text-lg font-semibold text-gray-800 font-numbers">
+                        ${expense.amount.toFixed(2)}
+                      </div>
+
+                      
+                    </div>
+                     <div className="text-sm font-medium text-gray-700 font-sans">
+                          {expense.category}
+                        </div>
+                    
+
+                    {/* Store Name */}
+                    <div className="text-sm text-gray-600  font-sans">
+                      {expense.description || "Store name"}
+                    </div>
+
+                    {/* Bottom Row - Category, Quantity, and Actions */}
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        
+                        <div className="text-xs text-gray-600 font-sans">
+                          Qty: {expense.quantity}
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleRemoveExpense(expense.id)}
+                          disabled={expenses.length === 1}
+                          className="p-2 rounded text-red-600 cursor-pointer hover:bg-red-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                          title="Delete"
+                        >
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add Item Button */}
+              <button
+                onClick={handleAddExpense}
+                className="w-full py-3 text-[#238D88] hover:text-[#1a6d69] text-sm font-medium flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer font-sans mb-4"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Add Another Item
+              </button>
+
+              {/* Mobile Summary */}
+              <div className="bg-[#EFEFEF] rounded-lg p-4 mb-4">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-600 font-sans">
+                    Total Items:{" "}
+                    <span className="font-semibold">{expenses.length}</span>
+                  </div>
+                  <div className="text-lg font-semibold text-gray-800 font-numbers">
+                    ${totalAmount.toFixed(2)}
+                  </div>
+                </div>
+                {receiptInfo?.totalAmount && (
+                  <div className="text-xs text-gray-500 text-center mt-2 font-sans">
+                    Receipt total: {receiptInfo.currency || "$"}
+                    {receiptInfo.totalAmount.toFixed(2)}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => navigate("/dashboard/budget")}
+                  disabled={loading}
+                  className="flex-1 py-3 text-gray-700 rounded-lg cursor-pointer text-sm font-medium border border-black disabled:cursor-not-allowed disabled:opacity-50 font-sans"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={loading || expenses.every((exp) => exp.amount === 0)}
+                  className="flex-1 py-3 bg-[#238D88] text-white border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-[#1a6d69] disabled:cursor-not-allowed disabled:bg-gray-400 font-sans"
+                >
+                  {loading
+                    ? "Saving..."
+                    : `Save ${expenses.filter((e) => e.amount > 0).length} Item(s)`}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Desktop Layout (your original code)
   return (
     <>
       {/* Backdrop Blur Overlay */}
@@ -229,16 +417,16 @@ export default function ReviewReceipt() {
                   </div>
                 )}
               </div>
-              <button
+              {/* <button
                 onClick={() => navigate("/dashboard/budget")}
                 className="bg-transparent border-none text-2xl cursor-pointer p-1 text-gray-600 hover:text-gray-800"
               >
                 ×
-              </button>
+              </button> */}
             </div>
 
             {/* Table Header */}
-            <div className="grid grid-cols-[100px_1.5fr_1.5fr_130px_80px_100px_60px] gap-3 px-4 py-3 bg-[#1a6d69] border-b border-gray-200 text-xs font-semibold text-white font-sans">
+            <div className="grid grid-cols-[100px_1.5fr_1.5fr_130px_80px_100px_60px] gap-3 px-4 py-3 bg-[rgba(35,141,136,0.15)] border-b border-gray-200 text-xs font-semibold font-sans">
               <div>Date</div>
               <div>Items</div>
               <div>Description</div>
@@ -370,7 +558,7 @@ export default function ReviewReceipt() {
             </div>
 
             {/* Summary */}
-            <div className="px-4 py-4 bg-gray-50 rounded-lg mt-4 flex justify-between items-center">
+            <div className="px-4 py-4 bg-[#EFEFEF] rounded-lg mt-4 flex justify-between items-center">
               <div className="text-sm text-gray-600 font-sans">
                 Total Items:{" "}
                 <span className="font-semibold">{expenses.length}</span>
@@ -385,7 +573,7 @@ export default function ReviewReceipt() {
               <button
                 onClick={() => navigate("/dashboard/budget")}
                 disabled={loading}
-                className="py-3 px-8 bg-gray-100 text-gray-700 border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 font-sans"
+                className="py-3 px-8  text-gray-700 border border-black  rounded-lg cursor-pointer text-sm font-medium  disabled:cursor-not-allowed disabled:opacity-50 font-sans"
               >
                 Cancel
               </button>

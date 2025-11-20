@@ -111,7 +111,7 @@ export default function UploadReceipt({ onClose }) {
           <div className="p-6 md:p-12">
             {/* Header */}
             <div className="flex justify-between items-center mb-6 md:mb-12">
-              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 m-0 font-sans">Upload Receipt</h2>
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 m-0 font-sans text-center">Upload Receipt</h2>
               <button
                 onClick={onClose}
                 className="bg-transparent border-none text-2xl cursor-pointer p-1 text-gray-600 hover:text-gray-800"
@@ -134,7 +134,7 @@ export default function UploadReceipt({ onClose }) {
               className={`border-2 border-dashed rounded-xl py-12 md:py-16 px-6 md:px-10 text-center mb-6 transition-all ${
                 isDragging 
                   ? "border-[#238D88] bg-[#f0f9f9]" 
-                  : "border-gray-300 bg-gray-50"
+                  : "border-gray-300"
               }`}
             >
               {/* Upload Icon */}

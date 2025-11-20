@@ -8,6 +8,7 @@ const OpenAI = require("openai");
 const fs = require("fs").promises;
 const path = require("path");
 const RestockReminder = require('../models/RestockReminder'); 
+const RestockCache = require('../models/RestockCache'); 
 const CalendarEvent = require('../models/calendarEvent'); 
 const Reminder = require('../models/Reminder'); 
 // Initialize OpenAI
@@ -533,6 +534,7 @@ exports.addManualExpense = async (req, res) => {
     });
 
     await expense.save();
+    await exports.invalidateRestockCache(userId);
 
     // Get the period for this expense
     const period = {
@@ -1379,6 +1381,7 @@ exports.deleteExpense = async (req, res) => {
 
     // Delete the expense
     await Expense.findByIdAndDelete(expenseId);
+    await exports.invalidateRestockCache(userId);
 
     // Recalculate budget totals
     const { startDate, endDate } = getPeriodDateRange(period.month, period.year);
@@ -1481,6 +1484,7 @@ exports.updateExpense = async (req, res) => {
     if (quantity !== undefined) expense.quantity = parseInt(quantity);
 
     await expense.save();
+    await exports.invalidateRestockCache(userId);
 
     // Get new period
     const newDate = new Date(expense.date);
@@ -1580,18 +1584,38 @@ exports.getRestockItems = async (req, res) => {
       return res.status(400).json({ message: "Invalid User ID format" });
     }
 
-    console.log('\n RESTOCK ITEMS REQUEST');
+    console.log('\n📦 RESTOCK ITEMS REQUEST');
     console.log(`User ID: ${userId}`);
 
-    // Optional: Allow override for debugging
-    const showAllItems = req.query.showAll === 'true';
+    // Optional: Allow force refresh
+    const forceRefresh = req.query.refresh === 'true';
     
-    if (showAllItems) {
-      console.log(' Debug mode: Showing ALL items (filter disabled)');
-    } else {
-      console.log(' Child filter ACTIVE: Only showing items for ages 0-12');
+    // Check if we have a valid cache (less than 24 hours old)
+    const cache = await RestockCache.findOne({ userId });
+    const now = new Date();
+    const cacheAge = cache ? (now - cache.updatedAt) / (1000 * 60 * 60) : Infinity; // hours
+    
+    if (!forceRefresh && cache && cacheAge < 24) {
+      console.log(`✅ Using cached data (${cacheAge.toFixed(1)} hours old)`);
+      console.log(`💰 Saved API call! Cache will refresh in ${(24 - cacheAge).toFixed(1)} hours`);
+      
+      return res.json({
+        success: true,
+        items: cache.items,
+        totalItems: cache.items.length,
+        childItemsFilter: true,
+        cached: true,
+        cacheAge: cacheAge.toFixed(1),
+        nextRefresh: new Date(cache.updatedAt.getTime() + 24 * 60 * 60 * 1000),
+        message: cache.items.length === 0 
+          ? "No child items (0-12 age) need restocking at this time"
+          : `Found ${cache.items.length} child items that need restocking`
+      });
     }
 
+    console.log(forceRefresh ? '🔄 Force refresh requested' : '🔍 Cache expired or not found, fetching fresh data...');
+
+    // === EXISTING LOGIC STARTS HERE ===
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -1604,11 +1628,23 @@ exports.getRestockItems = async (req, res) => {
     console.log(`Found ${expenses.length} expenses in last 6 months`);
 
     if (expenses.length === 0) {
+      // Cache empty result
+      await RestockCache.findOneAndUpdate(
+        { userId },
+        { 
+          userId,
+          items: [],
+          lastCalculated: now
+        },
+        { upsert: true, new: true }
+      );
+
       return res.json({
         success: true,
         items: [],
         totalItems: 0,
-        childItemsFilter: !showAllItems,
+        childItemsFilter: true,
+        cached: false,
         message: "No expenses found in the last 6 months"
       });
     }
@@ -1639,25 +1675,31 @@ exports.getRestockItems = async (req, res) => {
     });
 
     console.log(`Identified ${Object.keys(productGroups).length} unique products`);
-    
-console.log('\n DEBUG - All Product Names Found:');
-Object.values(productGroups).forEach(group => {
-  console.log(`  - "${group.productName}" (${group.purchases.length} purchases, category: ${group.category})`);
-});
-console.log('');
 
     const eligibleProducts = Object.entries(productGroups).filter(
       ([key, group]) => group.purchases.length >= 2
     );
 
-    console.log(` ${eligibleProducts.length} products with recurring purchase patterns`);
+    console.log(`✅ ${eligibleProducts.length} products with recurring purchase patterns`);
 
     if (eligibleProducts.length === 0) {
+      // Cache empty result
+      await RestockCache.findOneAndUpdate(
+        { userId },
+        { 
+          userId,
+          items: [],
+          lastCalculated: now
+        },
+        { upsert: true, new: true }
+      );
+
       return res.json({
         success: true,
         items: [],
         totalItems: 0,
-        childItemsFilter: !showAllItems,
+        childItemsFilter: true,
+        cached: false,
         message: "No recurring purchases found. Items purchased at least twice will appear here."
       });
     }
@@ -1716,14 +1758,13 @@ console.log('');
       });
     }
 
-    console.log(` ${restockItems.length} items need restocking`);
+    console.log(`📋 ${restockItems.length} items need restocking`);
 
-    //  AI-POWERED CHILD FILTER (DEFAULT: ON)
+    // 🤖 AI-POWERED CHILD FILTER
     let filteredItems = [];
-    let unfilteredCount = restockItems.length;
     
-    if (!showAllItems && restockItems.length > 0) {
-      console.log('\nAI FILTERING FOR CHILD ITEMS ');
+    if (restockItems.length > 0) {
+      console.log('\n🤖 AI FILTERING FOR CHILD ITEMS ✨');
       
       const productNames = restockItems.map(item => item.productName);
       const classifications = await classifyChildProducts(productNames);
@@ -1732,22 +1773,20 @@ console.log('');
         const isChildProduct = classifications[item.productName] === true;
         
         if (isChildProduct) {
-          console.log(` INCLUDED: ${item.productName} (${item.category})`);
+          console.log(`✅ INCLUDED: ${item.productName} (${item.category})`);
         } else {
-          console.log(`EXCLUDED: ${item.productName} (${item.category}) - Not a child item`);
+          console.log(`❌ EXCLUDED: ${item.productName} (${item.category}) - Not a child item`);
         }
         
         return isChildProduct;
       });
       
-      console.log(`\n FINAL RESULT: ${filteredItems.length} child products (filtered out ${unfilteredCount - filteredItems.length} non-child items)`);
+      console.log(`\n✨ FINAL RESULT: ${filteredItems.length} child products`);
     } else {
       filteredItems = restockItems;
-      if (showAllItems) {
-        console.log('  Returning ALL items (debug mode)\n');
-      }
     }
 
+    // Sort by status priority
     const statusPriority = { 
       'OVERDUE': 1, 
       'DUE_SOON': 2, 
@@ -1756,19 +1795,34 @@ console.log('');
     };
     filteredItems.sort((a, b) => statusPriority[a.status] - statusPriority[b.status]);
 
+    // 💾 CACHE THE RESULTS
+    await RestockCache.findOneAndUpdate(
+      { userId },
+      { 
+        userId,
+        items: filteredItems,
+        lastCalculated: now
+      },
+      { upsert: true, new: true }
+    );
+
+    console.log('💾 Results cached for 24 hours\n');
+
     res.json({
       success: true,
       items: filteredItems,
       totalItems: filteredItems.length,
-      childItemsFilter: !showAllItems,
-      unfilteredCount: showAllItems ? null : unfilteredCount,
+      childItemsFilter: true,
+      cached: false,
+      cacheAge: 0,
+      nextRefresh: new Date(now.getTime() + 24 * 60 * 60 * 1000),
       message: filteredItems.length === 0 
         ? "No child items (0-12 age) need restocking at this time"
         : `Found ${filteredItems.length} child items that need restocking`
     });
 
   } catch (error) {
-    console.error(" Error getting restock items:", error);
+    console.error("❌ Error getting restock items:", error);
     res.status(500).json({ 
       success: false,
       message: "Failed to get restock items",
@@ -1776,6 +1830,7 @@ console.log('');
     });
   }
 };
+
 // Toggle restock reminder for a product
 exports.toggleRestockReminder = async (req, res) => {
   try {
@@ -1964,7 +2019,14 @@ function formatLastPurchased(days) {
   if (months === 1) return 'item 1 month ago';
   return `item ${months} months ago`;
 }
-
+exports.invalidateRestockCache = async (userId) => {
+  try {
+    await RestockCache.findOneAndDelete({ userId });
+    console.log('Restock cache invalidated for user');
+  } catch (error) {
+    console.error('Error invalidating restock cache:', error);
+  }
+};
 
 // Middleware export
 exports.uploadMiddleware = upload.single("receipt");
