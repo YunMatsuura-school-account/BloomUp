@@ -198,7 +198,7 @@ const AIInsights = () => {
 
                 {/* Top Spending Text */}
                 {top ? (
-                  <p className="text-large font-medium text-black leading-7 text-left w-full">
+                  <p className="text-xl font-semibold text-black leading-8 text-center w-full max-w-3xl mx-auto">
                     📊 This month's top spending: {top.category} ({top.percent}
                     %)
                     {typeof top.deltaFromLastMonth === "number"
@@ -208,13 +208,13 @@ const AIInsights = () => {
                       : "."}
                   </p>
                 ) : (
-                  <p className="text-large font-medium text-black leading-7 text-left w-full">
+                  <p className="text-xl font-semibold text-black leading-8 text-center w-full max-w-3xl mx-auto">
                     No insights available yet.
                   </p>
                 )}
 
                 {/* Suggestion & Prediction Cards - Figma: gap 20px */}
-                <div className="flex flex-col items-center gap-5 w-full">
+                <div className="flex flex-col items-center gap-5 w-full max-w-3xl mx-auto">
                   {suggestions.length > 0 && (
                     <div className="bg-[rgba(243,190,8,0.5)] rounded-[15px] py-5 px-[30px] w-full">
                       <div className="flex flex-col gap-1.5 w-full">
