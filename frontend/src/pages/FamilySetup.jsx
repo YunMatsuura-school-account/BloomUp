@@ -152,15 +152,16 @@ export default function FamilySetup() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white flex font-['DM_Sans']">
+    <div className="min-h-screen w-full bg-white flex flex-col lg:flex-row font-['DM_Sans']">
       {/* Left Side - Gradient Background with Content */}
-      <div
-        className="hidden lg:flex lg:w-[39%] relative overflow-hidden flex-shrink-0"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(35, 141, 136, 1) 21%, rgba(75, 169, 165, 1) 63%, rgba(180, 245, 242, 1) 100%)",
-        }}
-      >
+      <div className="hidden lg:flex lg:w-[40%] relative overflow-hidden flex-shrink-0">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(35, 141, 136, 1) 21%, rgba(75, 169, 165, 1) 63%, rgba(180, 245, 242, 1) 100%)",
+          }}
+        />
         {/* Decorative Circles */}
         <div className="absolute -left-[40px] -bottom-[60px] w-[300px] h-[300px] rounded-full opacity-20 bg-white" />
         <div className="absolute -left-[80px] -bottom-[100px] w-[400px] h-[400px] rounded-full opacity-20 bg-white" />
@@ -168,38 +169,18 @@ export default function FamilySetup() {
         <div className="absolute -right-[270px] -top-[160px] w-[640px] h-[640px] rounded-full opacity-10 bg-white" />
 
         {/* Logo */}
-        <div className="absolute left-[29px] top-[20px] z-10">
-          <NewLogoBloomUpWhite width={187} height={75} />
+        <div className="absolute left-[40px] top-[50px] z-10">
+          <NewLogoBloomUpWhite width={220} height={88} />
         </div>
 
         {/* Content */}
-        <div
-          className="absolute flex flex-col z-10"
-          style={{
-            left: "55px",
-            top: "323px",
-            width: "564px",
-            gap: "33px",
-          }}
-        >
-          <h1
-            className="text-white font-extrabold leading-[1.302]"
-            style={{
-              fontSize: "50px",
-              fontWeight: 800,
-            }}
-          >
+        <div className="absolute left-[50px] right-[50px] top-[30%] flex flex-col gap-6 z-10">
+          <h1 className="text-white text-[40px] lg:text-[48px] xl:text-[54px] font-extrabold leading-[1.15]">
             Build your family
             <br />
             space.
           </h1>
-          <p
-            className="text-white font-medium leading-[1.4]"
-            style={{
-              fontSize: "20px",
-              fontWeight: 500,
-            }}
-          >
+          <p className="text-white text-[16px] lg:text-[18px] xl:text-[20px] font-medium leading-[1.5]">
             Give your family a name and start organizing everyone in one place.
             BloomUp helps you manage multiple kids easily.
           </p>
@@ -207,106 +188,44 @@ export default function FamilySetup() {
       </div>
 
       {/* Right Side - Form */}
-      <div
-        className="flex-1 flex flex-col items-center"
-        style={{ paddingTop: "111px" }}
-      >
-        <div
-          className="flex flex-col items-center"
-          style={{ width: "651px", gap: "50px" }}
-        >
+      <div className="flex-1 flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-12">
+        <div className="flex flex-col items-center w-full max-w-[640px] gap-8 sm:gap-10 lg:w-[651px] lg:gap-[50px]">
           {/* Title */}
-          <h2
-            className="text-center font-semibold"
-            style={{
-              fontSize: "40px",
-              fontWeight: 600,
-              lineHeight: "1.4",
-              color: "#232527",
-            }}
-          >
+          <h2 className="text-center font-semibold text-[28px] sm:text-[34px] lg:text-[40px] leading-[1.4] text-[#232527]">
             We're almost there!
           </h2>
 
           {/* Form Container */}
           <form
             onSubmit={handleSaveFamily}
-            className="w-full flex flex-col"
-            style={{
-              backgroundColor: "rgba(0, 143, 136, 0.15)",
-              borderRadius: "24px",
-              padding: "40px 95px 70px",
-              gap: "30px",
-            }}
+            className="w-full flex flex-col bg-[rgba(0,143,136,0.15)] rounded-[24px] px-5 py-8 sm:px-10 sm:py-10 gap-8 lg:px-[95px] lg:py-[40px] lg:pb-[70px] lg:gap-[30px]"
           >
             {/* Form Content */}
-            <div
-              className="flex flex-col items-center"
-              style={{ width: "460px", gap: "42px" }}
-            >
+            <div className="flex flex-col items-center w-full gap-8 sm:gap-10 lg:w-[460px] lg:gap-[42px]">
               {/* Form Title */}
-              <h3
-                className="text-center font-semibold"
-                style={{
-                  fontSize: "24px",
-                  fontWeight: 600,
-                  lineHeight: "1.302",
-                  color: "#161616",
-                }}
-              >
+              <h3 className="text-center font-semibold text-[22px] sm:text-[24px] leading-[1.3] text-[#161616]">
                 Your family
               </h3>
 
               {/* Form Fields */}
-              <div
-                className="flex flex-col"
-                style={{ width: "461px", gap: "81px" }}
-              >
-                <div className="flex flex-col" style={{ gap: "15px" }}>
+              <div className="flex flex-col w-full max-w-[480px] gap-10 sm:gap-12 lg:w-[461px] lg:gap-[81px]">
+                <div className="flex flex-col gap-4 lg:gap-[15px]">
                   {/* Family Name Section */}
-                  <div className="flex flex-col" style={{ gap: "5px" }}>
-                    <label
-                      className="font-medium"
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: 500,
-                        lineHeight: "1.4",
-                        color: "#636363",
-                      }}
-                    >
+                  <div className="flex flex-col gap-2 lg:gap-[5px]">
+                    <label className="text-sm sm:text-base font-medium text-[#636363]">
                       Family Name
                     </label>
                     <input
                       value={familyName}
                       onChange={(e) => setFamilyName(e.target.value)}
                       placeholder="Family love"
-                      className="w-full bg-white font-medium text-center outline-none"
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: 500,
-                        lineHeight: "1.4",
-                        color: "#000000",
-                        borderRadius: "15px",
-                        padding: "14px",
-                      }}
+                      className="w-full bg-white font-medium text-center outline-none rounded-[15px] py-[14px] px-4 text-base text-[#000000]"
                     />
                   </div>
 
                   {/* Children Section */}
-                  <div
-                    className="flex flex-col"
-                    style={{ width: "466px", gap: "15px" }}
-                  >
-                    <label
-                      className="font-medium"
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: 500,
-                        lineHeight: "1.4",
-                        color: "#636363",
-                        fontFamily: "Inter",
-                      }}
-                    >
+                  <div className="flex flex-col gap-3 w-full lg:w-[466px] lg:gap-[15px]">
+                    <label className="text-sm sm:text-base font-medium text-[#636363] font-['Inter']">
                       Children
                     </label>
 
@@ -316,8 +235,7 @@ export default function FamilySetup() {
                         {children.map((c) => (
                           <div
                             key={c._id}
-                            className="rounded-[15px] px-5 py-3.5 flex items-center justify-between"
-                            style={{ backgroundColor: "#238D88" }}
+                            className="rounded-[15px] px-5 py-3.5 flex items-center justify-between bg-[#238D88]"
                           >
                             <div className="flex items-center gap-3">
                               <ChildAvatar child={c} width={40} height={40} />
@@ -332,14 +250,7 @@ export default function FamilySetup() {
                             </div>
                             <button
                               type="button"
-                              className="hover:opacity-80 transition-opacity flex items-center justify-center"
-                              style={{
-                                backgroundColor: "#F3BE08",
-                                borderRadius: "16px",
-                                width: "40px",
-                                height: "40px",
-                                padding: "10px",
-                              }}
+                              className="hover:opacity-80 transition-opacity flex items-center justify-center bg-[#F3BE08] rounded-[16px] w-10 h-10 p-2.5"
                               aria-label="edit child"
                               onClick={() =>
                                 navigate("/add-child", {
@@ -400,51 +311,23 @@ export default function FamilySetup() {
                           strokeWidth="2"
                         />
                       </svg>
-                      <span
-                        className="font-medium"
-                        style={{
-                          fontSize: "16px",
-                          fontWeight: 500,
-                          lineHeight: "1.21",
-                          color: "#444444",
-                          fontFamily: "Inter",
-                        }}
-                      >
+                      <span className="text-base font-medium text-[#444444] leading-[1.21] font-['Inter']">
                         Add child
                       </span>
                     </button>
 
                     {/* Separator Line */}
-                    <div
-                      style={{
-                        width: "453px",
-                        height: "1px",
-                        backgroundColor: "#444444",
-                      }}
-                    />
+                    <div className="w-full h-px bg-[#444444] lg:w-[453px]" />
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Save Button */}
-            <div
-              className="flex flex-col"
-              style={{ height: "54px", gap: "10px" }}
-            >
+            <div className="flex flex-col items-center gap-2 mt-4 lg:mt-10 lg:h-[54px] lg:gap-[10px]">
               <button
                 type="submit"
-                className="flex items-center justify-center font-semibold text-white hover:opacity-90 transition-opacity"
-                style={{
-                  width: "461px",
-                  height: "54px",
-                  backgroundColor: "#238D88",
-                  borderRadius: "15px",
-                  padding: "15px 136px",
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  lineHeight: "1.4",
-                }}
+                className="w-full max-w-[440px] h-[54px] bg-[#238D88] rounded-[15px] flex items-center justify-center font-semibold text-white text-base hover:opacity-90 transition-opacity lg:max-w-[461px]"
               >
                 Save family
               </button>
