@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import ChildAvatar from "../components/ChildAvatar";
 import AvatarSelectionModal from "../components/AvatarSelectionModal";
 import pencilIcon from "../icons/pencil.svg";
+import cameraIcon from "../icons/cameraIcon.svg";
 import chevronLeftIcon from "../icons/chevron-left.svg";
 
 export default function AddChild() {
@@ -34,6 +35,8 @@ export default function AddChild() {
     gender: "",
     medicalHistory: "",
   });
+  const [isGenderOpen, setIsGenderOpen] = useState(false);
+  const genderSelectRef = useRef(null);
 
   const dateInputRef = useRef(null);
 
@@ -203,7 +206,14 @@ export default function AddChild() {
           className="p-8 rounded-xl shadow w-full max-w-[560px] md:max-w-4xl md:px-16 md:py-12"
           style={{ backgroundColor: "rgba(0, 143, 136, 0.15)" }}
         >
-          <div className="md:max-w-md md:mx-auto">
+          <div className="md:max-w-[463px] md:mx-auto">
+        {/* Edit child title - Mobile only, shown above avatar */}
+        {isEdit && (
+          <h2 className="md:hidden text-center font-semibold mb-6" style={{ fontFamily: "'Inter', sans-serif", fontSize: "20px" }}>
+            Edit child
+          </h2>
+        )}
+        
         <div className="flex flex-col items-center gap-2 mb-6">
           <div className="relative">
             <button
@@ -212,22 +222,28 @@ export default function AddChild() {
               className="flex items-center justify-center transition-all duration-200 hover:scale-105 cursor-pointer"
               aria-label="Select avatar"
             >
-              <div className="flex h-32 w-32 items-center justify-center rounded-full overflow-hidden">
-                <ChildAvatar child={displayChild} width={128} height={128} />
+              <div className="flex h-32 w-32 md:h-[130px] md:w-[130px] items-center justify-center rounded-full overflow-hidden">
+                <div className="md:hidden">
+                  <ChildAvatar child={displayChild} width={128} height={128} />
+                </div>
+                <div className="hidden md:block">
+                  <ChildAvatar child={displayChild} width={130} height={130} />
+                </div>
               </div>
             </button>
             <button
               type="button"
               onClick={() => setIsAvatarModalOpen(true)}
-              className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+              className={`absolute -bottom-1 -right-1 w-10 h-10 md:w-[44px] md:h-[44px] rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity ${isEdit ? "border border-black" : ""}`}
               aria-label="Change avatar"
             >
-              <img src={pencilIcon} alt="Edit icon" className="w-10 h-10" />
+              <img src={isEdit ? cameraIcon : pencilIcon} alt={isEdit ? "Camera icon" : "Edit icon"} className="w-10 h-10 md:w-[44px] md:h-[44px]" />
             </button>
           </div>
         </div>
 
-        <h2 className="text-center text-xl font-semibold mb-6">
+        {/* Add child title - always shown, Edit child title - Desktop only */}
+        <h2 className={`text-center ${isEdit ? "hidden md:block font-normal" : "font-semibold"} mb-6`} style={isEdit ? { fontFamily: "'DM Sans', sans-serif", lineHeight: "18px" } : {}}>
           {isEdit ? "Edit child" : "Add child"}
         </h2>
 
@@ -242,16 +258,16 @@ export default function AddChild() {
           initialColor={selectedAvatar.backgroundColor}
         />
 
-        <label className="block text-sm font-medium mb-1">Name</label>
+        <label className="block font-medium mb-1" style={{ fontSize: "22px" }}>Name</label>
         <input
           name="name"
           value={form.name}
           onChange={onChange}
           className="w-full rounded-lg px-3 py-2 mb-4"
-          style={{ backgroundColor: "#FFFFFF" }}
+          style={{ backgroundColor: "#FFFFFF", fontSize: "22px" }}
         />
 
-        <label className="block text-sm font-medium mb-1">Date of birth</label>
+        <label className="block font-medium mb-1" style={{ fontSize: "22px" }}>Date of birth</label>
         <div className="relative mb-4">
           <input
             ref={dateInputRef}
@@ -260,7 +276,7 @@ export default function AddChild() {
             value={form.dateOfBirth}
             onChange={onChange}
             className="w-full rounded-lg px-3 py-2 pr-10 date-input-custom"
-            style={{ backgroundColor: "#FFFFFF" }}
+            style={{ backgroundColor: "#FFFFFF", fontSize: "22px" }}
           />
           <button
             type="button"
@@ -294,33 +310,84 @@ export default function AddChild() {
           </button>
         </div>
 
-        <label className="block text-sm font-medium mb-1">Gender</label>
-        <select
-          name="gender"
-          value={form.gender}
-          onChange={onChange}
-          className="w-full rounded-lg px-3 py-2 mb-4 appearance-none"
-          style={{ backgroundColor: "#FFFFFF" }}
-        >
-          <option value="">Select</option>
-          <option>Boy</option>
-          <option>Girl</option>
-          <option>Prefer not to say</option>
-        </select>
+        <label className="block font-medium mb-1" style={{ fontSize: "22px" }}>Gender</label>
+        <div className="relative mb-4">
+          <select
+            ref={genderSelectRef}
+            name="gender"
+            value={form.gender}
+            onChange={(e) => {
+              onChange(e);
+              // onChange後に少し遅延して閉じる（リストが閉じるのを待つ）
+              setTimeout(() => setIsGenderOpen(false), 100);
+            }}
+            onFocus={() => setIsGenderOpen(true)}
+            onBlur={() => {
+              // onBlurは少し遅延させて、onChangeが先に実行されるようにする
+              setTimeout(() => setIsGenderOpen(false), 200);
+            }}
+            onMouseDown={() => setIsGenderOpen(true)}
+            className="w-full rounded-lg px-3 py-2 pr-10 appearance-none"
+            style={{ backgroundColor: "#FFFFFF", fontSize: "22px", marginTop: "4px" }}
+          >
+            <option value="">Select</option>
+            <option>Boy</option>
+            <option>Girl</option>
+            <option>Prefer not to say</option>
+          </select>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            {isGenderOpen ? (
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 16 16" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path 
+                  d="M4 6L8 10L12 6" 
+                  stroke="#808080" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              </svg>
+            ) : (
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 16 16" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path 
+                  d="M6 4L10 8L6 12" 
+                  stroke="#808080" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+          </div>
+        </div>
 
-        <label className="block text-sm font-medium mb-1">
+        <label className="block font-medium mb-1" style={{ fontSize: "22px" }}>
           Medical Note
         </label>
+        <div className="mb-1" style={{ fontFamily: "'Inter', sans-serif", fontSize: "14px", lineHeight: "14px", color: "#686868" }}>
+          Write your child's notes
+        </div>
         <input
           name="medicalHistory"
           value={form.medicalHistory}
           onChange={onChange}
-          className="w-full rounded-lg px-3 py-2 mb-6"
-          style={{ backgroundColor: "#FFFFFF" }}
+          className="w-full rounded-lg px-3 py-2 mb-12"
+          style={{ backgroundColor: "#FFFFFF", fontSize: "22px" }}
         />
 
         {/* Buttons - Unified layout: Cancel/Delete left, Save right (both mobile and desktop) */}
-        <div className="flex gap-4">
+        <div className="flex gap-4 md:max-w-[463px]">
           {/* Cancel/Delete button - left */}
           {isEdit ? (
             <button
