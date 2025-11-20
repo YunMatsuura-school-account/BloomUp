@@ -379,21 +379,21 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
           )}
 
           {!loading && events.length === 0 && (
-            <div className="relative m-4 flex-1 min-h-[220px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[380px] xl:min-h-[444px] rounded-2xl bg-[#FBFCFD] flex items-center justify-center">
-              <div className="absolute inset-3 rounded-2xl border-2 border-dashed border-[#F3BE08] pointer-events-none" />
+            <div className="relative m-4 flex-1 rounded-xl bg-transparent flex items-center justify-center min-h-[500px]">
+              <div className="absolute inset-4 rounded-xl border-[3px] border-dashed border-[#F3BE08] pointer-events-none" />
               <div className="relative flex flex-col items-center text-center gap-3 px-6">
-                <CalendarIcon className="w-10 h-10 text-[#232527]" />
+                <CalendarIcon className="w-12 h-12 text-[#232527]" />
                 <div>
-                  <h3 className="text-lg font-semibold text-[#1F2A37]">
+                  <h3 className="text-xl font-semibold text-[#1F2A37]">
                     No upcoming events yet!
                   </h3>
-                  <p className="text-sm text-[#6F717A] mt-1">
+                  <p className="text-base text-[#111827] mt-1">
                     Start by adding events to see here.
                   </p>
                 </div>
                 <button
                   onClick={() => navigate("/calendar")}
-                  className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-6 py-2 font-semibold text-sm text-[#1C1C1C] shadow-[0_8px_20px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
+                  className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-8 py-3 font-semibold text-base text-[#111111] shadow-[0_8px_20px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
                 >
                   Add Event&nbsp;+
                 </button>
