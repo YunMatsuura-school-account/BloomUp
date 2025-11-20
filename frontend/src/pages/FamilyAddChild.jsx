@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { NewLogoBloomUpWhite } from "../icons";
 import AvatarSelectionModal from "../components/AvatarSelectionModal";
@@ -24,6 +24,8 @@ export default function FamilyAddChild() {
     gender: "",
     medicalHistory: "",
   });
+
+  const dateInputRef = useRef(null);
 
   // Avatar selection state
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
@@ -280,22 +282,56 @@ export default function FamilyAddChild() {
                   >
                     Date of Birth
                   </label>
-                  <input
-                    type="date"
-                    name="dateOfBirth"
-                    value={form.dateOfBirth}
-                    onChange={onChange}
-                    required
-                    className="w-full bg-white font-medium outline-none"
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: 500,
-                      lineHeight: "1.4",
-                      color: "#000000",
-                      borderRadius: "15px",
-                      padding: "14px",
-                    }}
-                  />
+                  <div className="relative">
+                    <input
+                      ref={dateInputRef}
+                      type="date"
+                      name="dateOfBirth"
+                      value={form.dateOfBirth}
+                      onChange={onChange}
+                      required
+                      className="w-full bg-white font-medium outline-none date-input-custom"
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: 500,
+                        lineHeight: "1.4",
+                        color: "#000000",
+                        borderRadius: "15px",
+                        padding: "14px",
+                        paddingRight: "45px",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (dateInputRef.current) {
+                          if ('showPicker' in dateInputRef.current) {
+                            dateInputRef.current.showPicker();
+                          } else {
+                            dateInputRef.current.click();
+                          }
+                        }
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+                      aria-label="Open date picker"
+                    >
+                      <svg 
+                        width="24" 
+                        height="24" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path 
+                          d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z" 
+                          stroke="#808080" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Gender Field */}

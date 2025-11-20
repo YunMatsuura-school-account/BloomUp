@@ -1,0 +1,15 @@
+/* ChildProfileSummary pages specific styles */
+/* This file is used to avoid conflicts in index.css */
+
+/* Date input custom styles - moved from index.css to avoid conflicts */
+.date-input-custom::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+.date-input-custom::-webkit-inner-spin-button,
+.date-input-custom::-webkit-clear-button {
+  display: none;
+  -webkit-appearance: none;
+}
+
