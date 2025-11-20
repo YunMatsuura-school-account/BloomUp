@@ -109,7 +109,7 @@ export default function FamilyAddChild() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col lg:flex-row font-['DM_Sans']">
+    <div className="min-h-screen w-full bg-white flex flex-col lg:flex-row font-['DM_Sans'] overflow-hidden">
       {/* Left Side - Gradient Background with Content */}
       <div className="hidden lg:flex lg:w-[40%] relative overflow-hidden flex-shrink-0">
         {/* Gradient Background */}
@@ -154,7 +154,7 @@ export default function FamilyAddChild() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 lg:w-[60%] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-12 py-8 lg:py-10 overflow-y-auto">
+      <div className="flex-1 lg:w-[60%] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-12 py-8 lg:py-10 overflow-y-auto no-scrollbar">
         <div className="w-full max-w-[600px] lg:max-w-[650px] flex flex-col items-center gap-6 lg:gap-8">
           {/* Form Container */}
           <form
@@ -341,7 +341,7 @@ export default function FamilyAddChild() {
             </div>
 
             {/* Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-[460px] mt-4 lg:mt-6">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full max-w-[460px] mt-4 lg:mt-6">
               {/* Cancel Button */}
               <button
                 type="button"
@@ -350,7 +350,7 @@ export default function FamilyAddChild() {
                     sessionStorage.getItem("onboardingMode") === "true";
                   navigate(isOnboarding ? "/family-setup" : "/dashboard");
                 }}
-                className="w-full sm:w-auto flex-1 sm:min-w-[160px] h-[54px] flex items-center justify-center font-semibold bg-white hover:bg-gray-50 transition-colors rounded-[15px] text-base text-[#161616] border border-gray-200"
+                className="w-full sm:flex-1 sm:min-w-[160px] min-h-[54px] py-4 flex items-center justify-center font-semibold bg-white hover:bg-gray-50 transition-colors rounded-[15px] text-base text-[#161616] border border-gray-200"
               >
                 Cancel
               </button>
@@ -358,7 +358,7 @@ export default function FamilyAddChild() {
               {/* Save Button */}
               <button
                 type="submit"
-                className="w-full sm:w-auto flex-1 sm:min-w-[160px] h-[54px] flex items-center justify-center font-semibold text-white bg-[#238D88] hover:opacity-90 transition-opacity rounded-[15px] text-base"
+                className="w-full sm:flex-1 sm:min-w-[160px] min-h-[54px] py-4 flex items-center justify-center font-semibold text-white bg-[#238D88] hover:opacity-90 transition-opacity rounded-[15px] text-base"
               >
                 Save
               </button>
