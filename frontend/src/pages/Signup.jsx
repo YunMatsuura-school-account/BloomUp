@@ -116,9 +116,9 @@ export default function Signup() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 lg:w-[60%] flex flex-col items-center justify-start px-4 lg:px-8 xl:px-12">
+      <div className="flex-1 lg:w-[60%] flex flex-col items-center justify-center px-4 lg:px-10 xl:px-14 py-10">
         {/* Header Text */}
-        <div className="w-full flex justify-center mt-[60px] lg:mt-[70px] xl:mt-[80px] mb-[40px] lg:mb-[50px]">
+        <div className="w-full flex justify-center mb-8">
           <h1
             className="text-[34px] lg:text-[38px] xl:text-[40px] font-semibold text-center leading-[1.4] text-[#232527]"
             style={{ fontFamily: "DM Sans, sans-serif" }}
@@ -129,12 +129,12 @@ export default function Signup() {
 
         {/* Sign Up Card */}
         <div
-          className="w-full max-w-[500px] lg:max-w-[640px] rounded-[24px] px-[45px] lg:px-[70px] py-[38px] lg:py-[42px] "
+          className="w-full max-w-[640px] rounded-[24px] px-[46px] lg:px-[64px] py-[34px] lg:py-[42px]"
           style={{ background: "rgba(0, 143, 136, 0.15)" }}
         >
           <form
             onSubmit={handleSignup}
-            className="flex flex-col items-center gap-[38px] lg:gap-[42px]"
+            className="flex flex-col items-center gap-8"
           >
             {/* Title */}
             <h2
@@ -145,9 +145,9 @@ export default function Signup() {
             </h2>
 
             {/* Form Fields */}
-            <div className="w-full flex flex-col gap-[15px]">
+            <div className="w-full flex flex-col gap-[18px] items-center">
               {/* First Name & Last Name Row */}
-              <div className="flex flex-col sm:flex-row justify-between gap-[15px]">
+              <div className="flex flex-col sm:flex-row justify-between gap-[15px] w-full max-w-[480px]">
                 <div className="flex flex-col gap-[6px] flex-1">
                   <label
                     className="text-[13px] lg:text-[14px] font-medium leading-[1.4] text-[#636363]"
@@ -188,7 +188,7 @@ export default function Signup() {
               </div>
 
               {/* Email */}
-              <div className="flex flex-col gap-[6px]">
+              <div className="flex flex-col gap-[6px] w-full max-w-[480px]">
                 <label
                   className="text-[13px] lg:text-[14px] font-medium leading-[1.4] text-[#636363]"
                   style={{ fontFamily: "DM Sans, sans-serif" }}
@@ -208,7 +208,7 @@ export default function Signup() {
               </div>
 
               {/* Country & State Row */}
-              <div className="flex flex-col sm:flex-row justify-between gap-[15px]">
+              <div className="flex flex-col sm:flex-row justify-between gap-[15px] w-full max-w-[480px]">
                 <div className="flex flex-col gap-[6px] flex-1">
                   <label
                     className="text-[13px] lg:text-[14px] font-medium leading-[1.4] text-[#636363]"
@@ -265,7 +265,7 @@ export default function Signup() {
               </div>
 
               {/* Password */}
-              <div className="flex flex-col gap-[6px]">
+              <div className="flex flex-col gap-[6px] w-full max-w-[480px]">
                 <label
                   className="text-[13px] lg:text-[14px] font-medium leading-[1.4] text-[#636363]"
                   style={{ fontFamily: "DM Sans, sans-serif" }}
@@ -340,7 +340,7 @@ export default function Signup() {
               </div>
 
               {/* Confirm Password */}
-              <div className="flex flex-col gap-[6px]">
+              <div className="flex flex-col gap-[6px] w-full max-w-[480px]">
                 <label
                   className="text-[13px] lg:text-[14px] font-medium leading-[1.4] text-[#636363]"
                   style={{ fontFamily: "DM Sans, sans-serif" }}
@@ -416,11 +416,11 @@ export default function Signup() {
             </div>
 
             {/* Actions */}
-            <div className="w-full flex flex-col gap-[12px]">
+            <div className="w-full flex flex-col gap-[12px] items-center">
               {/* Sign Up Button */}
               <button
                 type="submit"
-                className="w-full bg-[#238D88] rounded-[15px] px-[20px] py-[15px] h-[52px] lg:h-[54px] flex items-center justify-center text-white text-[15px] lg:text-[16px] font-semibold leading-[1.4] hover:bg-[#1d7470] transition-colors"
+                className="w-full max-w-[480px] bg-[#238D88] rounded-[15px] px-[20px] py-[14px] h-[48px] flex items-center justify-center text-white text-[15px] lg:text-[16px] font-semibold leading-[1.4] hover:bg-[#1d7470] transition-colors"
                 style={{ fontFamily: "DM Sans, sans-serif" }}
               >
                 Sign up

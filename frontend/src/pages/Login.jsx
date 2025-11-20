@@ -190,7 +190,7 @@ export default function Login() {
 
         {/* Login Card */}
         <div
-          className="w-full max-w-[580px] rounded-[24px] px-[42px] lg:px-[52px] py-[34px] lg:py-[42px]"
+          className="w-full max-w-[620px] rounded-[24px] px-[48px] lg:px-[60px] py-[36px] lg:py-[44px]"
           style={{ background: "#008F8826" }}
         >
           <h2
@@ -312,10 +312,10 @@ export default function Login() {
             </div>
 
             {/* Actions */}
-            <div className="w-full flex flex-col gap-5">
+            <div className="w-full flex flex-col gap-5 items-center">
               <button
                 type="submit"
-                className="w-full bg-[#238D88] rounded-[20px] h-[52px] text-white text-[16px] font-semibold hover:bg-[#1d7470] transition"
+                className="w-full max-w-[460px] bg-[#238D88] rounded-[20px] h-[52px] text-white text-[16px] font-semibold hover:bg-[#1d7470] transition"
               >
                 Log In
               </button>
