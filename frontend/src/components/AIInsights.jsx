@@ -188,7 +188,7 @@ const AIInsights = () => {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-[44px] flex-1">
+            <div className="flex flex-col items-center justify-center gap-[44px] flex-1">
               {/* Main Content Section - Figma: gap 51px, height 437px */}
               <div className="flex flex-col items-center gap-[41px] w-full">
                 {/* Title */}
