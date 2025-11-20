@@ -1,9 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ChildAvatar from "../../components/ChildAvatar";
-import CircleUserRoundIcon from "../../icons/CircleUserRoundIcon";
-import bell_icon from "../../icons/bell_icon.png";
-import NotificationPopup from "../../components/NotificationPopup";
 import AddEventModal from "../../components/AddEventModal";
 
 export default function ChildDashboard() {
@@ -19,10 +16,6 @@ export default function ChildDashboard() {
   const [eventErr, setEventErr] = useState("");
   const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const bellRef = useRef(null);
 
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) {
@@ -226,23 +219,6 @@ export default function ChildDashboard() {
     });
   };
 
-  const handleNotificationClick = () => {
-    setShowNotifications((v) => !v);
-  };
-
-  const handleNotificationClose = () => {
-    setShowNotifications(false);
-  };
-
-  const handleNotificationsViewed = (hasGreenItems) => {
-    setHasUnreadNotifications(hasGreenItems);
-  };
-
-  useEffect(() => {
-    if (showNotifications) {
-      setRefreshTrigger((prev) => prev + 1);
-    }
-  }, [showNotifications]);
 
   if (loading) {
     return <p className="text-white p-6">Loading...</p>;
@@ -259,59 +235,30 @@ export default function ChildDashboard() {
   const month = calculateMonth(child.dateOfBirth);
 
   return (
-    <div className="page-surface">
-      {/* Mobile Header - shown only on mobile (md:hidden) */}
-      <div className="md:hidden w-full bg-[#FFFFFF] flex items-center justify-between px-6 py-4">
-        {/* Bell Icon - Left */}
-        <button
-          ref={bellRef}
-          onClick={handleNotificationClick}
-          className="p-2 rounded-full hover:bg-gray-200/50 transition-colors relative"
-          aria-label="Notifications"
-        >
-          <img src={bell_icon} alt="Notifications" className="w-6 h-6" />
-          {hasUnreadNotifications && (
-            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
-          )}
-        </button>
-
-        {/* Person Icon - Right */}
-        <button
-          onClick={() => navigate("/user-dashboard")}
-          className="p-2 rounded-full hover:bg-gray-200/50 transition-colors flex items-center justify-center"
-          aria-label="User Profile"
-        >
-          <CircleUserRoundIcon className="w-7 h-7" fill="#FFFFFF" />
-        </button>
-      </div>
-
-      {/* Notification Popup */}
-      <NotificationPopup
-        isOpen={showNotifications}
-        onClose={handleNotificationClose}
-        anchorEl={bellRef.current}
-        refreshTrigger={refreshTrigger}
-        onNotificationsViewed={handleNotificationsViewed}
-      />
-
+    <div className="page-surface" style={{ fontFamily: "'Inter', sans-serif" }}>
       <div className="p-6">
         {/* Child Dashboard Title and HR - hidden on mobile */}
         <div className="hidden md:flex items-center justify-center">
           <h1 className="text-[30px] text-black text-center mt-3">Child Dashboard</h1>
         </div>
-        <hr className="hidden md:block mt-3 mb-10 border-black/100" style={{ borderWidth: "2px" }} />
+        <hr className="hidden md:block mt-3 border-black/100" style={{ borderWidth: "2px", marginBottom: "60px" }} />
 
       {/* Child Information Section */}
       <div className="flex flex-col items-center gap-4">
         {/* Avatar */}
         <div className="relative">
-          <div className="flex h-32 w-32 items-center justify-center rounded-full overflow-hidden">
-            <ChildAvatar child={child} width={128} height={128} />
+          <div className="flex h-32 w-32 md:h-[140px] md:w-[140px] items-center justify-center rounded-full overflow-hidden">
+            <div className="md:hidden">
+              <ChildAvatar child={child} width={128} height={128} />
+            </div>
+            <div className="hidden md:block">
+              <ChildAvatar child={child} width={140} height={140} />
+            </div>
           </div>
           {/* Edit Button - Pencil Icon */}
           <button
             onClick={onEdit}
-            className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity"
+            className="absolute -bottom-1 -right-1 w-10 h-10 md:w-[44px] md:h-[44px] rounded-full flex items-center justify-center hover:opacity-90 transition-opacity border border-black"
             style={{
               backgroundColor: "#238D88",
             }}
@@ -335,10 +282,10 @@ export default function ChildDashboard() {
           </button>
         </div>
 
-        <div className="text-[20px] font-semibold text-black tracking-wide">
+        <div className="font-semibold text-black tracking-wide md:text-[28px] md:leading-[28px]" style={{ fontSize: "20px", lineHeight: "20px" }}>
           {child.name}
         </div>
-        <div className="text-black font-semibold text-sm -mt-2">
+        <div className="text-black font-medium -mt-2 md:text-[18px] md:leading-[18px]" style={{ fontSize: "14px", lineHeight: "14px" }}>
           {age !== null ? `${age} years` : ""}
           {child.dateOfBirth ? " " : ""}
           {child.dateOfBirth
@@ -350,7 +297,7 @@ export default function ChildDashboard() {
       </div>
 
       {/* Upcoming Events */}
-      <h2 className="mt-12 text-[20px] font-semibold text-black/90 text-left">
+      <h2 className="text-left md:text-center md:text-[28px] font-semibold text-black/90 md:mt-[60px]" style={{ fontSize: "20px", marginTop: "48px" }}>
         Upcoming Events
       </h2>
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -372,7 +319,7 @@ export default function ChildDashboard() {
               <div
                 key={ev._id}
                 className="rounded-2xl px-6 py-5 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
-                style={{ backgroundColor: "#FFFFFF" }}
+                style={{ backgroundColor: "#FFFFFF", height: "187px" }}
                 onClick={() => {
                   setSelectedEvent(ev);
                   setIsAddEventModalOpen(true);
@@ -406,8 +353,8 @@ export default function ChildDashboard() {
                 </div>
 
                 <div className="mt-3 flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                    <ChildAvatar child={child} width={40} height={40} />
+                  <div className="w-[76px] h-[76px] rounded-full overflow-hidden flex-shrink-0">
+                    <ChildAvatar child={child} width={76} height={76} />
                   </div>
                   <div className="flex-1">
                     <div className="font-semibold text-black/90">{title}</div>

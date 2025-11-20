@@ -28,9 +28,12 @@ export default function Header() {
 
   // Pages that should have white background on mobile
   const whiteBgPages = ["/account", "/user-dashboard", "/settings"];
-  const shouldUseWhiteBg = whiteBgPages.includes(location.pathname);
+  const isChildDashboardPage = location.pathname.startsWith("/child-dashboard");
+  const shouldUseWhiteBg = whiteBgPages.includes(location.pathname) || isChildDashboardPage;
   // Pages that should have #EFEFEF background on desktop
   const isAccountPage = location.pathname === "/account";
+  // Pages that should have the same padding as account page on mobile
+  const shouldUseAccountPadding = isAccountPage || isChildDashboardPage;
 
   // Close overlay on ESC key
   useEffect(() => {
@@ -82,13 +85,13 @@ export default function Header() {
           shouldUseWhiteBg 
             ? `bg-[#FFFFFF] ${isAccountPage ? "md:bg-[#EFEFEF]" : "md:bg-[#efefef]"}`
             : "bg-[#efefef]"
-        } ${isAccountPage ? "px-6 py-4 md:px-[59px] md:py-[29px]" : ""}`}
+        } ${shouldUseAccountPadding ? "px-6 py-4 md:px-[59px] md:py-[29px]" : ""}`}
         style={{
           height: "95px",
-          ...(isAccountPage ? {} : { padding: "29px 59px" }),
+          ...(shouldUseAccountPadding ? {} : { padding: "29px 59px" }),
         }}
       >
-        <div className={`w-full flex items-center justify-between md:justify-end ${isAccountPage ? "md:max-w-[1234px] md:mx-auto" : ""}`}>
+        <div className={`w-full flex items-center justify-between md:justify-end ${shouldUseAccountPadding ? "md:max-w-[1234px] md:mx-auto" : ""}`}>
           {/* Mobile hamburger (opens sidebar via global hook set in layout) */}
           <button
             className="md:hidden p-2 rounded-md hover:bg-gray-200/60"
