@@ -8,7 +8,8 @@ export default function UploadReceipt({ onClose }) {
   const [isDragging, setIsDragging] = useState(false);
   const navigate = useNavigate();
 
-  const API_URL = "http://localhost:8888/api/budget";
+  const API_BASE = import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, "") || "";
+  const API_URL = `${API_BASE}/api/budget`;
 
   const getToken = () => localStorage.getItem("accessToken");
 
@@ -25,9 +26,13 @@ export default function UploadReceipt({ onClose }) {
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && (droppedFile.type.startsWith("image/") || droppedFile.type === "application/pdf")) {
+    if (
+      droppedFile &&
+      (droppedFile.type.startsWith("image/") ||
+        droppedFile.type === "application/pdf")
+    ) {
       setFile(droppedFile);
     } else {
       setError("Please upload an image file (JPG, PNG) or PDF");
@@ -37,7 +42,10 @@ export default function UploadReceipt({ onClose }) {
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
-      if (selectedFile.type.startsWith("image/") || selectedFile.type === "application/pdf") {
+      if (
+        selectedFile.type.startsWith("image/") ||
+        selectedFile.type === "application/pdf"
+      ) {
         setFile(selectedFile);
         setError(null);
       } else {
@@ -82,12 +90,11 @@ export default function UploadReceipt({ onClose }) {
 
       const data = await response.json();
       console.log("Receipt uploaded successfully:", data);
-      
+
       // Navigate to ReviewReceipt with the parsed data instead of just closing
-      navigate("/dashboard/budget/review-receipt", { 
-        state: { receiptData: data } 
+      navigate("/dashboard/budget/review-receipt", {
+        state: { receiptData: data },
       });
-      
     } catch (err) {
       console.error("Upload error:", err);
       setError(err.message);
@@ -99,19 +106,24 @@ export default function UploadReceipt({ onClose }) {
   return (
     <>
       {/* Backdrop Blur Overlay */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-[9998]" 
-        style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-[9998]"
+        style={{
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+        }}
         onClick={onClose}
       />
-      
+
       {/* Modal Container */}
       <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none">
         <div className="pointer-events-auto bg-white rounded-2xl shadow-2xl w-full max-w-[1001px] max-h-[90vh] overflow-y-auto">
           <div className="p-6 md:p-12">
             {/* Header */}
             <div className="flex justify-between items-center mb-6 md:mb-12">
-              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 m-0 font-sans text-center">Upload Receipt</h2>
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 m-0 font-sans text-center">
+                Upload Receipt
+              </h2>
               <button
                 onClick={onClose}
                 className="bg-transparent border-none text-2xl cursor-pointer p-1 text-gray-600 hover:text-gray-800"
@@ -132,30 +144,28 @@ export default function UploadReceipt({ onClose }) {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               className={`border-2 border-dashed rounded-xl py-12 md:py-16 px-6 md:px-10 text-center mb-6 transition-all ${
-                isDragging 
-                  ? "border-[#238D88] bg-[#f0f9f9]" 
-                  : "border-gray-300"
+                isDragging ? "border-[#238D88] bg-[#f0f9f9]" : "border-gray-300"
               }`}
             >
               {/* Upload Icon */}
               <div className="mb-4 md:mb-6">
-                <svg 
-                  width="48" 
-                  height="48" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="#9ca3af" 
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#9ca3af"
                   strokeWidth="2"
                   className="mx-auto"
                 >
-                  <path d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                  <path d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4M17 8l-5-5-5 5M12 3v12" />
                 </svg>
               </div>
 
               <p className="text-base text-gray-700 mb-2 font-medium font-sans">
                 {file ? file.name : "Drag & Drop your Receipt here"}
               </p>
-              
+
               <p className="text-sm text-gray-400 mb-4 font-sans">or</p>
 
               <label className="inline-block py-2.5 px-6 bg-[#238D88] text-white rounded-lg cursor-pointer text-sm font-medium hover:bg-[#1a6d69] transition-colors font-sans">

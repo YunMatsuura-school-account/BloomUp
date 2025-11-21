@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function AddExpense() {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [quantity, setQuantity] = useState("1");
@@ -12,7 +12,8 @@ export default function AddExpense() {
   const [loadingCategories, setLoadingCategories] = useState(true);
 
   const navigate = useNavigate();
-  const API_URL = "http://localhost:8888/api/budget";
+  const API_BASE = import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, "") || "";
+  const API_URL = `${API_BASE}/api/budget`;
   const getToken = () => localStorage.getItem("accessToken");
 
   useEffect(() => {
@@ -35,18 +36,18 @@ export default function AddExpense() {
         {
           method: "GET",
           headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
       if (response.ok) {
         const data = await response.json();
         console.log("Budget overview:", data);
-        
+
         if (data.categories && data.categories.length > 0) {
-          const categoryNames = data.categories.map(cat => cat.name);
+          const categoryNames = data.categories.map((cat) => cat.name);
           setCategories(categoryNames);
           setCategory(categoryNames[0]); // Set first as default
           console.log("Categories loaded:", categoryNames);
@@ -83,11 +84,11 @@ export default function AddExpense() {
     setLoading(true);
 
     const payload = {
-      amount: parseFloat(amount), 
-      category, 
+      amount: parseFloat(amount),
+      category,
       description,
       date,
-      quantity: parseInt(quantity)
+      quantity: parseInt(quantity),
     };
 
     console.log("Submitting expense:", payload);
@@ -95,9 +96,9 @@ export default function AddExpense() {
     try {
       const res = await fetch(`${API_URL}/add-manual`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -123,9 +124,12 @@ export default function AddExpense() {
   if (loadingCategories) {
     return (
       <>
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-[9998]" 
-          style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-[9998]"
+          style={{
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+          }}
         />
         <div className="fixed inset-0 flex items-center justify-center z-[9999]">
           <div className="bg-white rounded-2xl p-8 shadow-2xl">
@@ -138,20 +142,24 @@ export default function AddExpense() {
 
   return (
     <>
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-[9998]" 
-        style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-        onClick={() => navigate("/dashboard/budget")} 
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-[9998]"
+        style={{
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+        }}
+        onClick={() => navigate("/dashboard/budget")}
       />
-      
+
       <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none">
         <div className="pointer-events-auto bg-white rounded-2xl shadow-2xl w-full max-w-[901px] max-h-[90vh] overflow-y-auto">
           {/* Mobile: 24px padding, Desktop: 48px vertical, 218px horizontal */}
           <div className="flex flex-col items-center w-full px-6 py-8 md:px-[218px] md:py-12">
-            
             {/* Header */}
             <div className="flex justify-between items-center w-full mb-8 md:mb-12">
-              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 font-sans">Add Expense</h2>
+              <h2 className="text-xl md:text-2xl font-semibold text-gray-800 font-sans">
+                Add Expense
+              </h2>
               <button
                 onClick={() => navigate("/dashboard/budget")}
                 className="bg-transparent border-none text-2xl cursor-pointer p-1 text-gray-600 hover:text-gray-800"
@@ -160,7 +168,10 @@ export default function AddExpense() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="w-full space-y-6 md:space-y-8">
+            <form
+              onSubmit={handleSubmit}
+              className="w-full space-y-6 md:space-y-8"
+            >
               {/* Date Field */}
               <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700 mb-2 font-sans">
@@ -191,8 +202,10 @@ export default function AddExpense() {
                   ) : (
                     <>
                       <option value="">Select category</option>
-                      {categories.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
                       ))}
                     </>
                   )}
