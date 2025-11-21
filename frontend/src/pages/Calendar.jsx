@@ -124,13 +124,11 @@ function VaccinationSection({ selectedChild, userData }) {
       try {
         setLoading(true);
         const base = import.meta.env.VITE_BACKEND_URL || "";
-        const vaccUrl = `${base}/api/users/${userData.id}/children/${
-          selectedChild._id
-        }/vaccinations/recommendations${
-          selectedChild.dateOfBirth
+        const vaccUrl = `${base}/api/users/${userData.id}/children/${selectedChild._id
+          }/vaccinations/recommendations${selectedChild.dateOfBirth
             ? `?birthDate=${encodeURIComponent(selectedChild.dateOfBirth)}`
             : ""
-        }`;
+          }`;
         const vaccRes = await fetch(vaccUrl);
         if (vaccRes.ok) {
           const vaccData = await vaccRes.json();
@@ -319,9 +317,8 @@ export default function CalendarPage() {
           params.set("child", selectedChild._id);
         }
 
-        const url = `${
-          import.meta.env.VITE_BACKEND_URL
-        }/api/calendar?${params.toString()}`;
+        const url = `${import.meta.env.VITE_BACKEND_URL
+          }/api/calendar?${params.toString()}`;
         const resp = await fetch(url, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -529,10 +526,10 @@ const handleRefreshRestock = async () => {
           prevItems.map((i) =>
             i.productName === selectedRestockItem.productName
               ? {
-                  ...i,
-                  reminderEnabled: true,
-                  nextRestockDate: selectedDate.toISOString(),
-                }
+                ...i,
+                reminderEnabled: true,
+                nextRestockDate: selectedDate.toISOString(),
+              }
               : i
           )
         );
@@ -615,9 +612,8 @@ const handleRefreshRestock = async () => {
         params.set("child", selectedChild._id);
       }
 
-      const url = `${
-        import.meta.env.VITE_BACKEND_URL
-      }/api/calendar?${params.toString()}`;
+      const url = `${import.meta.env.VITE_BACKEND_URL
+        }/api/calendar?${params.toString()}`;
       const resp = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -634,26 +630,32 @@ const handleRefreshRestock = async () => {
       const data = await resp.json();
       if (!resp.ok) throw new Error(data?.message || "Failed to load events");
 
-      let fcEvents = (data.events || []).map((ev) => ({
-        id: ev._id,
-        title: ev.title, // Only show title, no time
-        start: ev.startDate,
-        end: ev.endDate || undefined,
-        backgroundColor: ev.color || undefined,
-        extendedProps: { raw: ev },
-      }));
+      // In the fetchEventsForRange function, update the event color:
+      let fcEvents = (data.events || []).map((ev) => {
+        // Use the event's color (which should be child-specific)
+        const eventColor = ev.color || '#F3BE08';
+
+        return {
+          id: ev._id,
+          title: ev.title,
+          start: ev.startDate,
+          end: ev.endDate || undefined,
+          backgroundColor: eventColor,
+          borderColor: eventColor,
+          textColor: '#FFFFFF', // White text for better contrast
+          extendedProps: { raw: ev },
+        };
+      });
 
       // Also fetch vaccination events if a child is selected
       if (selectedChild?._id && userData?.id && selectedChild?.dateOfBirth) {
         try {
           const base = import.meta.env.VITE_BACKEND_URL || "";
-          const vaccUrl = `${base}/api/users/${userData.id}/children/${
-            selectedChild._id
-          }/vaccinations/recommendations${
-            selectedChild.dateOfBirth
+          const vaccUrl = `${base}/api/users/${userData.id}/children/${selectedChild._id
+            }/vaccinations/recommendations${selectedChild.dateOfBirth
               ? `?birthDate=${encodeURIComponent(selectedChild.dateOfBirth)}`
               : ""
-          }`;
+            }`;
           const vaccRes = await fetch(vaccUrl);
           if (vaccRes.ok) {
             const vaccData = await vaccRes.json();
@@ -851,31 +853,28 @@ const getCategoryIcon = (category) => {
         <div className="flex gap-4 mb-4">
           <button
             onClick={() => handleViewChange("dayGridMonth")}
-            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${
-              currentView === "dayGridMonth"
+            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${currentView === "dayGridMonth"
                 ? "bg-[#238D88] text-white border-[#238D88]"
                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-            }`}
+              }`}
           >
             Month
           </button>
           <button
             onClick={() => handleViewChange("timeGridWeek")}
-            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${
-              currentView === "timeGridWeek"
+            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${currentView === "timeGridWeek"
                 ? "bg-[#238D88] text-white border-[#238D88]"
                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-            }`}
+              }`}
           >
             Week
           </button>
           <button
             onClick={() => handleViewChange("timeGridDay")}
-            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${
-              currentView === "timeGridDay"
+            className={`flex-1 py-3 px-6 rounded-lg border transition-colors text-lg font-medium ${currentView === "timeGridDay"
                 ? "bg-[#238D88] text-white border-[#238D88]"
                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-            }`}
+              }`}
           >
             Day
           </button>
@@ -1078,9 +1077,9 @@ const getCategoryIcon = (category) => {
         event={
           selectedRestockItem
             ? {
-                title: `Restock: ${selectedRestockItem.productName}`,
-                startDate: selectedRestockItem.nextRestockDate,
-              }
+              title: `Restock: ${selectedRestockItem.productName}`,
+              startDate: selectedRestockItem.nextRestockDate,
+            }
             : null
         }
         customDaysPreview={customRestockDays}

@@ -1,13 +1,16 @@
 // frontend/src/components/AddEventModal.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ChildAvatar from './ChildAvatar';
 
 const ALERT_OPTIONS = [
-  'At time of event',
+  'None',
   '5 minutes before',
   '15 minutes before',
+  '30 minutes before',
   '1 hour before',
-  '1 day before'
+  '2 hour before',
+  '1 day before',
+  '2 day before'
 ];
 
 export default function AddEventModal({ isOpen, onClose, onSaved, initialData = null }) {
@@ -31,29 +34,30 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
   const [startTime, setStartTime] = useState(initialData?.startDate ? getTimeFromDate(initialData.startDate) : '12:00');
   const [endTime, setEndTime] = useState(initialData?.endDate ? getTimeFromDate(initialData.endDate) : '13:00');
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [editingTimeFor, setEditingTimeFor] = useState('start'); // 'start' or 'end'
 
-  const [showCategoryPopup, setShowCategoryPopup] = useState(false);
+  // Category states
+  const [showCategoryPanel, setShowCategoryPanel] = useState(false);
   const [showAddCategoryPanel, setShowAddCategoryPanel] = useState(false);
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Others');
 
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [childrenList, setChildrenList] = useState([]);
-
-  // Custom dropdown states
-  const [showChildrenDropdown, setShowChildrenDropdown] = useState(false);
-
-  // Date picker states
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  // Date picker states - now as modal
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempStartDate, setTempStartDate] = useState(null);
   const [tempEndDate, setTempEndDate] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  // Load categories and children
+  // Alert panel states
+  const [showAlertPanel, setShowAlertPanel] = useState(false);
+  const [showCustomAlertPanel, setShowCustomAlertPanel] = useState(false);
+  const [customAlertText, setCustomAlertText] = useState('');
+
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [childrenList, setChildrenList] = useState([]);
+  const [showChildrenDropdown, setShowChildrenDropdown] = useState(false);
+
   // Load categories and children
   useEffect(() => {
     if (!isOpen) return;
@@ -72,7 +76,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
           setCategories(categoriesData.categories || []);
         }
 
-        // Load children using the same approach as sidebar - get user data first
+        // Load children
         const userRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -82,7 +86,6 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
           console.log('User data with children:', userData);
 
           if (userData.children && userData.children.length > 0) {
-            // Fetch detailed child information for each child ID
             const detailedChildren = await Promise.all(
               userData.children.map(async (childId) => {
                 try {
@@ -93,7 +96,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
                   if (childRes.ok) {
                     const childData = await childRes.json();
-                    return childData.child || childData; // Return the full child object
+                    return childData.child || childData;
                   }
                   return null;
                 } catch (error) {
@@ -103,12 +106,9 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
               })
             );
 
-            // Filter out any null values and set the children list
             const validChildren = detailedChildren.filter(child => child !== null);
-            console.log('Detailed children data for dropdown:', validChildren);
             setChildrenList(validChildren);
           } else {
-            console.log('No children found for user');
             setChildrenList([]);
           }
         }
@@ -143,7 +143,6 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
           : (initialData.attachments || '')
       );
 
-      // Set temp dates for date picker
       if (initialData.startDate) {
         setTempStartDate(new Date(initialData.startDate));
       }
@@ -151,8 +150,10 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         setTempEndDate(new Date(initialData.endDate));
       }
 
-      setShowCategoryPopup(false);
+      setShowCategoryPanel(false);
       setShowAddCategoryPanel(false);
+      setShowAlertPanel(false);
+      setShowCustomAlertPanel(false);
       setSaving(false);
       setDeleting(false);
     } else if (isOpen) {
@@ -170,28 +171,16 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       setAttachments('');
       setTempStartDate(null);
       setTempEndDate(null);
-      setShowCategoryPopup(false);
+      setShowCategoryPanel(false);
       setShowAddCategoryPanel(false);
+      setShowAlertPanel(false);
+      setShowCustomAlertPanel(false);
       setSaving(false);
       setDeleting(false);
     }
   }, [initialData, isOpen]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (showChildrenDropdown && !event.target.closest('.children-dropdown-container')) {
-        setShowChildrenDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showChildrenDropdown]);
-
-  // Helper function to extract time from date
+  // Helper functions
   function getTimeFromDate(dateString) {
     if (!dateString) return '12:00';
     const date = new Date(dateString);
@@ -200,11 +189,33 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     return `${hours}:${minutes}`;
   }
 
-  // Get selected child name for display
   const getSelectedChildName = () => {
     if (selectedChild === 'All') return 'All Children';
     const child = childrenList.find(c => c._id === selectedChild);
     return child ? child.name : 'Select Child';
+  };
+
+
+
+  // Format time for display (03.00 am format)
+  const formatTimeForDisplay = (timeString) => {
+    if (!timeString) return '';
+    const [hours, minutes] = timeString.split(':');
+    const hourNum = parseInt(hours);
+    const period = hourNum >= 12 ? 'pm' : 'am';
+    const displayHour = hourNum % 12 || 12;
+    return `${String(displayHour).padStart(2, '0')}.${minutes} ${period}`;
+  };
+
+  // Format date for display
+  const formatDateForDisplay = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   // Calendar functions
@@ -228,24 +239,19 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     calendarDays.push(day);
   }
 
-  const handleDayClick = (day, isStartDate = true) => {
+  const handleDayClick = (day) => {
     if (!day) return;
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
     const date = new Date(year, month, day);
 
-    if (isStartDate) {
+    if (!tempStartDate) {
       setTempStartDate(date);
-      // Combine selected date with current time
-      const [hours, minutes] = startTime.split(':').map(Number);
-      date.setHours(hours, minutes, 0, 0);
-      setStartDate(formatForInput(date));
-    } else {
+    } else if (!tempEndDate && date >= tempStartDate) {
       setTempEndDate(date);
-      // Combine selected date with current time
-      const [hours, minutes] = endTime.split(':').map(Number);
-      date.setHours(hours, minutes, 0, 0);
-      setEndDate(formatForInput(date));
+    } else {
+      setTempStartDate(date);
+      setTempEndDate(null);
     }
   };
 
@@ -257,27 +263,45 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
 
-  const isDaySelected = (day, isStartDate = true) => {
+  const isDaySelected = (day) => {
     if (!day) return false;
-    const selectedDate = isStartDate ? tempStartDate : tempEndDate;
-    if (!selectedDate) return false;
-    return (
-      day === selectedDate.getDate() &&
-      currentMonth.getMonth() === selectedDate.getMonth() &&
-      currentMonth.getFullYear() === selectedDate.getFullYear()
-    );
+    const selectedDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+
+    if (tempStartDate && tempEndDate) {
+      return selectedDate >= tempStartDate && selectedDate <= tempEndDate;
+    } else if (tempStartDate) {
+      return selectedDate.getTime() === tempStartDate.getTime();
+    }
+    return false;
   };
 
-  const isToday = (day) => {
-    if (!day) return false;
-    const today = new Date();
-    return (
-      day === today.getDate() &&
-      currentMonth.getMonth() === today.getMonth() &&
-      currentMonth.getFullYear() === today.getFullYear()
-    );
+  const isStartDate = (day) => {
+    if (!day || !tempStartDate) return false;
+    const selectedDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    return selectedDate.getTime() === tempStartDate.getTime();
   };
 
+  const isEndDate = (day) => {
+    if (!day || !tempEndDate) return false;
+    const selectedDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    return selectedDate.getTime() === tempEndDate.getTime();
+  };
+
+  const handleSaveDate = () => {
+    if (tempStartDate) {
+      const [hours, minutes] = startTime.split(':').map(Number);
+      tempStartDate.setHours(hours, minutes, 0, 0);
+      setStartDate(formatForInput(tempStartDate));
+    }
+    if (tempEndDate) {
+      const [hours, minutes] = endTime.split(':').map(Number);
+      tempEndDate.setHours(hours, minutes, 0, 0);
+      setEndDate(formatForInput(tempEndDate));
+    }
+    setShowDatePicker(false);
+  };
+
+  // Format date display for the calendar header
   const formatDateDisplay = (date) => {
     if (!date) return null;
     return {
@@ -290,20 +314,385 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
   const startFormatted = tempStartDate ? formatDateDisplay(tempStartDate) : null;
   const endFormatted = tempEndDate ? formatDateDisplay(tempEndDate) : null;
-  const monthYearDisplay = currentMonth.toLocaleString('en-US', { month: 'long', year: 'numeric' });
 
-  // Handle category selection
+  // Date Picker Component - Now as modal overlay
+  const DatePickerModal = () => {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+        <div className="bg-white rounded-lg w-[600px] p-6">
+          <h3 className="text-2xl font-semibold text-[#232527] mb-4 text-center">Date</h3>
+
+          {/* Date Display Header */}
+          <div className="flex justify-between items-center mb-6">
+            <div className="w-48">
+              <div className="text-[16px] font-dm-sans font-medium text-black mb-2">Starts</div>
+              {startFormatted ? (
+                <div className="flex items-baseline gap-3">
+                  <div className="text-[60px] font-dm-sans font-bold text-black leading-[26px]">
+                    {startFormatted.day}
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="text-[16px] font-dm-sans font-normal text-black">
+                      {startFormatted.month} {startFormatted.year}
+                    </div>
+                    <div className="text-[16px] font-dm-sans font-normal text-black">
+                      {startFormatted.dayName}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-400">Select start date</div>
+              )}
+            </div>
+
+            <div className="w-48">
+              <div className={`text-[16px] font-dm-sans font-medium ${endFormatted ? 'text-black' : 'text-[#A0A0A0]'} mb-2`}>
+                Ends
+              </div>
+              {endFormatted ? (
+                <div className="flex items-baseline gap-3">
+                  <div className={`text-[60px] font-dm-sans font-bold ${endFormatted ? 'text-black' : 'text-[#A0A0A0]'} leading-[26px]`}>
+                    {endFormatted.day}
+                  </div>
+                  <div className="flex flex-col">
+                    <div className={`text-[16px] font-dm-sans font-normal ${endFormatted ? 'text-black' : 'text-[#777777]'}`}>
+                      {endFormatted.month} {endFormatted.year}
+                    </div>
+                    <div className={`text-[16px] font-dm-sans font-normal ${endFormatted ? 'text-black' : 'text-[#777777]'}`}>
+                      {endFormatted.dayName}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-400">Select end date</div>
+              )}
+            </div>
+          </div>
+
+          {/* Calendar - Fixed container to prevent overflow */}
+          <div className="border border-[#A0A0A0] rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-[16px] font-dm-sans font-semibold text-[#202020]">
+                {currentMonth.toLocaleString('en-US', { month: 'long', year: 'numeric' })}
+              </div>
+              <div className="flex gap-2">
+                <button onClick={handlePrevMonth} className="p-1 hover:bg-gray-100 rounded">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M15 19L8 12L15 5" stroke="#444444" strokeWidth="2" />
+                  </svg>
+                </button>
+                <button onClick={handleNextMonth} className="p-1 hover:bg-gray-100 rounded">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 5L16 12L9 19" stroke="#444444" strokeWidth="2" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Weekday Headers */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'].map((day) => (
+                <div key={day} className="text-center text-[14px] font-dm-sans font-normal text-[#C1C1C1] py-1">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar Days - Fixed grid to prevent overflow */}
+            <div className="grid grid-cols-7 gap-1 min-h-[200px]">
+              {calendarDays.map((day, index) => (
+                <div key={index} className="flex items-center justify-center min-h-[32px]">
+                  <button
+                    onClick={() => handleDayClick(day)}
+                    disabled={!day}
+                    className={`
+                      w-8 h-8 text-[14px] font-dm-sans font-semibold rounded transition-all flex items-center justify-center
+                      ${!day ? 'invisible' : ''}
+                      ${isStartDate(day) || isEndDate(day) ? 'bg-[#F3BE08] text-black' : ''}
+                      ${isDaySelected(day) && !isStartDate(day) && !isEndDate(day) ? 'bg-[#F3BE08] bg-opacity-30' : ''}
+                      ${!isDaySelected(day) ? 'hover:bg-gray-100 text-[#202020]' : ''}
+                    `}
+                  >
+                    {day}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-center gap-8">
+            <button
+              onClick={() => setShowDatePicker(false)}
+              className="w-24 px-5 py-1 bg-white border border-gray-300 rounded text-[#444444] text-sm font-dm-sans font-normal leading-[26px] tracking-[0.3px]"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveDate}
+              className="w-24 px-5 py-1 bg-[#238D88] text-white rounded text-sm font-dm-sans font-semibold leading-[26px] tracking-[0.3px]"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Time Picker Component - Updated to match sample design
+  const TimePicker = () => {
+    const [selectedHour, setSelectedHour] = useState('12');
+    const [selectedMinute, setSelectedMinute] = useState('00');
+    const [selectedPeriod, setSelectedPeriod] = useState('AM');
+    const [selectedEndHour, setSelectedEndHour] = useState('01');
+    const [selectedEndMinute, setSelectedEndMinute] = useState('00');
+    const [selectedEndPeriod, setSelectedEndPeriod] = useState('PM');
+
+    useEffect(() => {
+      // Set start time
+      const [startHours, startMinutes] = startTime.split(':');
+      const startHourNum = parseInt(startHours);
+      if (startHourNum >= 12) {
+        setSelectedPeriod('PM');
+        setSelectedHour(startHourNum === 12 ? '12' : String(startHourNum - 12).padStart(2, '0'));
+      } else {
+        setSelectedPeriod('AM');
+        setSelectedHour(startHourNum === 0 ? '12' : String(startHourNum).padStart(2, '0'));
+      }
+      setSelectedMinute(startMinutes);
+
+      // Set end time
+      const [endHours, endMinutes] = endTime.split(':');
+      const endHourNum = parseInt(endHours);
+      if (endHourNum >= 12) {
+        setSelectedEndPeriod('PM');
+        setSelectedEndHour(endHourNum === 12 ? '12' : String(endHourNum - 12).padStart(2, '0'));
+      } else {
+        setSelectedEndPeriod('AM');
+        setSelectedEndHour(endHourNum === 0 ? '12' : String(endHourNum).padStart(2, '0'));
+      }
+      setSelectedEndMinute(endMinutes);
+    }, [startTime, endTime]);
+
+    const handleSaveTime = () => {
+      // Convert start time to 24-hour format
+      let startHour24 = parseInt(selectedHour);
+      if (selectedPeriod === 'PM' && startHour24 !== 12) {
+        startHour24 += 12;
+      } else if (selectedPeriod === 'AM' && startHour24 === 12) {
+        startHour24 = 0;
+      }
+      const newStartTime = `${String(startHour24).padStart(2, '0')}:${selectedMinute}`;
+
+      // Convert end time to 24-hour format
+      let endHour24 = parseInt(selectedEndHour);
+      if (selectedEndPeriod === 'PM' && endHour24 !== 12) {
+        endHour24 += 12;
+      } else if (selectedEndPeriod === 'AM' && endHour24 === 12) {
+        endHour24 = 0;
+      }
+      const newEndTime = `${String(endHour24).padStart(2, '0')}:${selectedEndMinute}`;
+
+      setStartTime(newStartTime);
+      setEndTime(newEndTime);
+      setShowTimePicker(false);
+    };
+
+    const TimeColumn = ({
+      selectedValue,
+      setSelectedValue,
+      items,
+      isStart = true,
+      type
+    }) => {
+      const columnRef = useRef(null);
+
+      useEffect(() => {
+        // Scroll to selected item when component mounts
+        if (columnRef.current) {
+          const selectedElement = columnRef.current.querySelector(`[data-value="${selectedValue}"]`);
+          if (selectedElement) {
+            selectedElement.scrollIntoView({
+              block: 'center',
+              behavior: 'smooth'
+            });
+          }
+        }
+      }, [selectedValue]);
+
+      const handleItemClick = (item) => {
+        setSelectedValue(item);
+      };
+
+      return (
+        <div className="relative h-32 overflow-hidden">
+          {/* Selection highlight */}
+          <div className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 h-8 bg-[#F3BE08] opacity-20 rounded pointer-events-none"></div>
+
+          <div
+            ref={columnRef}
+            className="h-full overflow-y-auto"
+            style={{
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none',
+            }}
+          >
+            <div
+              className="py-12 space-y-1"
+              style={{
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
+              {items.map((item, index) => (
+                <div
+                  key={index}
+                  data-value={item}
+                  className={`h-8 flex items-center justify-center cursor-pointer text-[16px] font-nunito font-light leading-6 tracking-[0.05px] rounded transition-colors ${selectedValue === item
+                    ? 'text-[#238D88] font-semibold'
+                    : 'text-[#238D88] hover:bg-[#F3BE08] hover:bg-opacity-20'
+                    }`}
+                  onClick={() => handleItemClick(item)}
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Generate minutes from 00 to 59
+    const minuteItems = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+        <div className="bg-white rounded-[10px] w-full max-w-md p-6">
+          <div className="w-full flex flex-col justify-start items-start gap-2.5">
+            <div className="self-stretch flex flex-col justify-center items-center gap-6">
+              <div className="self-stretch flex flex-col justify-center items-center gap-5">
+                <div className="self-stretch justify-start items-start gap-2.5 inline-flex">
+                  <div className="text-center flex flex-col justify-center text-[#232527] text-[24px] font-dm-sans font-semibold">
+                    Time
+                  </div>
+                </div>
+
+                <div className="w-full">
+                  <div className="self-stretch relative overflow-hidden">
+                    {/* Start Time Section */}
+                    <div className="mb-6">
+                      <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-3">Start Time</div>
+                      <div className="flex items-center justify-center gap-2 bg-white rounded-lg p-4">
+                        <div className="w-16">
+                          <TimeColumn
+                            selectedValue={selectedHour}
+                            setSelectedValue={setSelectedHour}
+                            items={Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))}
+                            isStart={true}
+                            type="hour"
+                          />
+                        </div>
+
+                        <div className="w-4 text-center text-[#219653] text-[16px] font-nunito font-light leading-6 tracking-[0.05px]">
+                          :
+                        </div>
+
+                        <div className="w-16">
+                          <TimeColumn
+                            selectedValue={selectedMinute}
+                            setSelectedValue={setSelectedMinute}
+                            items={minuteItems}
+                            isStart={true}
+                            type="minute"
+                          />
+                        </div>
+
+                        <div className="w-16">
+                          <TimeColumn
+                            selectedValue={selectedPeriod}
+                            setSelectedValue={setSelectedPeriod}
+                            items={['AM', 'PM']}
+                            isStart={true}
+                            type="period"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* End Time Section */}
+                    <div>
+                      <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-3">End Time</div>
+                      <div className="flex items-center justify-center gap-2 bg-white rounded-lg p-4">
+                        <div className="w-16">
+                          <TimeColumn
+                            selectedValue={selectedEndHour}
+                            setSelectedValue={setSelectedEndHour}
+                            items={Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))}
+                            isStart={false}
+                            type="hour"
+                          />
+                        </div>
+
+                        <div className="w-4 text-center text-[#219653] text-[16px] font-nunito font-light leading-6 tracking-[0.05px]">
+                          :
+                        </div>
+
+                        <div className="w-16">
+                          <TimeColumn
+                            selectedValue={selectedEndMinute}
+                            setSelectedValue={setSelectedEndMinute}
+                            items={minuteItems}
+                            isStart={false}
+                            type="minute"
+                          />
+                        </div>
+
+                        <div className="w-16">
+                          <TimeColumn
+                            selectedValue={selectedEndPeriod}
+                            setSelectedValue={setSelectedEndPeriod}
+                            items={['AM', 'PM']}
+                            isStart={false}
+                            type="period"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-full flex justify-center gap-4 mt-4">
+                <button
+                  onClick={() => setShowTimePicker(false)}
+                  className="w-24 px-5 py-2 bg-white border border-gray-300 rounded text-[#444444] text-sm font-dm-sans font-normal leading-[26px] tracking-[0.3px] hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveTime}
+                  className="w-24 px-5 py-2 bg-[#238D88] text-white rounded text-sm font-dm-sans font-semibold leading-[26px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Category functions
   const handleCategorySelect = (categoryName) => {
     setSelectedCategory(categoryName);
   };
 
-  // Save selected category
   const handleSaveCategory = () => {
     setCategory(selectedCategory);
-    setShowCategoryPopup(false);
+    setShowCategoryPanel(false);
   };
 
-  // Add new category
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) {
       alert('Please enter a category name');
@@ -337,7 +726,21 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     }
   };
 
-  // Save event
+  // Alert functions
+  const handleAlertSelect = (alert) => {
+    setAlertTime(alert);
+    setShowAlertPanel(false);
+  };
+
+  const handleCustomAlertSave = () => {
+    if (customAlertText.trim()) {
+      setAlertTime(customAlertText);
+      setShowCustomAlertPanel(false);
+      setShowAlertPanel(false);
+    }
+  };
+
+  // Save event function
   async function handleSave() {
     // VALIDATION FOR REQUIRED FIELDS
     if (!title || !title.trim()) {
@@ -382,6 +785,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       finalEndDate.setHours(endHours, endMinutes, 0, 0);
     }
 
+
     // FIXED: Proper handling for attachments (can be string or array)
     let attachmentsPayload = [];
     if (Array.isArray(attachments)) {
@@ -390,17 +794,34 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       attachmentsPayload = [attachments.trim()];
     }
 
+    const getChildSpecificColor = (childrenIds, childrenList) => {
+      // If multiple children or "All" selected, use default color
+      if (childrenIds.length !== 1 || childrenIds[0] === 'All') {
+        return '#006F69'; // Default color
+      }
+
+      // Find the specific child and use their background color
+      const child = childrenList.find(c => c._id === childrenIds[0]);
+      if (child && child.backgroundColor) {
+        return child.backgroundColor;
+      }
+
+      return '#006F69'; // Fallback to default
+    };
+
+
     const payload = {
       title: title.trim(),
       children: childrenPayload,
-      color: '#006F69',
+      color: getChildSpecificColor(childrenPayload, childrenList), // Use child-specific color
       category: category,
       startDate: finalStartDate.toISOString(),
       alert: alertTime || '',
-      notes: notes || '', // Empty string is fine
-      url: url || '', // Empty string is fine
+      notes: notes || '',
+      url: url || '',
       attachments: attachmentsPayload
     };
+
 
     // Add endDate only if provided
     if (finalEndDate) {
@@ -459,7 +880,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     }
   }
 
-  // Delete event
+  // Delete event function
   async function handleDelete() {
     if (!initialData?._id) {
       window.alert('No event to delete.');
@@ -522,220 +943,54 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
   if (!isOpen) return null;
 
+  // Get display text for date and time inputs
+  const getDateDisplayText = () => {
+    if (tempStartDate && tempEndDate) {
+      return `${formatDateForDisplay(tempStartDate)} → ${formatDateForDisplay(tempEndDate)}`;
+    } else if (tempStartDate) {
+      return `${formatDateForDisplay(tempStartDate)} → Select end date`;
+    } else if (startDate) {
+      const start = new Date(startDate);
+      const end = endDate ? new Date(endDate) : null;
+      return end
+        ? `${formatDateForDisplay(start)} → ${formatDateForDisplay(end)}`
+        : `${formatDateForDisplay(start)} → Select end date`;
+    }
+    return 'Select Start and end Date';
+  };
+
+  const getTimeDisplayText = () => {
+    if (startTime && endTime) {
+      return `${formatTimeForDisplay(startTime)} → ${formatTimeForDisplay(endTime)}`;
+    }
+    return 'Select Start and End time';
+  };
+
+  // Main modal content
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4 text-gray-800">
-          {initialData ? 'Edit Event' : 'Add Event'}
-        </h3>
+      <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">
+            {initialData ? 'Edit Event' : 'Add Event'}
+          </h3>
 
-        {/* Title - No label, just placeholder */}
-        <input
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          placeholder="Enter Event Title"
-          className="w-full border-b-2 border-gray-300 px-2 py-3 mb-4 focus:outline-none focus:border-[#238D88] text-gray-700 placeholder-gray-400"
-        />
-
-        {/* Category Dropdown */}
-        <div className="mb-4">
-          <button
-            onClick={() => setShowCategoryPopup(true)}
-            className="w-full bg-[#F3BE08] text-black rounded-lg px-4 py-3 font-medium flex justify-between items-center hover:bg-amber-500 transition-colors"
-          >
-            <span>{category}</span>
-            <span>▼</span>
-          </button>
-        </div>
-
-        {/* Select Children Dropdown with Label and Custom Dropdown */}
-        {/* Select Children Dropdown */}
-        <div className="mb-4 children-dropdown-container">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select the child that will be assigned to the event
-          </label>
-          <div className="relative">
-            <button
-              onClick={() => setShowChildrenDropdown(!showChildrenDropdown)}
-              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left focus:outline-none focus:border-[#238D88] text-gray-700 flex justify-between items-center"
-            >
-              <div className="flex items-center gap-2">
-                {selectedChild !== 'All' ? (
-                  <>
-                    <ChildAvatar
-                      child={childrenList.find(c => c._id === selectedChild)}
-                      width={24}
-                      height={24}
-                    />
-                    <span>{getSelectedChildName()}</span>
-                  </>
-                ) : (
-                  <span>{getSelectedChildName()}</span>
-                )}
-              </div>
-              <span>▼</span>
-            </button>
-
-            {/* Custom Dropdown Menu */}
-            {showChildrenDropdown && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                {/* All Children Option */}
-                <button
-                  onClick={() => {
-                    setSelectedChild('All');
-                    setShowChildrenDropdown(false);
-                  }}
-                  className={`w-full px-4 py-3 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors ${selectedChild === 'All' ? 'bg-[#238D88] text-white' : 'text-gray-700'
-                    }`}
-                >
-                  <span>All Children</span>
-                </button>
-
-                {/* Individual Children Options */}
-                {childrenList.map(child => (
-                  <button
-                    key={child._id}
-                    onClick={() => {
-                      setSelectedChild(child._id);
-                      setShowChildrenDropdown(false);
-                    }}
-                    className={`w-full px-4 py-3 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors ${selectedChild === child._id ? 'bg-[#238D88] text-white' : 'text-gray-700'
-                      }`}
-                  >
-                    <ChildAvatar child={child} width={24} height={24} />
-                    <span>{child.name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Date and Time Heading */}
-        <h4 className="text-black font-semibold mb-3">Date and Time</h4>
-
-        {/* Start and End Date with Time Selection */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start</label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowStartDatePicker(true)}
-                className="flex-1 border border-gray-300 rounded px-3 py-2 text-left focus:outline-none focus:border-[#238D88] text-gray-700 bg-white text-sm"
-              >
-                {startDate ? new Date(startDate).toLocaleDateString() : "Select date"}
-              </button>
-              <button
-                onClick={() => {
-                  setEditingTimeFor('start');
-                  setShowTimePicker(true);
-                }}
-                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-[#238D88] text-gray-700 bg-white text-sm"
-              >
-                {startTime}
-              </button>
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">End</label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowEndDatePicker(true)}
-                className="flex-1 border border-gray-300 rounded px-3 py-2 text-left focus:outline-none focus:border-[#238D88] text-gray-700 bg-white text-sm"
-              >
-                {endDate ? new Date(endDate).toLocaleDateString() : "Select date"}
-              </button>
-              <button
-                onClick={() => {
-                  setEditingTimeFor('end');
-                  setShowTimePicker(true);
-                }}
-                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-[#238D88] text-gray-700 bg-white text-sm"
-              >
-                {endTime}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Alert Dropdown */}
-        <div className="mb-4">
-          <select
-            value={alertTime}
-            onChange={e => setAlertTime(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#238D88] text-gray-700"
-          >
-            {ALERT_OPTIONS.map(alert => (
-              <option key={alert} value={alert}>{alert}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Notes, URL, Attachments */}
-        <div className="space-y-3 mb-6">
+          {/* Title */}
           <input
-            value={notes}
-            onChange={e => setNotes(e.target.value)}
-            placeholder="Add notes"
-            className="w-full border-b-2 border-gray-300 px-2 py-3 focus:outline-none focus:border-[#238D88] text-gray-700 placeholder-gray-400"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="Enter Event Title"
+            className="w-full border-b-2 border-gray-300 px-2 py-3 mb-4 focus:outline-none focus:border-[#238D88] text-gray-700 placeholder-gray-400"
           />
-          <input
-            value={url}
-            onChange={e => setUrl(e.target.value)}
-            placeholder="Add URL"
-            className="w-full border-b-2 border-gray-300 px-2 py-3 focus:outline-none focus:border-[#238D88] text-gray-700 placeholder-gray-400"
-          />
-          <input
-            value={attachments}
-            onChange={e => setAttachments(e.target.value)}
-            placeholder="Add attachments"
-            className="w-full border-b-2 border-gray-300 px-2 py-3 focus:outline-none focus:border-[#238D88] text-gray-700 placeholder-gray-400"
-          />
-        </div>
 
-        {/* Save, Cancel, and Delete Buttons */}
-        <div className="flex justify-between gap-3">
-          {/* Delete Button - Only show when editing */}
-          {initialData && (
-            <button
-              onClick={handleDelete}
-              disabled={deleting || saving}
-              className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {deleting ? 'Deleting...' : 'Delete'}
-            </button>
-          )}
-          {/* Spacer when Delete button is shown */}
-          {initialData && <div className="flex-1"></div>}
-          {/* Cancel and Save Buttons */}
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              disabled={saving || deleting}
-              className="px-6 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving || deleting}
-              className="px-6 py-2 bg-[#238D88] text-white rounded hover:bg-[#1d7470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? 'Saving...' : (initialData ? 'Save Changes' : 'Save')}
-            </button>
-          </div>
-        </div>
-
-        {/* Category Popup */}
-        {showCategoryPopup && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-            <div className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-              {/* Header */}
+          {/* Category Panel - Now as inline panel */}
+          {showCategoryPanel && (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
               <div className="flex justify-between items-center mb-4">
                 <h4 className="text-lg font-semibold text-gray-800">Select Category</h4>
                 <button
                   onClick={() => {
-                    setShowCategoryPopup(false);
+                    setShowCategoryPanel(false);
                     setShowAddCategoryPanel(true);
                   }}
                   className="bg-[#F3BE08] text-black px-3 py-1 rounded text-sm font-medium hover:bg-amber-500 transition-colors"
@@ -744,8 +999,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                 </button>
               </div>
 
-              {/* Category List */}
-              <div className="space-y-2 mb-4 max-h-60 overflow-y-auto">
+              <div className="space-y-2 max-h-40 overflow-y-auto mb-4">
                 {categories.map(cat => (
                   <div key={cat._id} className="flex items-center gap-3 py-2">
                     <input
@@ -754,7 +1008,8 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                       name="category"
                       checked={selectedCategory === cat.category}
                       onChange={() => handleCategorySelect(cat.category)}
-                      className="w-4 h-4 text-[#238D88] focus:ring-[#238D88]"
+                      className="w-4 h-4 text-[#F3BE08] focus:ring-[#F3BE08]"
+                      style={{ backgroundColor: selectedCategory === cat.category ? '#F3BE08' : 'white' }}
                     />
                     <label htmlFor={cat._id} className="text-gray-700">
                       {cat.category}
@@ -763,10 +1018,9 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                 ))}
               </div>
 
-              {/* Category Popup Buttons */}
               <div className="flex justify-end gap-3 pt-4 border-t">
                 <button
-                  onClick={() => setShowCategoryPopup(false)}
+                  onClick={() => setShowCategoryPanel(false)}
                   className="px-4 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
@@ -779,26 +1033,39 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                 </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Add Category as separate popup */}
-        {showAddCategoryPanel && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-            <div className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+          {/* Select Category Button - Only show when panel is closed */}
+          {!showCategoryPanel && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Select Category</label>
+              <button
+                onClick={() => setShowCategoryPanel(true)}
+                className="w-full bg-[#F3BE08] text-black rounded-lg px-4 py-3 font-medium flex justify-between items-center hover:bg-amber-500 transition-colors"
+              >
+                <span>{category}</span>
+                <span>▼</span>
+              </button>
+            </div>
+          )}
+
+          {/* Add Category Panel - Now as inline panel */}
+          {showAddCategoryPanel && (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
               <h5 className="font-semibold text-gray-800 mb-3">Add New Category</h5>
               <input
                 type="text"
                 value={newCategoryName}
                 onChange={e => setNewCategoryName(e.target.value)}
-                placeholder="Enter category name"
-                className="w-full border border-gray-300 rounded px-3 py-2 mb-3 focus:outline-none focus:border-[#238D88] text-gray-700 placeholder-gray-400"
+                placeholder="Add New Category"
+                className="w-full border border-gray-300 rounded px-3 py-2 mb-2 focus:outline-none focus:border-[#238D88] text-gray-700"
               />
+              <p className="text-sm text-gray-500 mb-3">Suggestions: Medical, Stationary, etc.</p>
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => {
                     setShowAddCategoryPanel(false);
-                    setNewCategoryName(''); // Clear the input
+                    setNewCategoryName('');
                   }}
                   className="px-4 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 transition-colors"
                 >
@@ -812,188 +1079,270 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                 </button>
               </div>
             </div>
+          )}
+
+          {/* Select Children Dropdown */}
+          <div className="mb-4 children-dropdown-container">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select the child that will be assigned to the event
+            </label>
+            <div className="relative">
+              <button
+                onClick={() => setShowChildrenDropdown(!showChildrenDropdown)}
+                className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left focus:outline-none focus:border-[#238D88] text-gray-700 flex justify-between items-center"
+              >
+                <div className="flex items-center gap-2">
+                  {selectedChild !== 'All' ? (
+                    <>
+                      <ChildAvatar
+                        child={childrenList.find(c => c._id === selectedChild)}
+                        width={24}
+                        height={24}
+                      />
+                      <span>{getSelectedChildName()}</span>
+                    </>
+                  ) : (
+                    <span>{getSelectedChildName()}</span>
+                  )}
+                </div>
+                <span>▼</span>
+              </button>
+
+              {showChildrenDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                  <button
+                    onClick={() => {
+                      setSelectedChild('All');
+                      setShowChildrenDropdown(false);
+                    }}
+                    className={`w-full px-4 py-3 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors ${selectedChild === 'All' ? 'bg-[#238D88] text-white' : 'text-gray-700'
+                      }`}
+                  >
+                    <span>All Children</span>
+                  </button>
+
+                  {childrenList.map(child => (
+                    <button
+                      key={child._id}
+                      onClick={() => {
+                        setSelectedChild(child._id);
+                        setShowChildrenDropdown(false);
+                      }}
+                      className={`w-full px-4 py-3 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors ${selectedChild === child._id ? 'bg-[#238D88] text-white' : 'text-gray-700'
+                        }`}
+                    >
+                      <ChildAvatar child={child} width={24} height={24} />
+                      <span>{child.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        )}
 
-        {/* Time Picker Modal */}
-        {showTimePicker && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-              <h3 className="text-lg font-semibold mb-4">
-                Select {editingTimeFor === 'start' ? 'Start' : 'End'} Time
-              </h3>
+          {/* Date and Time Section */}
+          <h4 className="text-black font-semibold mb-3">Date and Time</h4>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Time (24-hour format)
-                </label>
-                <input
-                  type="time"
-                  value={editingTimeFor === 'start' ? startTime : endTime}
-                  onChange={(e) => {
-                    if (editingTimeFor === 'start') {
-                      setStartTime(e.target.value);
-                    } else {
-                      setEndTime(e.target.value);
-                    }
+          {/* Select Start and End Date Input */}
+          <div className="mb-4">
+            {/* <label className="block text-sm font-medium text-gray-700 mb-2">Select Date</label> */}
+            <button
+              onClick={() => setShowDatePicker(true)}
+              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left focus:outline-none focus:border-[#238D88] text-gray-700 flex justify-between items-center hover:bg-gray-50 transition-colors"
+            >
+              <span className={tempStartDate || startDate ? 'text-gray-800' : 'text-gray-500'}>
+                {getDateDisplayText()}
+              </span>
+              {/* <span>📅</span> */}
+            </button>
+          </div>
+
+          {/* Select Time Input */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Select Time</label>
+            <button
+              onClick={() => setShowTimePicker(true)}
+              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left focus:outline-none focus:border-[#238D88] text-gray-700 flex justify-between items-center hover:bg-gray-50 transition-colors"
+            >
+              <span className={startTime && endTime ? 'text-gray-800' : 'text-gray-500'}>
+                {getTimeDisplayText()}
+              </span>
+              {/* <span>🕒</span> */}
+            </button>
+          </div>
+
+          {/* Alert */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Alert</label>
+            <button
+              onClick={() => setShowAlertPanel(true)}
+              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left focus:outline-none focus:border-[#238D88] text-gray-700 flex justify-between items-center"
+            >
+              <span>{alertTime}</span>
+              <span>▼</span>
+            </button>
+          </div>
+
+          {/* Alert Panel - Now as inline panel */}
+          {showAlertPanel && (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-2xl font-bold text-black">Alert</h4>
+                <button
+                  onClick={() => {
+                    setShowAlertPanel(false);
+                    setShowCustomAlertPanel(true);
                   }}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#238D88]"
-                />
+                  className="bg-[#F3BE08] text-black px-3 py-2 rounded text-sm font-medium hover:bg-amber-500 transition-colors flex items-center gap-2"
+                >
+                  <span>Custom</span>
+                  <span>+</span>
+                </button>
               </div>
 
-              <div className="flex justify-end gap-3">
+              <div className="space-y-2 mb-4">
+                {ALERT_OPTIONS.map(option => (
+                  <button
+                    key={option}
+                    onClick={() => handleAlertSelect(option)}
+                    className="w-full px-4 py-3 text-left hover:bg-[#238D88] hover:text-white transition-colors rounded-lg"
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
                 <button
-                  onClick={() => setShowTimePicker(false)}
+                  onClick={() => setShowAlertPanel(false)}
                   className="px-4 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => setShowTimePicker(false)}
+                  onClick={() => setShowAlertPanel(false)}
                   className="px-4 py-2 bg-[#238D88] text-white rounded hover:bg-[#1d7470] transition-colors"
                 >
                   Save
                 </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Start Date Picker Modal */}
-        {(showStartDatePicker || showEndDatePicker) && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4" onClick={() => {
-            setShowStartDatePicker(false);
-            setShowEndDatePicker(false);
-          }}>
-            <div className="bg-white rounded-2xl p-6 w-[606px] h-[506px] shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              {/* Calendar Header */}
-              <div className="mb-4">
-                <h3 className="text-xl font-bold text-black">Select {showStartDatePicker ? 'Start' : 'End'} Date</h3>
+          {/* Custom Alert Panel - Now as inline panel */}
+          {showCustomAlertPanel && (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
+              <h4 className="text-2xl font-bold text-black text-center mb-2">Customize your alert</h4>
+              <p className="text-center text-gray-600 mb-4">
+                Write your own custom alert date for getting reminder for this item!
+              </p>
 
-                {/* Selected Date Display */}
-                <div className="grid grid-cols-2 gap-4 p-1">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1 font-medium">
-                      {showStartDatePicker ? 'Starts' : 'Ends'}
-                    </p>
-                    {showStartDatePicker && startFormatted ? (
-                      <div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-3xl font-bold text-gray-800">
-                            {startFormatted.day}
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {startFormatted.month} {startFormatted.year}
-                            <p className="text-xs text-gray-500 mt-1">
-                              {startFormatted.dayName}
-                            </p>
-                          </span>
-                        </div>
-                      </div>
-                    ) : showEndDatePicker && endFormatted ? (
-                      <div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-3xl font-bold text-gray-800">
-                            {endFormatted.day}
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {endFormatted.month} {endFormatted.year}
-                            <p className="text-xs text-gray-500 mt-1">
-                              {endFormatted.dayName}
-                            </p>
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-400 italic">Select date</p>
-                    )}
-                  </div>
-                </div>
+              <div className="mb-6">
+                <label className="block text-gray-700 mb-2">Alert</label>
+                <input
+                  type="text"
+                  value={customAlertText}
+                  onChange={e => setCustomAlertText(e.target.value)}
+                  placeholder="Ex: before 5 days"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#238D88] text-gray-700"
+                />
               </div>
 
-              {/* Calendar */}
-              <div className="mb-4">
-                <div className="p-2 border-2 border-gray-300 w-[557px] h-[267px] rounded-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-800 text-sm">{monthYearDisplay}</h3>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handlePrevMonth}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={handleNextMonth}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Weekday Headers */}
-                  <div className="grid grid-cols-7 gap-1">
-                    {['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'].map((day) => (
-                      <div key={day} className="text-center text-xs font-medium text-gray-500 py-1 h-[14px] w-[32px]">
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Calendar Days */}
-                  <div className="grid grid-cols-7 gap-1">
-                    {calendarDays.map((day, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleDayClick(day, showStartDatePicker)}
-                        disabled={!day}
-                        className={`
-                          h-[24px] w-[32px] rounded-lg text-sm font-medium transition-all
-                          ${!day ? 'invisible' : ''}
-                          ${isDaySelected(day, showStartDatePicker)
-                            ? 'bg-[#238D88] text-white shadow-md'
-                            : isToday(day)
-                              ? 'bg-gray-200 text-gray-800 font-bold'
-                              : 'hover:bg-gray-100 text-gray-700'
-                          }
-                        `}
-                      >
-                        {day}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Calendar Action Buttons */}
-              <div className="flex gap-3">
+              <div className="flex justify-center gap-3">
                 <button
                   onClick={() => {
-                    setShowStartDatePicker(false);
-                    setShowEndDatePicker(false);
+                    setShowCustomAlertPanel(false);
+                    setCustomAlertText('');
                   }}
-                  className="flex-1 px-6 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  className="px-6 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    setShowStartDatePicker(false);
-                    setShowEndDatePicker(false);
-                  }}
-                  className="flex-1 px-6 py-2.5 bg-[#238D88] text-white rounded-lg font-medium hover:bg-[#1a6b67] transition-colors"
+                  onClick={handleCustomAlertSave}
+                  className="px-6 py-2 bg-[#238D88] text-white rounded hover:bg-[#1d7470] transition-colors"
                 >
-                  Save
+                  Confirm
                 </button>
               </div>
             </div>
+          )}
+
+          {/* Notes, URL, Attachments with Icons */}
+          <div className="space-y-3 mb-6">
+            <div className="flex items-center border-b-2 border-gray-300 px-2 py-3 focus-within:border-[#238D88]">
+              <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <input
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder="Add notes"
+                className="flex-1 focus:outline-none text-gray-700 placeholder-gray-400"
+              />
+            </div>
+
+            <div className="flex items-center border-b-2 border-gray-300 px-2 py-3 focus-within:border-[#238D88]">
+              <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <input
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                placeholder="Add URL"
+                className="flex-1 focus:outline-none text-gray-700 placeholder-gray-400"
+              />
+            </div>
+
+            <div className="flex items-center border-b-2 border-gray-300 px-2 py-3 focus-within:border-[#238D88]">
+              <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+              <input
+                value={attachments}
+                onChange={e => setAttachments(e.target.value)}
+                placeholder="Add attachments"
+                className="flex-1 focus:outline-none text-gray-700 placeholder-gray-400"
+              />
+            </div>
           </div>
-        )}
+
+          {/* Save, Cancel, and Delete Buttons */}
+          <div className="flex justify-between gap-3">
+            {initialData && (
+              <button
+                onClick={handleDelete}
+                disabled={deleting || saving}
+                className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            )}
+            {initialData && <div className="flex-1"></div>}
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                disabled={saving || deleting}
+                className="px-6 py-2 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving || deleting}
+                className="px-6 py-2 bg-[#238D88] text-white rounded hover:bg-[#1d7470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? 'Saving...' : (initialData ? 'Save Changes' : 'Save')}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Date Picker Modal */}
+        {showDatePicker && <DatePickerModal />}
+
+        {/* Time Picker Modal */}
+        {showTimePicker && <TimePicker />}
       </div>
     </div>
   );
