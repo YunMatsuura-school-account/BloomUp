@@ -334,142 +334,145 @@ const ArticleSingle = () => {
             Back
           </button>
 
-          {/* Main Article Content */}
-          <article className="flex-1 rounded-lg overflow-hidden">
-            <div className="px-6 pb-6 lg:px-8 lg:pb-8">
-              {/* Category and Save Status */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
-                    {article.category}
-                  </span>
-                  {isSaved && (
-                    <span className="text-sm font-semibold text-amber-600 uppercase tracking-wide flex items-center gap-1">
-                      <svg 
-                        className="w-4 h-4" 
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          d="M5 5a2 2 0 012-2h6a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                        />
-                      </svg>
-                      Saved
+          {/* Wrapper for Article and Navigation */}
+          <div className="flex-1 flex flex-col order-2 lg:order-none">
+            {/* Main Article Content */}
+            <article className="flex-1 rounded-lg overflow-hidden">
+              <div className="px-6 pb-6 lg:px-0 lg:pb-8">
+                {/* Category and Save Status */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
+                      {article.category}
                     </span>
-                  )}
-                </div>
-                <button 
-                  className={`transition-all duration-300 ${isSaved ? 'text-amber-500' : 'text-gray-400 hover:text-amber-500'}`}
-                  onClick={toggleSave}
-                  title={isSaved ? 'Remove from saved' : 'Save article'}
-                >
-                  <svg 
-                    className="w-7 h-7" 
-                    fill={isSaved ? 'currentColor' : 'none'}
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                    strokeWidth={isSaved ? 0 : 2}
+                    {isSaved && (
+                      <span className="text-sm font-semibold text-amber-600 uppercase tracking-wide flex items-center gap-1">
+                        <svg 
+                          className="w-4 h-4" 
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            d="M5 5a2 2 0 012-2h6a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                          />
+                        </svg>
+                        Saved
+                      </span>
+                    )}
+                  </div>
+                  <button 
+                    className={`transition-all duration-300 ${isSaved ? 'text-amber-500' : 'text-gray-400 hover:text-amber-500'}`}
+                    onClick={toggleSave}
+                    title={isSaved ? 'Remove from saved' : 'Save article'}
                   >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      d="M5 5a2 2 0 012-2h6a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Title */}
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3 leading-tight">
-                {article.link ? (
-                  <a href={article.link} target="_blank" rel="noopener noreferrer" className="hover:text-gray-700">
-                    {article.title}
-                  </a>
-                ) : (
-                  article.title
-                )}
-              </h1>
-
-              {/* Description */}
-              <p className="text-gray-700 text-base leading-relaxed mb-4">
-                {article.description}
-              </p>
-
-              {/* Metadata */}
-              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mb-6 pb-6 border-b border-gray-200">
-                <span>By: {article.author || 'Joe Casper for CNN news'}</span>
-                <span>•</span>
-                <span>Published: {new Date(article.createdAt).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}</span>
-              </div>
-
-              {/* Main Image */}
-              <div className="mb-6">
-                <img 
-                  src={article.image} 
-                  alt={article.title} 
-                  className="w-full h-auto rounded-lg object-cover"
-                />
-                {/* Image Caption */}
-                <p className="text-xs text-gray-500 mt-2 italic">
-                  Between 2010 and 2019, there were declines in at least one kind of vaccination in 21 of 36 "high-income countries" measured in a new study.
-                </p>
-              </div>
-
-              {/* Article Content */}
-              <div className="prose prose-base max-w-none">
-                <div className="text-gray-800 leading-relaxed text-base whitespace-pre-line">
-                  {article.content}
+                    <svg 
+                      className="w-7 h-7" 
+                      fill={isSaved ? 'currentColor' : 'none'}
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                      strokeWidth={isSaved ? 0 : 2}
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        d="M5 5a2 2 0 012-2h6a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                      />
+                    </svg>
+                  </button>
                 </div>
-              </div>
 
-              {/* Additional Image */}
-              {article.image1 && (
-                <div className="mt-8">
+                {/* Title */}
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3 leading-tight">
+                  {article.link ? (
+                    <a href={article.link} target="_blank" rel="noopener noreferrer" className="hover:text-gray-700">
+                      {article.title}
+                    </a>
+                  ) : (
+                    article.title
+                  )}
+                </h1>
+
+                {/* Description */}
+                <p className="text-gray-700 text-base leading-relaxed mb-4">
+                  {article.description}
+                </p>
+
+                {/* Metadata */}
+                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mb-6 pb-6 border-b border-gray-200">
+                  <span>By: {article.author || 'Joe Casper for CNN news'}</span>
+                  <span>•</span>
+                  <span>Published: {new Date(article.createdAt).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</span>
+                </div>
+
+                {/* Main Image */}
+                <div className="mb-6">
                   <img 
-                    src={article.image1} 
-                    alt="Article illustration" 
+                    src={article.image} 
+                    alt={article.title} 
                     className="w-full h-auto rounded-lg object-cover"
                   />
+                  {/* Image Caption */}
+                  <p className="text-xs text-gray-500 mt-2 italic">
+                    Between 2010 and 2019, there were declines in at least one kind of vaccination in 21 of 36 "high-income countries" measured in a new study.
+                  </p>
                 </div>
-              )}
 
-              {/* Navigation Buttons */}
-              <div className="flex items-center justify-center gap-4 mt-8 pt-8 border-t border-gray-200">
-                <button
-                  onClick={handlePreviousArticle}
-                  disabled={!previousArticle}
-                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 min-w-[140px] ${
-                    previousArticle 
-                      ? 'bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400' 
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed border-2 border-gray-200'
-                  }`}
-                >
-                  Go Back
-                </button>
-                <button
-                  onClick={handleNextArticle}
-                  disabled={!nextArticle}
-                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 min-w-[140px] ${
-                    nextArticle 
-                      ? 'bg-teal-600 text-white hover:bg-teal-700' 
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  Next Article
-                </button>
+                {/* Article Content */}
+                <div className="prose prose-base max-w-none">
+                  <div className="text-gray-800 leading-relaxed text-base whitespace-pre-line">
+                    {article.content}
+                  </div>
+                </div>
+
+                {/* Additional Image */}
+                {article.image1 && (
+                  <div className="mt-8">
+                    <img 
+                      src={article.image1} 
+                      alt="Article illustration" 
+                      className="w-full h-auto rounded-lg object-cover"
+                    />
+                  </div>
+                )}
               </div>
+            </article>
+
+            {/* Navigation Buttons - Full Width */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-8 px-6 lg:px-0">
+              <button
+                onClick={handlePreviousArticle}
+                disabled={!previousArticle}
+                className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  previousArticle 
+                    ? 'bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed border-2 border-gray-200'
+                }`}
+              >
+                Go Back
+              </button>
+              <button
+                onClick={handleNextArticle}
+                disabled={!nextArticle}
+                className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  nextArticle 
+                    ? 'bg-teal-600 text-white hover:bg-teal-700' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                Next Article
+              </button>
             </div>
-          </article>
+          </div>
 
           {/* Related Articles Sidebar */}
           {relatedArticles.length > 0 && (
-            <aside className="lg:w-80 xl:w-96">
+            <aside className="lg:w-80 xl:w-96 order-3 lg:order-none">
               <div className="rounded-lg px-6 pb-6 sticky top-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">You might also like</h2>
                 <div className="space-y-4">
