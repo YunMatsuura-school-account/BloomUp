@@ -313,9 +313,8 @@ const articlesData = {
         "Saving for College: 529 Plans and Other Education Savings Strategies",
       category: "Finances",
       image:
-        "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=500&fit=crop&q=80",
-      image1:
         "https://images.unsplash.com/photo-1434626881859-194d67b2b86f?w=800&h=500&fit=crop&q=80",
+      image1: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&h=500&fit=crop&q=80",
       description:
         "Start early and save smart for your child's education with tax-advantaged accounts, investment strategies, and realistic goal-setting.",
       content:
