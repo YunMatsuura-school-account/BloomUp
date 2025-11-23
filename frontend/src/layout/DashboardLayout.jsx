@@ -33,7 +33,7 @@ function DashboardLayout() {
         </div>
 
         {/* Main content area */}
-        <div className="flex-1 flex flex-col bg-[#414049] overflow-hidden">
+        <div className="flex-1 flex flex-col bg-[#EFEFEF]] overflow-hidden">
           {/* Dashboard Header - shown on all pages except Articles, and only on mobile for child-dashboard and settings */}
           {!isArticlesPage && (
             <div className={isChildDashboardPage || isSettingsPage ? "md:hidden" : ""}>

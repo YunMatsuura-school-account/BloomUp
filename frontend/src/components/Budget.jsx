@@ -6,19 +6,19 @@ import BudgetSetup from "./BudgetSetup";
 import UploadReceipt from "../pages/UploadReceipt";
 
 const defaultCategoryColors = {
-  'Education': '#6366F1',
-  'Medical': '#10B981',
-  'Consumable': '#FBBF24',
-  'Food': '#F97316',
+  'Education': '#0073E7',
+  'Medical': '#0CC68E',
+  'Consumable': '#F3BE08',
+  'Food': '#E95900',
   'Clothes': '#EC4899',
   'Entertainment': '#8B5CF6',
   'Transport': '#3B82F6',
-  'Other': '#6B7280'
+  'Other': '#B76EF6'
 };
 
 // Extended color palette for dynamic categories
 const colorPalette = [
-  '#6366F1', '#10B981', '#FBBF24', '#F97316', 
+  '#a8dfe9ff', '#c8dd97ff', '#aa9664ff', '#F97316', 
   '#EC4899', '#8B5CF6', '#3B82F6', '#6B7280',
   '#EF4444', '#F59E0B', '#84CC16', '#06B6D4',
   '#8B5CF6', '#D946EF', '#F43F5E', '#14B8A6',
@@ -70,12 +70,12 @@ function BudgetAllocationBar({ overview }) {
           Budget Allocation
         </h3>
         <div className="text-[12px] md:text-[16px] text-gray-600 font-sans flex flex-col gap-1">
-          Total Allocated: <span className="font-semibold text-[12px] md:text-[32px] font-numbers">${overview.total}</span>
+          Total Allocated <span className="font-medium text-[12px] md:text-[32px] font-numbers">${overview.total}</span>
         </div>
       </div>
 
       {/* Allocation Bar */}
-      <div className="relative w-full h-12 bg-gray-100 rounded-lg overflow-hidden flex">
+      <div className="relative w-full h-10 bg-gray-100 rounded-[50px] overflow-hidden flex">
         {allocationData.map((cat, index) => (
           <div
             key={cat.name}
@@ -675,9 +675,9 @@ function Budget() {
                               'July', 'August', 'September', 'October', 'November', 'December'];
             const monthName = monthNames[currentMonth - 1];
             
-            if (confirm(`It's a new month! Set your budget for ${monthName} ${currentYear}?`)) {
+            // if (confirm(`It's a new month! Set your budget for ${monthName} ${currentYear}?`)) {
               setShowBudgetSetup(true);
-            }
+            // }
           }, 1500);
         }
       }
@@ -1096,9 +1096,11 @@ const calculateMonthlySpendingDataFallback = () => {
       title: { display: false },
       tooltip: {
         enabled: hasData,
-        backgroundColor: '#238D88',
+        backgroundColor: '#E2E2E2',
+        titleColor: '#000000',
+        bodyColor: '#000000',
         padding: 12,
-        titleFont: { size: 13, weight: 'bold', family: 'DM Sans, system-ui, sans-serif' },
+        titleFont: { size: 13, weight: 'bold', family: 'DM Sans, system-ui, sans-serif'  },
         bodyFont: { size: 12, family: 'DM Sans, system-ui, sans-serif' },
         callbacks: {
           label: function(context) {
@@ -1201,7 +1203,7 @@ const calculateMonthlySpendingDataFallback = () => {
 
   if (loading) {
     return (
-      <div className="bg-gray-100 min-h-screen flex items-center justify-center">
+      <div className="bg-[#EFEFEF] min-h-screen flex items-center justify-center">
         <div className="text-[15px] md:text-lg text-gray-600 font-sans">Loading budget...</div>
       </div>
     );
@@ -1228,44 +1230,50 @@ const calculateMonthlySpendingDataFallback = () => {
     <div className="bg-[#EFEFEF] min-h-screen font-sans">
       <div className="p-5">
         {/* Consolidated Budget Overview Section */}
-        <div className="bg-[#FAFAFA] rounded-xl p-6 mb-6">
+        <div className="bg-white rounded-xl p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <h2 className="text-[15px] md:text-[25px] font-semibold text-gray-800 m-0 font-sans">Budget Overview</h2>
+            <h2 className="text-[15px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">Budget Overview</h2>
             <button 
               onClick={() => setShowBudgetSetup(true)} 
-              className="flex justify-center items-center gap-[10px] rounded-[15px] bg-[#F3BE08] text-[15px] md:text-[20px] font-[600] leading-[140%] font-sans px-6 py-3 cursor-pointer border-none whitespace-nowrap"
+              className="flex justify-center items-center gap-[10px] rounded-[15px] bg-[#F3BE08] text-[15px] md:text-[20px] font-[400] leading-[140%] font-sans px-6 py-3 cursor-pointer border-none whitespace-nowrap"
             >
               Budget Setup
             </button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg p-5 text-center shadow-[1px_1px_10px_0_rgba(0,0,0,0.25)]">
-              <div className="text-[15px] md:text-[20px] text-gray-600 mb-2 font-sans font-medium">Total Budget</div>
-              <div className="text-[19px] md:text-[40px] font-semibold text-gray-800 font-numbers">${overview.total?.toFixed(2) || "0.00"}</div>
+            <div className="bg-[#F5F5F5] rounded-lg p-5 text-center border border-gray-200">
+              <div className="text-[20px] text-gray-600 mb-2 font-sans ">Total Budget</div>
+              <div className="text-[19px] md:text-[36px]  font-medium text-gray-800 font-numbers">${overview.total?.toFixed(2) || "0.00"}</div>
             </div>
-            <div className="bg-white rounded-lg p-5 text-center shadow-[1px_1px_10px_0_rgba(0,0,0,0.25)]">
-              <div className="text-[15px] md:text-[20px] mb-2 font-sans font-medium text-[#F39D08]">Budget Spent</div>
-              <div className="text-[19px] md:text-[40px] font-semibold text-[#F39D08] font-numbers">${overview.spent?.toFixed(2) || "0.00"}</div>
+            <div className="bg-[rgba(243,190,8,0.10)] rounded-lg p-5 text-center border border-[#F3BE08]">
+              <div className="text-[20px] mb-2 font-sans  text-[#636363]">Budget Spent</div>
+              <div className="text-[19px] md:text-[36px] font-medium text-[#F39D08] font-numbers">${overview.spent?.toFixed(2) || "0.00"}</div>
             </div>
-            <div className="bg-white rounded-lg p-5 text-center shadow-[1px_1px_10px_0_rgba(0,0,0,0.25)]">
-              <div className="text-[15px] md:text-[20px] mb-2 font-sans font-medium text-[#238D88]">Remaining</div>
-              <div className="text-[19px] md:text-[40px] font-semibold text-[#238D88] font-numbers">${overview.remaining?.toFixed(2) || "0.00"}</div>
-              {overview.total > 0 && (
+            <div className="bg-[rgba(35,141,136,0.10)] rounded-lg p-5 text-center border border-[#238D88]">
+              <div className="text-[20px] mb-2 font-sans  text-[#636363]">Remaining</div>
+              <div className="text-[19px] md:text-[36px] font-medium text-[#238D88] font-numbers">${overview.remaining?.toFixed(2) || "0.00"}</div>
+              {/* {overview.total > 0 && (
                 <div className="text-xs mt-2 font-sans font-medium text-[#238D88]">{overview.status}</div>
-              )}
+              )} */}
             </div>
           </div>
+
+          {/* {overview.categories && overview.categories.length > 0 && (
+            <BudgetAllocationBar overview={overview} />
+          )} */}
+        </div>
+        <div>
 
           {overview.categories && overview.categories.length > 0 && (
             <BudgetAllocationBar overview={overview} />
           )}
         </div>
 
-        <div className="bg-[#FAFAFA] rounded-xl p-6 mb-6">
+        <div className="bg-white rounded-xl p-6 mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
             <div className="flex items-center gap-3">
-              <h2 className="text-[15px] md:text-[25px] font-semibold text-gray-800 m-0 font-sans">Spending Overview</h2>
+              <h2 className="text-[15px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">Spending Overview</h2>
               <div className="relative">
                 <button onClick={() => setShowTimeframeMenu(!showTimeframeMenu)} className="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded-md cursor-pointer text-sm text-gray-700 font-sans">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6 9L12 15L18 9" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -1301,7 +1309,7 @@ const calculateMonthlySpendingDataFallback = () => {
               <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                 <div className="text-center">
                   <div className="mb-3">
-                    <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto">
+                    <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto">
                       <path d="M9 61L28.1464 41.8536C28.3417 41.6583 28.6583 41.6583 28.8536 41.8536L41.1464 54.1464C41.3417 54.3417 41.6583 54.3417 41.8536 54.1464L90 6" stroke="#232527" strokeWidth="6.5" strokeLinecap="round"/>
                       <line x1="14" y1="89" x2="14" y2="79" stroke="#232527" strokeWidth="4" strokeLinecap="round"/>
                       <line x1="62" y1="89" x2="62" y2="53" stroke="#232527" strokeWidth="4" strokeLinecap="round"/>
@@ -1334,10 +1342,10 @@ const calculateMonthlySpendingDataFallback = () => {
           )}
         </div>
         
-        <div className="rounded-[15px] mb-6 bg-[#FAFAFA]" style={{ minHeight: '647px' }}>
+        <div className="rounded-[15px] mb-6 bg-white" style={{ minHeight: '647px' }}>
           <div className="p-4 md:p-8 h-full flex flex-col">
             <div className="mb-6">
-              <h2 className="text-[15px] md:text-[25px] font-semibold text-gray-800 m-0 font-sans">Expense add and details</h2>
+              <h2 className="text-[15px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">Expense add and details</h2>
             </div>
 
             {expenses.length === 0 ? (
@@ -1576,14 +1584,14 @@ const calculateMonthlySpendingDataFallback = () => {
           ) : (
             <div className="flex items-center justify-between mb-4 gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 flex-shrink-0">
+                {/* <div className="w-10 h-10 flex-shrink-0">
                   <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100" fill="none">
                     <path d="M47.3316 21.1934C48.4476 19.0215 51.5524 19.0215 52.6684 21.1934L63.1361 41.5665C63.4225 42.1239 63.8761 42.5775 64.4335 42.8639L84.8066 53.3316C86.9785 54.4476 86.9785 57.5524 84.8066 58.6684L64.4335 69.1361C63.8761 69.4225 63.4225 69.8761 63.1361 70.4335L52.6684 90.8066C51.5524 92.9785 48.4476 92.9785 47.3316 90.8066L36.8639 70.4335C36.5775 69.8761 36.1239 69.4225 35.5665 69.1361L15.1934 58.6684C13.0215 57.5524 13.0215 54.4476 15.1934 53.3316L35.5665 42.8639C36.1239 42.5775 36.5775 42.1239 36.8639 41.5665L47.3316 21.1934Z" stroke="#232527" strokeWidth="6.5"/>
                     <path d="M76.1105 7.73114C76.4825 7.00715 77.5175 7.00715 77.8895 7.73114L81.605 14.9626C81.7004 15.1483 81.8517 15.2996 82.0374 15.395L89.2689 19.1105C89.9928 19.4825 89.9928 20.5175 89.2689 20.8895L82.0374 24.605C81.8517 24.7004 81.7004 24.8517 81.605 25.0374L77.8895 32.2689C77.5175 32.9928 76.4825 32.9928 76.1105 32.2689L72.395 25.0374C72.2996 24.8517 72.1483 24.7004 71.9626 24.605L64.7311 20.8895C64.0072 20.5175 64.0072 19.4825 64.7311 19.1105L71.9626 15.395C72.1483 15.2996 72.2996 15.1483 72.395 14.9626L76.1105 7.73114Z" stroke="#232527" strokeWidth="5"/>
                   </svg>
-                </div>
+                </div> */}
                 <div className="flex flex-col gap-1">
-                  <h3 className="text-[15px] md:text-[25px] font-semibold text-gray-800 m-0 font-sans">AI Insights & Suggestions</h3>
+                  <h3 className="text-[15px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">AI Insights & Suggestions</h3>
                   {insightsLoading && (
                     <span className="text-xs text-gray-500">Analyzing your budget...</span>
                   )}
