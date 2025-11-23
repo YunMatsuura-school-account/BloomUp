@@ -1424,14 +1424,31 @@ function Budget() {
       <div className="p-5">
         {/* Consolidated Budget Overview Section */}
         <div className="bg-white rounded-xl p-6 mb-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <h2 className="text-[15px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">Budget Overview</h2>
+          <div className="flex  md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <h2 className="text-[18px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">Budget Overview</h2>
             <button 
-              onClick={() => setShowBudgetSetup(true)} 
-              className="flex justify-center items-center gap-[10px] rounded-[15px] bg-[#F3BE08] text-[15px] md:text-[20px] font-[400] leading-[140%] font-sans px-6 py-3 cursor-pointer border-none whitespace-nowrap"
-            >
-              Budget Setup
-            </button>
+  onClick={() => setShowBudgetSetup(true)} 
+  className="flex justify-center items-center gap-[10px] rounded-[50px] bg-[#F3BE08] text-[15px] md:text-[20px] font-[400] leading-[140%] font-sans px-4 md:px-6 py-3 cursor-pointer border-none whitespace-nowrap"
+>
+  {/* Text for desktop, icon for mobile */}
+  <span className="hidden md:inline">Budget Setup</span>
+  <svg 
+    className="md:hidden" 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="24" 
+    height="24" 
+    viewBox="0 0 24 24" 
+    fill="none"
+  >
+    <path 
+      d="M5 12H19M12 5V19" 
+      stroke="black" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+  </svg>
+</button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
