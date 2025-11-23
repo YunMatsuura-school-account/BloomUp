@@ -84,6 +84,7 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
   const calendarDays = generateCalendarDays();
 
   // Normalize incoming events to a map keyed by day number for current month
+  // In the eventsByDay mapping, update the color assignment:
   const eventsByDay = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -102,13 +103,16 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
 
       const day = startDate.getDate();
 
+      // Use child-specific color if available, otherwise fall back to type-based colors
       let derivedColor = "#F3BE08"; // default calendar/school
-      if (ev.type === "vaccination") derivedColor = "#006F69";
+      if (ev.color && ev.color !== '#006F69') {
+        derivedColor = ev.color; // Use the child-specific color
+      } else if (ev.type === "vaccination") derivedColor = "#006F69";
       else if (ev.type === "school") derivedColor = "#F3BE08";
 
       const entry = {
         title: ev.title || ev.name || "Event",
-        color: ev.color || derivedColor,
+        color: derivedColor,
         type: ev.type,
         date: ev.date,
         _id: ev._id,
@@ -261,11 +265,10 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
             <div
               key={index}
               onClick={() => handleDateClick(dayObj)}
-              className={`border border-[rgba(218,220,224,0.6)] p-0.5 min-h-[78px] flex flex-col justify-between ${
-                dayObj.isCurrentMonth && !dayObj.isEmpty
+              className={`border border-[rgba(218,220,224,0.6)] p-0.5 min-h-[78px] flex flex-col justify-between ${dayObj.isCurrentMonth && !dayObj.isEmpty
                   ? "cursor-pointer hover:bg-gray-50 transition-colors bg-white"
                   : "bg-gray-100" // Gray background for empty cells
-              }`}
+                }`}
             >
               {dayObj.isCurrentMonth && !dayObj.isEmpty && (
                 <>
@@ -280,11 +283,10 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
                           currentDate.getFullYear() === today.getFullYear();
                         return (
                           <span
-                            className={`text-[10px] font-semibold inline-flex items-center justify-center w-5 h-5 rounded-full ${
-                              isToday
+                            className={`text-[10px] font-semibold inline-flex items-center justify-center w-5 h-5 rounded-full ${isToday
                                 ? "bg-[#238D88] text-white"
                                 : "text-[#333333]"
-                            }`}
+                              }`}
                           >
                             {dayObj.day < 10 ? `0${dayObj.day}` : dayObj.day}
                           </span>

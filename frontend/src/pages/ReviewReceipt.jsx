@@ -9,7 +9,8 @@ export default function ReviewReceipt() {
   const [receiptInfo, setReceiptInfo] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  const API_URL = "http://localhost:8888/api/budget";
+  const API_BASE = import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, "") || "";
+  const API_URL = `${API_BASE}/api/budget`;
   const getToken = () => localStorage.getItem("accessToken");
 
   const categories = [
@@ -29,9 +30,9 @@ export default function ReviewReceipt() {
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
 
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   useEffect(() => {
@@ -255,25 +256,21 @@ export default function ReviewReceipt() {
                     className=" rounded-lg p-3 border border-gray-200"
                   >
                     <div className="text-sm font-medium text-gray-700 font-sans">
-                        {expense.date}
-                      </div>
-
+                      {expense.date}
+                    </div>
 
                     {/* Top Row - Date and Amount */}
                     <div className="flex justify-between items-center">
                       <div className="text-base font-semibold text-gray-900 mb-1 font-sans">
-                      {expense.items || "Item name"}
-                    </div>
+                        {expense.items || "Item name"}
+                      </div>
                       <div className="text-lg font-semibold text-gray-800 font-numbers">
                         ${expense.amount.toFixed(2)}
                       </div>
-
-                      
                     </div>
-                     <div className="text-sm font-medium text-gray-700 font-sans">
-                          {expense.category}
-                        </div>
-                    
+                    <div className="text-sm font-medium text-gray-700 font-sans">
+                      {expense.category}
+                    </div>
 
                     {/* Store Name */}
                     <div className="text-sm text-gray-600  font-sans">
@@ -283,7 +280,6 @@ export default function ReviewReceipt() {
                     {/* Bottom Row - Category, Quantity, and Actions */}
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        
                         <div className="text-xs text-gray-600 font-sans">
                           Qty: {expense.quantity}
                         </div>
@@ -362,12 +358,16 @@ export default function ReviewReceipt() {
                 </button>
                 <button
                   onClick={handleSave}
-                  disabled={loading || expenses.every((exp) => exp.amount === 0)}
+                  disabled={
+                    loading || expenses.every((exp) => exp.amount === 0)
+                  }
                   className="flex-1 py-3 bg-[#238D88] text-white border-none rounded-lg cursor-pointer text-sm font-medium hover:bg-[#1a6d69] disabled:cursor-not-allowed disabled:bg-gray-400 font-sans"
                 >
                   {loading
                     ? "Saving..."
-                    : `Save ${expenses.filter((e) => e.amount > 0).length} Item(s)`}
+                    : `Save ${
+                        expenses.filter((e) => e.amount > 0).length
+                      } Item(s)`}
                 </button>
               </div>
             </div>

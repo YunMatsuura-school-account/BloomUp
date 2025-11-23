@@ -1,7 +1,7 @@
 // frontend/src/components/ArticleHeader.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import ArticleSearchModal from "./articleSearchModal";
+import ArticleSearchModal from "./ArticleSearchModal";
 import NotificationPopup from "./NotificationPopup";
 import bell_icon from "../icons/bell_icon.png";
 import CircleUserRoundIcon from "../icons/CircleUserRoundIcon";

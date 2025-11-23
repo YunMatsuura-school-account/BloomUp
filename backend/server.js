@@ -11,12 +11,11 @@ const budgetRoutes = require("./routes/budgetRoutes");
 const calendarRoutes = require("./routes/calendarRoutes");
 const articleRoutes = require("./routes/articleRoutes");
 const aiRoutes = require("./routes/aiRoutes");
-const reminderRoutes = require('./routes/reminderRoutes');
+const reminderRoutes = require("./routes/reminderRoutes");
 
 const childrenRoutes = require("./routes/childrenRoutes");
 
 const userRoutes = require("./routes/userRoutes");
-
 
 const mongoose = require("mongoose");
 
@@ -27,20 +26,27 @@ const vaccinationRoutes = require("./routes/vaccinationRoutes");
 const path = require("path");
 const uploadImageRoutes = require("./routes/uploadImageRoutes");
 
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
 
 app.use("/api/calendar", calendarRoutes);
 app.use("/api", vaccinationRoutes);
-
-
 
 // COMMENTED OUT - STARTING FRESH
 // app.use("/api", testVaccinationRoutes);
@@ -73,7 +79,7 @@ app.use("/api/users/:userId/children", childProfileRoutes);
 app.use("/api/articles", articleRoutes);
 
 //For Reminders
-app.use('/api/reminders', reminderRoutes);
+app.use("/api/reminders", reminderRoutes);
 
 //
 //app.use("/api/calendar", childrenRoutes);
@@ -85,14 +91,12 @@ app.use("/api/children", childrenRoutes);
 app.use("/api/calendar", calendarRoutes);
 
 // For Category
-const categoryRoutes = require('./routes/categoryRoutes');
-app.use('/api/categories', categoryRoutes);
-
+const categoryRoutes = require("./routes/categoryRoutes");
+app.use("/api/categories", categoryRoutes);
 
 const PORT = process.env.PORT || 8888; // Form env file
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
 
 // const posts = [
 //   {

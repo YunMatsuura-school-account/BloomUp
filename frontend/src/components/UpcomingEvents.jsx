@@ -204,6 +204,7 @@
 // export default UpcomingEvents;
 
 // frontend/src/components/UpcomingEvents.jsx
+// frontend/src/components/UpcomingEvents.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ChildAvatar from "./ChildAvatar";
@@ -233,24 +234,23 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
   const [loading, setLoading] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
 
-  // Get current month range
-  const getCurrentMonthRange = () => {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    return { start: startOfMonth, end: endOfMonth };
-  };
-
+  // Update the useEffect to fetch all upcoming events (next 30 days):
   useEffect(() => {
     const fetchUpcoming = async () => {
       try {
         setLoading(true);
         const base = import.meta.env.VITE_BACKEND_URL || "";
-        const { start, end } = getCurrentMonthRange();
+        
+        // Get events for next 30 days instead of just current month
+        const now = new Date();
+        const start = now.toISOString();
+        const thirtyDaysLater = new Date();
+        thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
+        const end = thirtyDaysLater.toISOString();
 
         const params = new URLSearchParams();
-        params.set("start", start.toISOString());
-        params.set("end", end.toISOString());
+        params.set("start", start);
+        params.set("end", end);
         if (selectedChild?._id) params.set("child", selectedChild._id);
 
         const token =
@@ -277,10 +277,12 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
           );
         }
 
-        const currentMonthEvents = (json.events || [])
-          .filter((e) => e?.startDate && new Date(e.startDate) >= start)
+        // Filter to only future events and sort by date
+        const upcomingEvents = (json.events || [])
+          .filter((e) => e?.startDate && new Date(e.startDate) >= now)
           .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-        setEvents(currentMonthEvents);
+        
+        setEvents(upcomingEvents);
       } catch (e) {
         console.error("Error fetching upcoming events:", e);
         setEvents([]);
@@ -365,12 +367,12 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
 
   return (
     <div className="h-full flex flex-col">
-      <h2 className="text-2xl font-semibold text-black ml-1">
+      <h2 className="text-2xl font-semibold text-black ml-1 mb-4">
         Upcoming Events
       </h2>
 
-      <div className="bg-[#EFEFEF] rounded-lg flex flex-col h-[520px]">
-        <div className="flex-1 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent scrollbar-none">
+      <div className="flex-1 overflow-hidden"> {/* Changed from bg-[#EFEFEF] and fixed height */}
+        <div className="h-full overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent scrollbar-none">
           {loading && (
             <div className="flex items-center justify-center h-20 p-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#238D88]"></div>
@@ -381,21 +383,18 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
           )}
 
           {!loading && events.length === 0 && (
-            <div className="relative m-4 flex-1 rounded-xl bg-transparent flex items-center justify-center min-h-[500px]">
-              <div className="absolute inset-4 rounded-xl border-[3px] border-dashed border-[#F3BE08] pointer-events-none" />
-              <div className="relative flex flex-col items-center text-center gap-3 px-6">
-                <CalendarIcon className="w-12 h-12 text-[#232527]" />
-                <div>
-                  <h3 className="text-xl font-semibold text-[#1F2A37]">
-                    No upcoming events yet!
-                  </h3>
-                  <p className="text-base text-[#111827] mt-1">
-                    Start by adding events to see here.
-                  </p>
-                </div>
+            <div className="h-full flex items-center justify-center p-4">
+              <div className="text-center">
+                <CalendarIcon className="w-12 h-12 text-[#232527] mx-auto mb-3" />
+                <h3 className="text-xl font-semibold text-[#1F2A37] mb-2">
+                  No upcoming events!
+                </h3>
+                <p className="text-base text-[#111827] mb-4">
+                  Events for the next 30 days will appear here.
+                </p>
                 <button
                   onClick={() => navigate("/calendar")}
-                  className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-8 py-3 font-semibold text-base text-[#111111] shadow-[0_8px_20px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
+                  className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-6 py-2 font-semibold text-sm text-[#111111] shadow-[0_4px_12px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
                 >
                   Add Event&nbsp;+
                 </button>
@@ -404,7 +403,7 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
           )}
 
           {!loading && events.length > 0 && (
-            <div className="px-0 pt-4 pb-2 space-y-4">
+            <div className="space-y-4 pb-2">
               {events.map((event) => {
                 const dateSegments = getDateSegments(
                   event.startDate,
@@ -416,7 +415,7 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
                   <div
                     key={event._id}
                     onClick={() => handleEventCardClick(event)}
-                    className="bg-white rounded-2xl border border-[#F4F4F5] p-4 transition cursor-pointer"
+                    className="bg-white rounded-2xl border border-[#F4F4F5] p-4 transition cursor-pointer hover:shadow-md"
                   >
                     {/* Date range */}
                     {dateSegments && (
@@ -488,8 +487,6 @@ const UpcomingEvents = ({ selectedChild, onEventClick }) => {
             </div>
           )}
         </div>
-
-        {/* Removed footer text as per latest request */}
       </div>
     </div>
   );

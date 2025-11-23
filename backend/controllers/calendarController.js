@@ -26,11 +26,23 @@ exports.createEvent = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Start date is required' });
     }
 
+    function getDefaultChildColor(children) {
+      // If no specific children selected or multiple children, use default
+      if (!Array.isArray(children) || children.length === 0 || children.length > 1) {
+        return '#006F69'; // Default color
+      }
+
+      // For single child events, frontend handle the color based on child data
+      // This ensures consistency with the child's avatar background
+      return '#006F69'; // Frontend will override this
+    }
+
+
     // Set default values for optional fields
     const eventData = {
       title: payload.title.trim(),
       children: Array.isArray(payload.children) ? payload.children : [],
-      color: payload.color || '#006F69',
+      color: payload.color || getDefaultChildColor(payload.children), // Use child-specific color
       category: payload.category || 'General',
       startDate: new Date(payload.startDate),
       userId: userId,
@@ -241,12 +253,12 @@ exports.updateEvent = async (req, res) => {
 
     if (payload.title !== undefined) updateData.title = payload.title.trim();
     if (payload.children !== undefined) updateData.children = payload.children;
-    if (payload.color !== undefined) updateData.color = payload.color || '#006F69';
+    if (payload.color !== undefined) updateData.color = payload.color || getDefaultChildColor(payload.children);
     if (payload.category !== undefined) updateData.category = payload.category.trim();
     if (payload.alert !== undefined) updateData.alert = payload.alert.trim() || 'At time of event';
-    
+
     // Optional fields - empty strings are acceptable
- if (payload.notes !== undefined) updateData.notes = payload.notes || '';
+    if (payload.notes !== undefined) updateData.notes = payload.notes || '';
     if (payload.url !== undefined) updateData.url = payload.url || '';
     if (payload.attachments !== undefined) {
       updateData.attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
@@ -275,9 +287,9 @@ exports.updateEvent = async (req, res) => {
 
     // Perform the update
     const updatedEvent = await CalendarEvent.findByIdAndUpdate(
-      id, 
-      updateData, 
-      { 
+      id,
+      updateData,
+      {
         new: true,
         runValidators: true
       }
@@ -286,8 +298,8 @@ exports.updateEvent = async (req, res) => {
     console.log(' Event updated successfully:', updatedEvent._id);
     console.log('=== UPDATE EVENT COMPLETED ===');
 
-    return res.json({ 
-      success: true, 
+    return res.json({
+      success: true,
       event: updatedEvent,
       message: 'Event updated successfully'
     });
@@ -313,10 +325,10 @@ exports.updateEvent = async (req, res) => {
       });
     }
 
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       message: 'Server error during update',
-      error: err.message 
+      error: err.message
     });
   }
 };
