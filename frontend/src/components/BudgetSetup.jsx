@@ -372,9 +372,9 @@ function BudgetSetup({ onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 overflow-y-auto">
       <div className="bg-white rounded-xl w-full max-w-4xl my-8 shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 ">
           <h2 className="text-2xl font-semibold text-gray-800">Budget Setup</h2>
-          <button
+          {/* <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             type="button"
@@ -389,7 +389,7 @@ function BudgetSetup({ onClose }) {
             >
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
-          </button>
+          </button> */}
         </div>
 
         {/* Content */}
@@ -409,11 +409,11 @@ function BudgetSetup({ onClose }) {
               </div>
             )}
 
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="relative flex-1 min-w-[300px]">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg text-gray-600 z-10">
-                  $
-                </span>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+    <div className="relative w-full sm:flex-1">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg text-gray-600 z-10 min-w-[20px]">
+        $
+      </span>
                 <input
                   type="number"
                   placeholder="0.00"
@@ -446,17 +446,17 @@ function BudgetSetup({ onClose }) {
 
           {/* Categories Section */}
           <div>
-            <h3 className="text-[24px] font-semibold  mb-4">
+            <h3 className="text-lg  md:text-[24px] font-semibold  mb-4">
               Define your budget by category
             </h3>
 
             {/* Total Assigned Progress */}
             <div className="mb-5 bg-[#F5F5F5] p-4 rounded-lg">
               <div className="flex justify-between mb-2">
-                <span className="text-[24px] font-medium text-gray-800">
+                <span className="text-lg  md:text-[24px] font-medium text-gray-800">
                   Total assigned
                 </span>
-                <span className="text-[20px] font-semibold text-gray-800">
+                <span className="text-[18px]  md:text-[20px] font-semibold text-gray-800">
                   ${parseFloat(totalBudget || 0).toFixed(2)}
                 </span>
               </div>
@@ -588,7 +588,7 @@ function BudgetSetup({ onClose }) {
                         {/* Top Row: Category Name and Amount Input */}
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <div className="text-[18px] font-semibold mb-0.5">
+                            <div className="text-[16px]  md:text-[18px]  font-semibold mb-0.5">
                               {category.name}
                             </div>
                             <div className="text-[14px] text-gray-600">
@@ -745,12 +745,12 @@ function BudgetSetup({ onClose }) {
                   );
                 })}
               </div>
-            </div>
+            </div> 
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 p-6 border-t border-gray-200">
+        <div className="flex gap-3 p-6 ">
           <button
             type="button"
             onClick={onClose}

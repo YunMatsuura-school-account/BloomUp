@@ -484,7 +484,7 @@ const handleRefreshRestock = async () => {
       const token = localStorage.getItem("accessToken");
 
       if (!selectedDate) {
-        alert("Please select a date");
+        // alert("Please select a date");
         return;
       }
 
@@ -970,6 +970,9 @@ const handleRefreshRestock = async () => {
       <h3 className="text-lg font-semibold text-gray-800 mb-1">
         Reminder for restocking items
       </h3>
+       <p className="text-sm text-gray-500">
+        Enable the toggle to receive reminders for specific items.
+      </p>
       
       {restockCacheInfo && restockCacheInfo.cached && (
         <p className="text-xs text-gray-400 mt-1">
@@ -1035,7 +1038,7 @@ const handleRefreshRestock = async () => {
         ) : (
           <div>
             <div className="mb-6 flex items-center justify-between">
-    <div>
+    {/* <div>
       <h3 className="text-lg font-semibold text-gray-800 mb-1">
         Reminder for restocking items
       </h3>
@@ -1043,7 +1046,7 @@ const handleRefreshRestock = async () => {
         Enable the toggle to receive reminders for specific items.
       </p>
      
-    </div>
+    </div> */}
      
   </div>
          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3  gap-[20px]">

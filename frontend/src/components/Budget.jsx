@@ -748,13 +748,13 @@ function Budget() {
             ];
             const monthName = monthNames[currentMonth - 1];
 
-            if (
-              confirm(
-                `It's a new month! Set your budget for ${monthName} ${currentYear}?`
-              )
-            ) {
+            // if (
+            //   confirm(
+            //     `It's a new month! Set your budget for ${monthName} ${currentYear}?`
+            //   )
+            // ) {
               setShowBudgetSetup(true);
-            }
+            // }
           }
         }, 1500);
       }
@@ -1795,7 +1795,7 @@ function Budget() {
                               <div
                                 key={expense.id}
                                 className={`grid grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] border-b ${
-                                  index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                                  index % 2 === 0 ? "bg-white" : "bg-white"
                                 }`}
                               >
                                 <div className="py-4 px-4 text-sm text-gray-800 font-medium font-sans">
@@ -1974,7 +1974,7 @@ function Budget() {
         </div>
 
         {/* AI Insights Section */}
-        <div className="bg-[#FAFAFA] rounded-xl p-6">
+        <div className="bg-white rounded-xl p-6">
           {!aiInsights ||
           (!aiInsights.immediateAlerts?.length &&
             !aiInsights.budgetAlerts?.length &&

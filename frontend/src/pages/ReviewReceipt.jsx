@@ -138,7 +138,7 @@ export default function ReviewReceipt() {
 
     const validExpenses = expenses.filter((exp) => exp.amount > 0);
     if (validExpenses.length === 0) {
-      alert("Please add at least one expense with a valid amount.");
+      // alert("Please add at least one expense with a valid amount.");
       return;
     }
 
@@ -181,9 +181,9 @@ export default function ReviewReceipt() {
       console.log(
         `\nSuccessfully saved ${savedExpenses.length} individual expenses!`
       );
-      alert(
-        `Successfully saved ${savedExpenses.length} expense(s)! Each item is tracked separately.`
-      );
+      // alert(
+      //   `Successfully saved ${savedExpenses.length} expense(s)! Each item is tracked separately.`
+      // );
 
       // Navigate back and trigger refresh
       navigate("/dashboard/budget", {

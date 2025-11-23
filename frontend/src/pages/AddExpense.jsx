@@ -107,15 +107,15 @@ export default function AddExpense() {
       console.log("Response:", data);
 
       if (res.ok) {
-        alert("Expense added successfully!");
+        // alert("Expense added successfully!");
         navigate("/dashboard/budget");
       } else {
         console.error("Error:", data);
-        alert(data.message || "Error adding expense");
+        // alert(data.message || "Error adding expense");
       }
     } catch (err) {
       console.error("Request error:", err);
-      alert("Error adding expense: " + err.message);
+      // alert("Error adding expense: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -160,12 +160,12 @@ export default function AddExpense() {
               <h2 className="text-xl md:text-2xl font-semibold text-gray-800 font-sans">
                 Add Expense
               </h2>
-              <button
+              {/* <button
                 onClick={() => navigate("/dashboard/budget")}
                 className="bg-transparent border-none text-2xl cursor-pointer p-1 text-gray-600 hover:text-gray-800"
               >
                 ×
-              </button>
+              </button> */}
             </div>
 
             <form
