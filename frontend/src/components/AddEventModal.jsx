@@ -1302,7 +1302,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                   </div>
 
                   {/* Category List - UPDATED: Added scroll and removed background color from items */}
-                  <div className="w-full max-h-60 overflow-y-auto flex flex-col justify-start items-start gap-4">
+                  {/* <div className="w-full max-h-60 overflow-y-auto flex flex-col justify-start items-start gap-4">
                     {categories.map(cat => (
                       <button
                         key={cat._id}
@@ -1315,7 +1315,34 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                         </div>
                       </button>
                     ))}
+                  </div> */}
+
+                  <div className="w-full max-h-60 overflow-y-auto flex flex-col justify-start items-start gap-4">
+                    {categories.map(cat => (
+                      <button
+                        key={cat._id}
+                        onClick={() => handleCategorySelect(cat.category)}
+                        className={`w-full justify-start items-center gap-5 inline-flex p-2 rounded transition-colors hover:bg-gray-100 ${selectedCategory === cat.category ? '' : ''
+                          }`}
+                      >
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedCategory === cat.category
+                              ? 'border-[#F3BE08] bg-[#F3BE08]'
+                              : 'border-gray-300 bg-white'
+                            }`}
+                        >
+                          {selectedCategory === cat.category && (
+                            <div className="w-2 h-2 bg-[#F3BE08] rounded-full"></div>
+                          )}
+                        </div>
+                        <div className={`justify-center flex flex-col text-[16px] font-dm-sans font-normal leading-[26px] tracking-[0.30px] ${selectedCategory === cat.category ? 'text-[#238D88] font-semibold' : 'text-black'
+                          }`}>
+                          {cat.category}
+                        </div>
+                      </button>
+                    ))}
                   </div>
+
                 </div>
 
                 {/* Action Buttons with increased width */}
