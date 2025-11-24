@@ -7,7 +7,11 @@ import { ChildProvider } from "../contexts/ChildContext";
 function DashboardLayout() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  const isArticlesPage = location.pathname.startsWith("/articles");
+  const path = location.pathname;
+  const isArticlesPage = path.startsWith("/articles");
+  const isAddChildPage = path === "/add-child";
+  const isSettingsPage = path === "/settings";
+  const isChildDashboardPage = path.startsWith("/child-dashboard");
 
   // Expose global hook for Header hamburger (mobile)
   // so Header can open the Sidebar from pages rendered inside the layout
@@ -28,8 +32,11 @@ function DashboardLayout() {
 
         {/* Main content area */}
         <div className="flex-1 flex flex-col bg-[#EFEFEF] overflow-hidden">
-          {/* Dashboard Header (skip on Article pages, which render their own) */}
-          {!isArticlesPage && <Header />}
+          {/* Dashboard Header (skip on Article pages, Add Child, Settings, Child Dashboard) */}
+          {!isArticlesPage &&
+            !isAddChildPage &&
+            !isSettingsPage &&
+            !isChildDashboardPage && <Header />}
 
           {/* Scrollable content area */}
           <div className="flex-1 overflow-y-auto no-scrollbar p-0" style={{ minHeight: 0 }}>
