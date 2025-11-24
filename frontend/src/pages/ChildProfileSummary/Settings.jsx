@@ -79,6 +79,7 @@ export default function Settings() {
     () => state?.userId ?? state?.user?.id ?? me?.id ?? null,
     [state, me]
   );
+  const fromPath = state?.fromPath;
   const [name, setName] = useState(state?.user?.name ?? "");
   const [email, setEmail] = useState(state?.user?.email ?? "");
   const [pendingImageUrl, setPendingImageUrl] = useState(null); // Temporary image URL before saving
@@ -283,7 +284,11 @@ export default function Settings() {
   };
 
   const handleGoBack = () => {
-    navigate(-1);
+    if (fromPath) {
+      navigate(fromPath);
+    } else {
+      navigate(-1);
+    }
   };
 
   const handleReminderChange = useCallback((checked) => {
@@ -492,39 +497,43 @@ export default function Settings() {
 
       {/* Save button */}
       <div className="max-w-3xl md:max-w-4xl mx-auto mt-8 mb-8">
-        <div className="flex justify-center md:max-w-[442.35px] md:mx-auto md:flex md:gap-4">
-        {/* Desktop: Delete button on the left */}
+        <div className="flex flex-wrap justify-center gap-4 md:max-w-[442.35px] md:mx-auto">
+        {/* Cancel button on the left */}
         <button
           type="button"
-          className="hidden md:block px-5 py-2 rounded-lg text-black/80 hover:bg-gray-50 font-medium border border-gray-300"
-          style={{ 
+          className="px-5 py-2 rounded-lg text-black/80 hover:bg-gray-50 font-medium border border-gray-300 flex-1"
+          style={{
             backgroundColor: "#FFFFFF",
-            width: "354.5px",
+            flex: "1 1 140px",
+            maxWidth: "354.5px",
             height: "54px",
             fontFamily: "'Inter', sans-serif",
-            fontSize: "16px"
+            fontSize: "16px",
           }}
-          onClick={() => handleDelete()}
-          disabled={deleting}
+          onClick={handleGoBack}
         >
-          {deleting ? "Deleting..." : "Delete"}
+          Cancel
         </button>
         <button
           disabled={!canSave}
           onClick={handleSave}
-          className={`rounded-lg text-white md:w-[354.5px] ${
+          className={`rounded-lg text-white flex-1 ${
             canSave
               ? ""
               : "bg-gray-400 text-gray-200 cursor-not-allowed"
           }`}
-          style={canSave ? { backgroundColor: "#238D88", height: "54px", width: "354.5px" } : { height: "54px", width: "354.5px" }}
+          style={
+            canSave
+              ? {
+                  backgroundColor: "#238D88",
+                  flex: "1 1 140px",
+                  maxWidth: "354.5px",
+                  height: "54px",
+                }
+              : { flex: "1 1 140px", maxWidth: "354.5px", height: "54px" }
+          }
         >
-          {saving ? "Saving..." : (
-            <>
-              <span className="md:hidden">Save changes</span>
-              <span className="hidden md:inline">Save</span>
-            </>
-          )}
+          {saving ? "Saving..." : "Save"}
         </button>
         </div>
       </div>

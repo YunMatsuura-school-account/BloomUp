@@ -1,6 +1,6 @@
 // frontend/src/components/HeaderIcons.jsx
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import NotificationPopup from "./NotificationPopup";
 import bell_icon from "../icons/bell_icon.png";
 import CircleUserRoundIcon from "../icons/CircleUserRoundIcon";
@@ -8,6 +8,7 @@ import { logout } from "../utils/auth";
 
 const HeaderIcons = ({ showSearch = false, onSearchClick }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -65,7 +66,7 @@ const HeaderIcons = ({ showSearch = false, onSearchClick }) => {
 
   const handleSettings = () => {
     setShowProfileMenu(false);
-    navigate("/settings");
+    navigate("/settings", { state: { fromPath: location.pathname } });
   };
 
   const handleLogout = () => {

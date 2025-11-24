@@ -163,7 +163,7 @@ export default function Header() {
                   <button
                     onClick={() => {
                       setShowProfileMenu(false);
-                      navigate("/settings");
+                      navigate("/settings", { state: { fromPath: location.pathname } });
                     }}
                     className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
                   >
