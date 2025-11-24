@@ -5,6 +5,7 @@ import AvatarSelectionModal from "../components/AvatarSelectionModal";
 import pencilIcon from "../icons/pencil.svg";
 import cameraIcon from "../icons/cameraIcon.svg";
 import chevronLeftIcon from "../icons/chevron-left.svg";
+import Header from "../components/Header";
 
 // Background colors for avatars (must match AvatarSelectionModal)
 const BACKGROUND_COLORS = [
@@ -27,6 +28,7 @@ export default function AddChild() {
   const childId = state?.childId || null;
   let returnPath = state?.returnPath || null;
   const isEdit = !!editChild && !!childId;
+  const shouldShowDashboardHeader = Boolean(returnPath);
 
   // Get the previous page path dynamically
   const handleGoBack = () => {
@@ -206,7 +208,7 @@ export default function AddChild() {
     }
   };
 
-  return (
+  const pageBody = (
     <div className="min-h-screen w-full" style={{ backgroundColor: "#FFFFFF" }}>
       {/* Back button - Mobile only */}
       <div className="md:hidden p-4">
@@ -449,6 +451,17 @@ export default function AddChild() {
           </div>
       </form>
       </div>
+    </div>
+  );
+
+  if (!shouldShowDashboardHeader) {
+    return pageBody;
+  }
+
+  return (
+    <div className="min-h-screen bg-[#EFEFEF]">
+      <Header />
+      <div className="pt-4 pb-10">{pageBody}</div>
     </div>
   );
 }

@@ -184,9 +184,8 @@ export default function Account() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
-          {children.map((child, index) => {
+          {children.map((child) => {
             const age = calculateAge(child.dateOfBirth);
-            const isFirstChild = index === 0;
             return (
               <button
                 key={child._id}
@@ -247,7 +246,7 @@ export default function Account() {
                     <img
                       src={trashBinIcon}
                       alt="delete"
-                      style={{ width: isFirstChild ? "30px" : "40px", height: isFirstChild ? "30px" : "40px" }}
+                      style={{ width: "34px", height: "34px" }}
                     />
                   </button>
                 </div>
