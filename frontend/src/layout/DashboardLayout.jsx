@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import { ChildProvider } from "../contexts/ChildContext";
 
 function DashboardLayout() {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const isArticlesPage = location.pathname.startsWith("/articles");
 
   // Expose global hook for Header hamburger (mobile)
   // so Header can open the Sidebar from pages rendered inside the layout
@@ -26,8 +28,8 @@ function DashboardLayout() {
 
         {/* Main content area */}
         <div className="flex-1 flex flex-col bg-[#EFEFEF] overflow-hidden">
-          {/* Dashboard Header */}
-          <Header />
+          {/* Dashboard Header (skip on Article pages, which render their own) */}
+          {!isArticlesPage && <Header />}
 
           {/* Scrollable content area */}
           <div className="flex-1 overflow-y-auto no-scrollbar p-0" style={{ minHeight: 0 }}>
