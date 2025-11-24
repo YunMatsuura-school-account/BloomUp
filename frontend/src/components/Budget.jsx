@@ -1487,7 +1487,7 @@ function Budget() {
     <div className="relative">
       <button
         onClick={() => setShowTimeframeMenu(!showTimeframeMenu)}
-        className="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded-md cursor-pointer text-sm text-gray-700 font-sans"
+        className="flex items-center gap-2 px-3 py-1.5 bg-white  border border-gray-300 rounded-md cursor-pointer text-sm text-gray-700 font-sans"
       >
         {selectedTimeframe}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -1539,10 +1539,10 @@ function Budget() {
     </div>
   </div>
   
-  <div className="relative">
+  <div className="relative hidden md:inline">
     <button
       onClick={() => setShowCategoryMenu(!showCategoryMenu)}
-      className="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 rounded-md cursor-pointer text-sm text-gray-700 font-sans"
+      className="flex items-center gap-2 px-3 py-1.5 bg-white  border border-gray-300 rounded-md cursor-pointer text-sm text-gray-700 font-sans"
     >
       {selectedCategory}
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -1611,6 +1611,22 @@ function Budget() {
             )}
             <Bar data={getChartData()} options={chartOptions} />
           </div>
+                    {/* Mobile - Category pills below chart */}
+<div className="md:hidden flex flex-wrap gap-2 justify-center mt-4">
+  {getAvailableCategories().map((category) => (
+    <button
+      key={category}
+      onClick={() => setSelectedCategory(category)}
+      className={`px-4 py-2 rounded-full text-sm font-medium border-none cursor-pointer font-sans transition-colors ${
+        selectedCategory === category
+          ? "bg-[#238D88] text-white"
+          : "bg-[#E0F2F1] text-[#238D88]"
+      }`}
+    >
+      {category}
+    </button>
+  ))}
+</div>
 
           {hasData && (
             <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-xs text-gray-600 font-sans">
