@@ -6,7 +6,7 @@ import {
   CalendarIcon,
   ArticlesIcon,
   FamilyIcon,
-  NewLogoBloomUpGreen,
+  BloomUpLogo,
 } from "../icons";
 import { useChild } from "../contexts/ChildContext";
 import { logout } from "../utils/auth";
@@ -140,7 +140,13 @@ export default function Sidebar({
         <div className="pt-5">
           {/* Logo row */}
           <div className="px-6 select-none">
-            <NewLogoBloomUpGreen width={180} height={70} />
+            <img
+              src={BloomUpLogo}
+              alt="BloomUp logo"
+              draggable={false}
+              className="select-none"
+              style={{ width: "161.96px", height: "31.75px" }}
+            />
           </div>
 
           {/* Chips row: compact */}
@@ -258,12 +264,30 @@ function renderChips(
   showDropdown,
   setShowDropdown
 ) {
+  const totalChildren = children.length;
   const visibleChildren = children.slice(0, 4);
   const hiddenChildren = children.slice(4);
+  const isAllSelected = !selectedChild;
 
   return (
     <>
       <div className="flex items-center gap-2.5">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            selectChild(null);
+            setShowDropdown(false);
+          }}
+          aria-pressed={isAllSelected}
+          className={`w-[55px] h-[55px] rounded-full flex items-center justify-center text-white text-[15px] font-semibold transition-all hover:scale-105 ${
+            isAllSelected ? "ring-2 ring-[#238D88]/50 ring-offset-2" : ""
+          }`}
+          style={{ backgroundColor: "#006F69" }}
+          title="Show all children"
+        >
+          All
+        </button>
+
         {visibleChildren.map((child) => {
           const isSelected = selectedChild?._id === child._id;
 
@@ -278,12 +302,12 @@ function renderChips(
               }}
               className={`rounded-full transition-all hover:scale-105 ${
                 isSelected
-                  ? "ring-2 ring-white ring-offset-2 ring-offset-gray-800"
+                  ? "ring-2 ring-[#238D88]/50 ring-offset-2"
                   : ""
-              }`}
+              } w-[55px] h-[55px]`}
               title={child.name}
             >
-              <ChildAvatar child={child} width={40} height={40} />
+              <ChildAvatar child={child} width={55} height={55} />
             </button>
           );
         })}
@@ -294,7 +318,7 @@ function renderChips(
         <div className="absolute top-14 left-6 right-6 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
           <div className="p-2">
             <div className="text-xs text-gray-500 px-2 py-1 font-semibold">
-              All Children ({children.length})
+              All Children ({totalChildren})
             </div>
             {children.map((child) => {
               const isSelected = selectedChild?._id === child._id;
