@@ -38,7 +38,7 @@ const ToggleRow = memo(function ToggleRow({ title, description, checked, onChang
           className={`md:h-[15px] h-6 md:w-[26px] w-10 rounded-full transition-colors ${
             checked ? "" : "bg-gray-400"
           }`}
-          style={checked ? { backgroundColor: "#21005D" } : {}}
+          style={checked ? { backgroundColor: "#F3BE08" } : {}}
         >
           <span
             className={`block md:h-[13px] md:w-[13px] h-5 w-5 bg-white rounded-full transition-transform md:translate-y-[1px] translate-y-[2px] ${
