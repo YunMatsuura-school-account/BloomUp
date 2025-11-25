@@ -32,6 +32,11 @@ export default function Sidebar({
   const [displayName, setDisplayName] = useState(headerTitle || "BloomUp");
   const { children, selectedChild, selectChild } = useChild();
   const [showDropdown, setShowDropdown] = useState(false);
+  const totalChildren = children.length;
+  const showAllChip = totalChildren > 1;
+  const maxVisibleChildren = showAllChip ? 3 : 4;
+  const shouldShowDropdown = totalChildren > maxVisibleChildren;
+  const chipSize = 48;
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -156,9 +161,12 @@ export default function Sidebar({
               selectedChild,
               selectChild,
               showDropdown,
-              setShowDropdown
+              setShowDropdown,
+              showAllChip,
+              maxVisibleChildren,
+              chipSize
             )}
-            {children.length > 4 && (
+            {shouldShowDropdown && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -262,31 +270,40 @@ function renderChips(
   selectedChild,
   selectChild,
   showDropdown,
-  setShowDropdown
+  setShowDropdown,
+  showAllChip,
+  maxVisibleChildren,
+  chipSize
 ) {
   const totalChildren = children.length;
-  const visibleChildren = children.slice(0, 4);
-  const hiddenChildren = children.slice(4);
-  const isAllSelected = !selectedChild;
+  const visibleChildren = children.slice(0, maxVisibleChildren);
+  const hiddenChildren = children.slice(maxVisibleChildren);
+  const isAllSelected = showAllChip && !selectedChild;
 
   return (
     <>
       <div className="flex items-center gap-2.5">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            selectChild(null);
-            setShowDropdown(false);
-          }}
-          aria-pressed={isAllSelected}
-          className={`w-[55px] h-[55px] rounded-full flex items-center justify-center text-white text-[15px] font-semibold transition-all hover:scale-105 ${
-            isAllSelected ? "ring-2 ring-[#238D88]/50 ring-offset-2" : ""
-          }`}
-          style={{ backgroundColor: "#006F69" }}
-          title="Show all children"
-        >
-          All
-        </button>
+        {showAllChip && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              selectChild(null);
+              setShowDropdown(false);
+            }}
+            aria-pressed={isAllSelected}
+            className={`rounded-full flex items-center justify-center text-white text-[14px] font-semibold transition-all hover:scale-105 ${
+              isAllSelected ? "ring-2 ring-[#238D88]/50 ring-offset-2" : ""
+            }`}
+            style={{
+              width: `${chipSize}px`,
+              height: `${chipSize}px`,
+              backgroundColor: "#006F69",
+            }}
+            title="Show all children"
+          >
+            All
+          </button>
+        )}
 
         {visibleChildren.map((child) => {
           const isSelected = selectedChild?._id === child._id;
@@ -304,10 +321,11 @@ function renderChips(
                 isSelected
                   ? "ring-2 ring-[#238D88]/50 ring-offset-2"
                   : ""
-              } w-[55px] h-[55px]`}
+              }`}
+              style={{ width: `${chipSize}px`, height: `${chipSize}px` }}
               title={child.name}
             >
-              <ChildAvatar child={child} width={55} height={55} />
+              <ChildAvatar child={child} width={chipSize} height={chipSize} />
             </button>
           );
         })}
