@@ -164,7 +164,7 @@ const DashboardUpcomingEvents = ({
       </h2>
 
       <div className="flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent scrollbar-none">
+        <div className="overflow-y-auto pr-1 max-h-[420px] lg:max-h-[520px] [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent scrollbar-none">
           {loading && (
             <div className="flex items-center justify-center h-20 p-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#238D88]"></div>
