@@ -3,7 +3,7 @@ import VaccinationDashboard from "./VaccinationDashboard";
 import BudgetSummary from "./BudgetSummary";
 import AIInsights from "./AIInsights";
 import ScheduleCalendar from "./ScheduleCalendar";
-import UpcomingEvents from "./UpcomingEvents";
+import DashboardUpcomingEvents from "./DashboardUpcomingEvents";
 import RecommendedArticles from "./RecommendedArticles";
 import { useChild } from "../contexts/ChildContext";
 
@@ -144,7 +144,7 @@ const Dashboard = () => {
               <ScheduleCalendar events={calendarEvents} />
             </div>
             <div className="min-w-0">
-              <UpcomingEvents selectedChild={selectedChild} />
+              <DashboardUpcomingEvents selectedChild={selectedChild} />
             </div>
           </div>
 

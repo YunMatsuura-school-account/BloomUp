@@ -8,6 +8,43 @@ Backend built with Node.js, Express, and MongoDB (Mongoose) providing REST API f
 
 ---
 
+## Deployment Notes (AWS EC2)
+
+- **Hosting 1 (AWS EC2):** Ubuntu 24.04 EC2 `t2.small` with Elastic IP `52.20.155.43`
+- **Reverse proxy:** Nginx serves `/var/www/bloomup/frontend-dist` and proxies `/api/*` to `http://127.0.0.1:8888`
+- **Process manager:** PM2 (`pm2 start npm --name bloomup-api -- run start` + `pm2 save`)
+- **Env vars:** keep `.env` only on the server  
+  - Backend: set `CORS_ORIGIN=http://52.20.155.43,http://localhost:5173`
+  - Frontend: set `VITE_BACKEND_URL=http://52.20.155.43`
+- **Deploy steps:**
+  1. `git checkout <branch>` / `git pull`
+  2. `cd backend && npm install && pm2 restart bloomup-api` (run after every backend pull so dependencies stay current)
+  3. `cd frontend && npm install && npm run build`
+  4. `sudo cp -r frontend/dist/* /var/www/bloomup/frontend-dist/`
+  5. `sudo systemctl reload nginx`
+- **After EC2 reboot:** Elastic IP keeps the same URL. Run `pm2 resurrect` (or `pm2 start ...` + `pm2 save`) to bring the API back, then `sudo systemctl reload nginx` if configs changed.
+
+
+After Every New Pull Request 
+
+Backend
+   cd /var/www/bloomup/backend
+   npm install            # only if package.json changed; safe to run anyway
+   pm2 restart bloomup-api
+
+
+Frontend
+   cd /var/www/bloomup/frontend
+   npm install            # again, only needed if deps changed but safe
+   npm run build
+   sudo rm -rf /var/www/bloomup/frontend-dist/*
+   sudo cp -r dist/* /var/www/bloomup/frontend-dist/
+   sudo systemctl reload nginx
+
+- **Hosting 2 (Langara WMDD server):** .
+
+---
+
 ## Recent Features & Updates (Pre-Beta)
 
 ### Password Security Enhancement
