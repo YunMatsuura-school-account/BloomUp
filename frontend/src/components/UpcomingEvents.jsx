@@ -500,11 +500,12 @@
 
 
 
-///////New cpde
+///////New code
 // frontend/src/components/UpcomingEvents.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ChildAvatar from "./ChildAvatar";
+import { useChild } from "../contexts/ChildContext";
 
 const CalendarIcon = ({ className = "w-7 h-7" }) => (
   <svg
@@ -527,11 +528,10 @@ const CalendarIcon = ({ className = "w-7 h-7" }) => (
 
 const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigger }) => {
   const navigate = useNavigate();
+  const { children } = useChild();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
-
-
 
   // Fetch upcoming events
   const fetchUpcomingEvents = async () => {
@@ -593,14 +593,25 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
     fetchUpcomingEvents();
   }, [selectedChild?._id, refreshTrigger]);
 
-  // Refresh events when onAddEvent is called (parent component will trigger this)
-  useEffect(() => {
-    if (onAddEvent) {
-      // The parent component will handle the refresh through the modal's onSaved callback
+  // Get child for event - UPDATED: Handle "All" option
+  const getChildForEvent = (event) => {
+    // If specific child is selected, use that child
+    if (selectedChild && selectedChild._id) {
+      return selectedChild;
     }
-  }, [onAddEvent]);
-
-  const totalEvents = events.length;
+    
+    // For "All" option, try to find the first child from the event
+    if (event.children && event.children.length > 0) {
+      const eventChildId = event.children[0];
+      const eventChild = children.find(child => child._id === eventChildId);
+      if (eventChild) {
+        return eventChild;
+      }
+    }
+    
+    // If no child found in event, return the first child from children list
+    return children.length > 0 ? children[0] : null;
+  };
 
   // Format date segments for display
   const getDateSegments = (startDateString, endDateString) => {
@@ -651,7 +662,8 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
   };
 
   const getTitleParts = (event) => {
-    const childName = selectedChild?.name?.trim();
+    const eventChild = getChildForEvent(event);
+    const childName = eventChild?.name?.trim();
     const title = event.title || "Event";
 
     if (childName) {
@@ -699,7 +711,7 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
                   Start by adding events to see here.
                 </p>
                 <button
-                  onClick={onAddEvent} // Use the passed function instead of navigate
+                  onClick={onAddEvent}
                   className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-6 py-2 font-semibold text-sm text-[#111111] shadow-[0_4px_12px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
                 >
                   Add Event&nbsp;+
@@ -716,6 +728,7 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
                   event.endDate
                 );
                 const titleParts = getTitleParts(event);
+                const eventChild = getChildForEvent(event);
 
                 return (
                   <div
@@ -745,10 +758,11 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
                     )}
 
                     <div className="flex gap-3 items-start">
-                      {selectedChild && (
+                      {/* UPDATED: Always show avatar, even for "All" option */}
+                      {eventChild && (
                         <div className="flex-shrink-0">
                           <ChildAvatar
-                            child={selectedChild}
+                            child={eventChild}
                             width={48}
                             height={48}
                           />
