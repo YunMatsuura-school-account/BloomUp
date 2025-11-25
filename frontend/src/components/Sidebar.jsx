@@ -142,7 +142,7 @@ export default function Sidebar({
         }`}
       >
         {/* Brand + chips */}
-        <div className="pt-5">
+        <div className="pt-8">
           {/* Logo row */}
           <div className="px-6 select-none">
             <img
@@ -155,7 +155,7 @@ export default function Sidebar({
           </div>
 
           {/* Chips row: compact */}
-          <div className="px-6 mt-5 flex items-center gap-2.5 relative children-dropdown-container">
+          <div className="px-6 mt-6 flex items-center gap-2.5 relative children-dropdown-container">
             {renderChips(
               children,
               selectedChild,
@@ -199,7 +199,7 @@ export default function Sidebar({
         </div>
 
         {/* Side_Nav: centered items - scrollable */}
-        <nav className="px-4 mt-6 flex-1 overflow-y-auto no-scrollbar">
+        <nav className="px-4 mt-8 flex-1 overflow-y-auto no-scrollbar">
           <ul className="flex flex-col items-center gap-2">
             {navItems.map((item) => (
               <li
@@ -318,9 +318,7 @@ function renderChips(
                 setShowDropdown(false);
               }}
               className={`rounded-full transition-all hover:scale-105 ${
-                isSelected
-                  ? "ring-2 ring-[#238D88]/50 ring-offset-2"
-                  : ""
+                isSelected ? "ring-2 ring-[#238D88]/50 ring-offset-2" : ""
               }`}
               style={{ width: `${chipSize}px`, height: `${chipSize}px` }}
               title={child.name}
