@@ -29,14 +29,11 @@
 
   .no-scrollbar {
     -ms-overflow-style: none;
-    /* IE and Edge */
     scrollbar-width: none;
-    /* Firefox */
   }
 
   .no-scrollbar::-webkit-scrollbar {
     display: none;
-    /* Chrome, Safari, Opera */
   }
 
   .date-input-custom::-webkit-calendar-picker-indicator {
@@ -49,4 +46,141 @@
     display: none;
     -webkit-appearance: none;
   }
+
+  /* Calendar Full Height Fix for "All" Option */
+  .calendar-full-height {
+    min-height: 600px;
+  }
+
+  .calendar-full-height .fc-view {
+    min-height: 500px;
+  }
+
+  /* Custom Week View Styling */
+  .fc-timeGridWeek-view .fc-timegrid-axis,
+  .fc-timeGridWeek-view .fc-timegrid-slot {
+    @apply border-r border-neutral-200;
+  }
+
+  .fc-timeGridWeek-view .fc-timegrid-divider {
+    @apply border-neutral-200;
+  }
+
+  .fc-timeGridWeek-view .fc-timegrid-slot-label {
+    @apply text-stone-300 text-xs font-medium font-['Poppins'] leading-[10px];
+  }
+
+  .fc-timeGridWeek-view .fc-timegrid-now-indicator-line {
+    @apply border-stone-300 opacity-80;
+  }
+
+  .fc-timeGridWeek-view .fc-col-header-cell {
+    @apply bg-[#238D88] text-white text-lg font-normal font-['DM_Sans'] leading-6 tracking-tight;
+  }
+
+  .fc-timeGridWeek-view .fc-timegrid-event {
+    @apply rounded-[3px] border-none shadow-none;
+  }
+
+  .fc-timeGridWeek-view .fc-event-time {
+    @apply text-[10px] font-semibold font-['DM_Sans'] text-white;
+  }
+
+  .fc-timeGridWeek-view .fc-event-title {
+    @apply text-[10px] font-semibold font-['DM_Sans'] text-white;
+  }
+
+  /* Custom Day View Styling */
+  .fc-timeGridDay-view .fc-timegrid-axis,
+  .fc-timeGridDay-view .fc-timegrid-slot {
+    @apply border-r border-neutral-200;
+  }
+
+  .fc-timeGridDay-view .fc-timegrid-divider {
+    @apply border-neutral-200;
+  }
+
+  .fc-timeGridDay-view .fc-timegrid-slot-label {
+    @apply text-stone-300 text-xs font-medium font-['Poppins'] leading-[10px];
+  }
+
+  .fc-timeGridDay-view .fc-timegrid-now-indicator-line {
+    @apply border-stone-300 opacity-80;
+  }
+
+  .fc-timeGridDay-view .fc-col-header-cell {
+    @apply bg-[#238D88] text-white text-lg font-normal font-['DM_Sans'] leading-6 tracking-tight;
+  }
+
+  .fc-timeGridDay-view .fc-timegrid-event {
+    @apply rounded-[3px] border-none shadow-none;
+  }
+
+  .fc-timeGridDay-view .fc-event-time {
+    @apply text-[10px] font-semibold font-['DM_Sans'] text-white;
+  }
+
+  .fc-timeGridDay-view .fc-event-title {
+    @apply text-[10px] font-semibold font-['DM_Sans'] text-white;
+  }
+
+  /* Today highlight */
+  .fc-day-today {
+    @apply bg-[#238D88]/10;
+  }
+
+  /* Event dot indicator */
+  .fc-event-dot {
+    @apply w-2 h-2 rounded-full mr-1;
+  }
+}
+
+/* FullCalendar Custom Overrides */
+.fc .fc-toolbar {
+  @apply p-4;
+}
+
+.fc .fc-col-header-cell-cushion {
+  @apply text-inherit no-underline;
+}
+
+.fc .fc-timegrid-slot {
+  @apply h-16;
+}
+
+.fc .fc-timegrid-now-indicator-line {
+  @apply h-px;
+}
+
+.fc .fc-event {
+  @apply border-none;
+}
+
+.fc .fc-event .fc-event-main {
+  @apply p-1;
+}
+
+/* Ensure calendar takes full space when "All" is selected */
+.fc .fc-view-harness {
+  min-height: 500px;
+}
+
+.fc .fc-view-harness-active>.fc-view {
+  flex: 1 1 auto;
+}
+
+
+/* Time Picker Styles */
+.time-picker-column {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.time-picker-column::-webkit-scrollbar {
+  display: none;
+}
+
+/* Restock reminder modal adjustments */
+.restock-date-modal {
+  min-height: 450px;
 }

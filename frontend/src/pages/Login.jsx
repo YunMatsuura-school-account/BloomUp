@@ -241,59 +241,57 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-[#7A7A7A] hover:text-[#238D88] transition"
+                    className="text-[#7A7A7A]  transition"
                     aria-label={
                       showPassword ? "Hide password" : "Show password"
                     }
                   >
                     {showPassword ? (
                       <svg
-                        className="w-5 h-5"
-                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 20 20"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
+                        className="lg:w-5 lg:h-5"
                       >
                         <path
-                          d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
-                          stroke="currentColor"
+                          d="M1.67 10S4.17 4.17 10 4.17 18.33 10 18.33 10 15.83 15.83 10 15.83 1.67 10 1.67 10Z"
+                          stroke="#232527"
                           strokeWidth="1.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
                         <circle
-                          cx="12"
-                          cy="12"
-                          r="3"
-                          stroke="currentColor"
+                          cx="10"
+                          cy="10"
+                          r="2.5"
+                          stroke="#232527"
                           strokeWidth="1.5"
-                        />
-                        <path
-                          d="m3 3 18 18"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
                         />
                       </svg>
                     ) : (
                       <svg
-                        className="w-5 h-5"
-                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 20 20"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
+                        className="lg:w-5 lg:h-5"
                       >
                         <path
-                          d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
-                          stroke="currentColor"
+                          d="M1.67 1.67l16.66 16.66M8.82 8.82a2.5 2.5 0 1 0 3.54 3.54"
+                          stroke="#232527"
                           strokeWidth="1.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="3"
-                          stroke="currentColor"
+                        <path
+                          d="M8.23 4.48A8 8 0 0 1 10 4.17c5.83 0 8.33 5.83 8.33 5.83a11 11 0 0 1-1.39 2.23M5.51 5.51A11.33 11.33 0 0 0 1.67 10s2.5 5.83 8.33 5.83a8.12 8.12 0 0 0 4.49-1.34"
+                          stroke="#232527"
                           strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         />
                       </svg>
                     )}

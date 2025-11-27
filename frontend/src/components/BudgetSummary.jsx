@@ -208,50 +208,101 @@ const BudgetSummary = () => {
             </div>
           </div>
         ) : showEmptyState ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="w-full bg-white rounded-[20px] border border-gray-200 shadow-sm px-8 py-10 flex flex-col items-center gap-6 text-center">
-              <h3 className="text-xs font-medium text-gray-500 uppercase tracking-[0.2em]">
-                Expenses for {monthLabel}
-              </h3>
-              <div className="relative w-44 h-44 flex items-center justify-center">
-                <div className="w-full h-full rounded-full border-[10px] border-[#EDEDED]"></div>
-                <div className="absolute inset-5 rounded-full border-[8px] border-[#F7F7F7]"></div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                  <p className="text-2xl font-semibold text-[#D4D4D4]">$0.00</p>
-                  <div className="p-3 rounded-full bg-white shadow">
-                    <BudgetEmptyIcon className="w-8 h-8 text-[#232527]" />
+          <div className="flex-1 relative overflow-hidden bg-white rounded-[15px]">
+            {/* Grayscale background - same layout as data view */}
+            <div className="bg-[#ffffff] rounded-[15px] p-0 flex flex-col gap-6 min-h-0 opacity-50 pointer-events-none h-full overflow-hidden">
+              {/* Main Chart Card - Grayscale */}
+              <div className="bg-white rounded-[15px] p-6 shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-0">
+                  Expenses for {monthLabel}
+                </h3>
+
+                {/* Large Donut Chart - Grayscale */}
+                <div className="flex justify-center items-center py-2">
+                  <div className="relative w-[300px] h-[300px]">
+                    <svg className="w-full h-full" viewBox="0 0 100 100">
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="45"
+                        fill="none"
+                        stroke="#E5E7EB"
+                        strokeWidth="4"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <p className="text-4xl font-medium text-gray-300">
+                        $34,560.34
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="space-y-1">
-                <h4 className="text-2xl font-semibold text-[#111111]">
-                  No budget data yet
-                </h4>
-                <p className="text-sm text-[#6F717A]">
-                  Try adding your first family budget activity!
-                </p>
-              </div>
-              <button
-                onClick={() => navigate("/dashboard/budget")}
-                className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-8 py-3 text-[#1C1C1C] font-semibold text-base leading-[22px] shadow-[0_10px_25px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
-              >
-                Budget Setup&nbsp;+
-              </button>
-              <div className="grid grid-cols-2 gap-4 w-full max-w-md opacity-60">
-                {["Education", "Medicine", "Consumable", "Misc"].map(
-                  (label) => (
+
+              {/* Category Cards Grid - Grayscale */}
+              <div className="grid grid-cols-2 gap-4">
+                {["Education", "Medicine", "Education", "Consumable"].map(
+                  (label, index) => (
                     <div
-                      key={label}
-                      className="rounded-2xl border border-gray-200 px-4 py-3 flex flex-col items-center gap-2"
+                      key={`${label}-${index}`}
+                      className="bg-white rounded-[15px] p-6 shadow-sm flex flex-col items-center gap-2 relative min-h-[200px]"
                     >
-                      <div className="w-16 h-16 rounded-full border-[6px] border-[#F0F0F0]"></div>
-                      <p className="text-sm font-semibold text-gray-400">
-                        $0.00
+                      {/* Donut Background Ring - Grayscale */}
+                      <div className="relative w-[180px] h-[180px] mb-[-70px]">
+                        <svg
+                          className="w-full h-full"
+                          viewBox="0 0 100 100"
+                          style={{ transform: "rotate(159deg)" }}
+                        >
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="43"
+                            fill="none"
+                            stroke="#E5E7EB"
+                            strokeWidth="5"
+                            strokeDasharray="168 270"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center translate-y-[-6px]">
+                          <p className="text-2xl font-medium text-gray-300">
+                            $2,456.76
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-lg font-semibold text-gray-300 text-center mt-1">
+                        {label}
                       </p>
-                      <p className="text-xs text-gray-400">{label}</p>
                     </div>
                   )
                 )}
+              </div>
+            </div>
+
+            {/* Overlay - No events message */}
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <div className="flex flex-col items-center text-center px-8">
+                {/* Budget icon */}
+                <div className="mb-8 p-5   ">
+                  <BudgetEmptyIcon className="w-16 h-16 text-[#232527]" />
+                </div>
+
+                {/* Text */}
+                <h3 className="text-[32px] font-bold text-[#000] mb-3">
+                  No events yet
+                </h3>
+                <p className="text-lg text-[#000] mb-8">
+                  Try adding your first family activity!
+                </p>
+
+                {/* CTA Button */}
+                <button
+                  onClick={() => navigate("/dashboard/budget")}
+                  className="inline-flex items-center justify-center rounded-lg bg-[#F3BE08] px-10 py-4 text-[#1C1C1C] font-bold text-lg shadow-[0_10px_30px_rgba(243,190,8,0.4)] hover:bg-[#E0B108] transition-colors"
+                >
+                  Budget Setup&nbsp;&nbsp;+
+                </button>
               </div>
             </div>
           </div>

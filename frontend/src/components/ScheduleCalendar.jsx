@@ -1,7 +1,9 @@
 // frontend/src/components/ScheduleCalendar.jsx
 import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const ScheduleCalendar = ({ events = [], initialDate }) => {
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(
     initialDate ? new Date(initialDate) : new Date()
   );
@@ -105,7 +107,7 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
 
       // Use child-specific color if available, otherwise fall back to type-based colors
       let derivedColor = "#F3BE08"; // default calendar/school
-      if (ev.color && ev.color !== '#006F69') {
+      if (ev.color && ev.color !== "#006F69") {
         derivedColor = ev.color; // Use the child-specific color
       } else if (ev.type === "vaccination") derivedColor = "#006F69";
       else if (ev.type === "school") derivedColor = "#F3BE08";
@@ -176,7 +178,7 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
         {/* Calendar Header */}
         <div className="flex justify-between items-center p-2 border-b border-[rgba(218,220,224,0.6)]">
           {/* Left: Month & Year */}
-          <div className="flex items-center gap-3.5 px-3.5">
+          <div className="flex items-center gap-3.5 px-1 lg:px-4">
             <div className="flex gap-2.5 items-center">
               <select
                 className="text-base font-semibold text-[#333333] bg-transparent outline-none"
@@ -225,7 +227,7 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
           </div>
 
           {/* Right: Navigation */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               className="p-2 hover:bg-gray-100 rounded"
               onClick={goToPrevMonth}
@@ -242,6 +244,27 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
             >
               <svg width="18" height="20" viewBox="0 0 18 20" fill="none">
                 <path d="M6 2L13 10L6 18" stroke="#000" strokeWidth="2" />
+              </svg>
+            </button>
+            <button
+              className="p-2 mr-4 lg:mr-2 rounded-xl bg-[#F3BE08]"
+              title="Open full calendar"
+              onClick={() => navigate("/calendar")}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="22"
+                viewBox="0 0 20 22"
+                fill="none"
+              >
+                <path
+                  d="M6 1V5M14 1V5M1 9H19M3 3H17C18.1046 3 19 3.89543 19 5V19C19 20.1046 18.1046 21 17 21H3C1.89543 21 1 20.1046 1 19V5C1 3.89543 1.89543 3 3 3Z"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
           </div>
@@ -265,10 +288,11 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
             <div
               key={index}
               onClick={() => handleDateClick(dayObj)}
-              className={`border border-[rgba(218,220,224,0.6)] p-0.5 min-h-[78px] flex flex-col justify-between ${dayObj.isCurrentMonth && !dayObj.isEmpty
+              className={`border border-[rgba(218,220,224,0.6)] p-0.5 min-h-[78px] flex flex-col justify-between ${
+                dayObj.isCurrentMonth && !dayObj.isEmpty
                   ? "cursor-pointer hover:bg-gray-50 transition-colors bg-white"
                   : "bg-gray-100" // Gray background for empty cells
-                }`}
+              }`}
             >
               {dayObj.isCurrentMonth && !dayObj.isEmpty && (
                 <>
@@ -283,10 +307,11 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
                           currentDate.getFullYear() === today.getFullYear();
                         return (
                           <span
-                            className={`text-[10px] font-semibold inline-flex items-center justify-center w-5 h-5 rounded-full ${isToday
+                            className={`text-[10px] font-semibold inline-flex items-center justify-center w-5 h-5 rounded-full ${
+                              isToday
                                 ? "bg-[#238D88] text-white"
                                 : "text-[#333333]"
-                              }`}
+                            }`}
                           >
                             {dayObj.day < 10 ? `0${dayObj.day}` : dayObj.day}
                           </span>
@@ -297,7 +322,7 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
 
                   {/* Events - Show only title without time */}
                   {eventsByDay[dayObj.day] && (
-                    <div className="flex flex-col" style={{ rowGap: "6px" }}>
+                    <div className="flex flex-col" style={{ rowGap: "0px" }}>
                       {eventsByDay[dayObj.day].slice(0, 2).map((event, idx) => (
                         <div
                           key={`${event._id}-${idx}`}

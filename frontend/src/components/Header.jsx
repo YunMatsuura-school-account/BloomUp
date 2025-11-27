@@ -1,20 +1,11 @@
+// frontend/src/components/Header.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import bell_icon from "../icons/bell_icon.png";
 import CircleUserRoundIcon from "../icons/CircleUserRoundIcon";
 import NotificationPopup from "./NotificationPopup";
-// Legacy import kept for reference of previous implementation
-// import UpcomingEvents from "./UpcomingEvents";
 import { logout } from "../utils/auth";
 
-/**
- * Header component matching Figma design
- * - Height: 95px
- * - Background: #F5F5F5
- * - Padding: 29px 59px
- * - Right-aligned with bell and user icons
- * - Gap between icons: 25px
- */
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,6 +14,8 @@ export default function Header() {
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const profileRef = useRef(null);
   const bellRef = useRef(null);
 
@@ -30,10 +23,31 @@ export default function Header() {
   const whiteBgPages = ["/account", "/user-dashboard", "/settings"];
   const isChildDashboardPage = location.pathname.startsWith("/child-dashboard");
   const shouldUseWhiteBg = whiteBgPages.includes(location.pathname) || isChildDashboardPage;
-  // Pages that should have #EFEFEF background on desktop
   const isAccountPage = location.pathname === "/account";
-  // Pages that should have the same padding as account page on mobile
   const shouldUseAccountPadding = isAccountPage || isChildDashboardPage;
+
+  // Scroll handling for header visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down - hide header
+        setIsVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        // Scrolling up - show header
+        setIsVisible(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [lastScrollY]);
 
   // Close overlay on ESC key
   useEffect(() => {
@@ -81,18 +95,19 @@ export default function Header() {
   return (
     <>
       <header
-        className={`w-full flex items-center justify-between md:justify-end ${
-          shouldUseWhiteBg 
+        className={`w-full flex items-center justify-between md:justify-end transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'
+          } ${shouldUseWhiteBg
             ? `bg-[#FFFFFF] ${isAccountPage ? "md:bg-[#EFEFEF]" : "md:bg-[#efefef]"}`
             : "bg-[#efefef]"
-        } ${shouldUseAccountPadding ? "px-6 py-4 md:px-[59px] md:py-[29px]" : ""}`}
+          } ${shouldUseAccountPadding ? "px-6 py-4 md:px-[59px] md:py-[29px]" : ""
+          }`}
         style={{
           height: "95px",
           ...(shouldUseAccountPadding ? {} : { padding: "29px 59px" }),
         }}
       >
         <div className={`w-full flex items-center justify-between md:justify-end ${shouldUseAccountPadding ? "md:max-w-[1234px] md:mx-auto" : ""}`}>
-          {/* Mobile hamburger (opens sidebar via global hook set in layout) */}
+          {/* Mobile hamburger */}
           <button
             className="md:hidden p-2 rounded-md hover:bg-gray-200/60"
             aria-label="Open Menu"
@@ -163,7 +178,7 @@ export default function Header() {
                   <button
                     onClick={() => {
                       setShowProfileMenu(false);
-                      navigate("/settings");
+                      navigate("/settings", { state: { fromPath: location.pathname } });
                     }}
                     className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
                   >
@@ -224,38 +239,7 @@ export default function Header() {
         refreshTrigger={refreshTrigger}
         onNotificationsViewed={handleNotificationsViewed}
       />
-
-      {/**
-       * Legacy bell overlay (kept commented for reference – previously used UpcomingEvents modal)
-       * This block was replaced by NotificationPopup to align with Articles header design.
-       * If needed in future, restore by uncommenting and re-adding UpcomingEvents import.
-       */}
-      {false &&
-        // <>
-        //   {showBellOverlay && (
-        //     <div
-        //       className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-        //       onClick={() => setShowBellOverlay(false)}
-        //     >
-        //       <div
-        //         className="bg-white rounded-xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
-        //         onClick={(e) => e.stopPropagation()}
-        //       >
-        //         <div className="flex justify-between items-center mb-4">
-        //           <h3 className="text-xl font-semibold">Upcoming Events</h3>
-        //           <button
-        //             onClick={() => setShowBellOverlay(false)}
-        //             className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-        //           >
-        //             ×
-        //           </button>
-        //         </div>
-        //         {/* <UpcomingEvents selectedChild={null} /> */}
-        //       </div>
-        //     </div>
-        //   )}
-        // </>
-        null}
     </>
   );
 }
+

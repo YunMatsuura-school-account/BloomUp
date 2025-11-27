@@ -1,4 +1,6 @@
 // frontend/src/components/NotificationPopup.jsx
+// COMPLETE FINAL VERSION - Past events at bottom + Better error messages + Mark as viewed on click
+// frontend/src/components/NotificationPopup.jsx
 // UPDATED VERSION - Click only marks as viewed, no ReminderModal opening
 import React, { useState, useEffect, useRef } from 'react';
 import ReminderModal from './ReminderModal';

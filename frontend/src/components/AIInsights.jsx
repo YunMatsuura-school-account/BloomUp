@@ -145,44 +145,82 @@ const AIInsights = () => {
               </p>
             </div>
           ) : showEmptyState ? (
-            <div className="flex-1 flex flex-col items-center justify-center w-full">
-              <div className="relative w-full max-w-3xl bg-white rounded-[32px] border border-gray-200 shadow-md overflow-hidden px-6 py-8 min-h-[420px] sm:min-h-[480px]">
-                <div className="space-y-4 opacity-50 pointer-events-none select-none">
-                  <div className="h-12 rounded-2xl bg-gradient-to-r from-[#F4F4F4] to-white border border-gray-200 flex items-center px-5 text-sm text-gray-400">
-                    📊 This month’s top spending: Education (36%), up 12% from
+            <div className="flex-1 relative overflow-hidden">
+              {/* Grayscale background - same layout as data view */}
+              <div className="flex flex-col items-center justify-center gap-[44px] flex-1 h-full opacity-25 pointer-events-none">
+                {/* Main Content Section */}
+                <div className="flex flex-col items-center gap-[41px] w-full">
+                  {/* Title */}
+                  <h3 className="text-2xl font-semibold text-gray-400 leading-[1.35] tracking-wide text-center w-full">
+                    AI Insight & Suggestion
+                  </h3>
+
+                  {/* Top Spending Text - Placeholder */}
+                  <p className="text-xl font-semibold text-gray-400 leading-8 text-center w-full max-w-3xl mx-auto">
+                    📊 This month's top spending: Education (36%), up 12% from
                     last month.
+                  </p>
+
+                  {/* Suggestion & Prediction Cards - Grayscale */}
+                  <div className="flex flex-col items-center gap-5 w-full max-w-3xl mx-auto">
+                    <div className="bg-gray-200 rounded-[15px] py-5 px-[30px] w-full">
+                      <div className="flex flex-col gap-1.5 w-full">
+                        <p className="text-large font-medium text-gray-500 leading-7 w-full">
+                          💡 Suggestion
+                        </p>
+                        <p className="text-base font-medium text-gray-400 leading-[22.4px] w-full">
+                          Consider lowering Consumables by 10% to balance next
+                          month's budget.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-200 rounded-[15px] py-5 px-[30px] w-full">
+                      <div className="flex flex-col gap-1.5 w-full">
+                        <p className="text-large font-medium text-gray-500 leading-7 w-full">
+                          🔮 Prediction
+                        </p>
+                        <p className="text-base font-medium text-gray-400 leading-[22.4px] w-full">
+                          Medical expenses may increase during upcoming
+                          check-ups.
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="rounded-2xl border border-gray-200 bg-gradient-to-r from-[#FEFDF9] to-[#FBFBFB] px-5 py-4 flex flex-col gap-2">
-                    <p className="text-base font-semibold text-gray-700">
-                      💡 Suggestion
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Consider lowering Consumables by 10% to balance next
-                      month’s budget.
-                    </p>
-                  </div>
-                  <button
-                    disabled
-                    className="h-12 rounded-2xl bg-gray-200 text-gray-500 font-semibold"
-                  >
-                    Refresh
-                  </button>
                 </div>
 
-                <div className="absolute inset-x-6 top-1/2 -translate-y-1/2 bg-white rounded-[24px] border border-gray-200 shadow-[0_20px_45px_rgba(35,141,136,0.08)] px-8 py-10 flex flex-col items-center text-center gap-4">
-                  <BulbIcon />
-                  <h3 className="text-2xl font-semibold text-[#111111]">
+                {/* Refresh Button - Grayscale */}
+                <button
+                  disabled
+                  className="w-full sm:w-auto bg-gray-300 text-gray-500 font-semibold text-base leading-[22.4px] py-[15px] px-10 sm:px-[160px] lg:px-[200px] rounded-[15px] text-center max-w-full sm:max-w-none"
+                >
+                  Refresh
+                </button>
+              </div>
+
+              {/* Overlay - No data message */}
+              <div className="absolute inset-0 flex items-center justify-center z-10">
+                <div className="flex flex-col items-center text-center px-8">
+                  {/* Bulb icon */}
+                  <div className="mb-6">
+                    <BulbIcon className="w-16 h-16" />
+                  </div>
+
+                  {/* Text */}
+                  <h3 className="text-[32px] font-bold text-[#000] mb-3">
                     AI Insight & Suggestions
                   </h3>
-                  <p className="text-base text-[#4B4E57] max-w-md">
+                  <p className="text-lg text-[#000] mb-8 max-w-md">
                     Once you add your first expenses, BloomUp will show smart
                     insights here.
                   </p>
+
+                  {/* CTA Button */}
                   <button
                     onClick={() => navigate("/dashboard/budget")}
-                    className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-8 py-3 text-[#1C1C1C] font-semibold text-base leading-[22px] shadow-[0_10px_25px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
+                    className="inline-flex items-center justify-center rounded-lg bg-[#F3BE08] px-10 py-4 text-[#1C1C1C] font-bold text-lg shadow-[0_10px_30px_rgba(243,190,8,0.4)] hover:bg-[#E0B108] transition-colors"
                   >
-                    Budget Setup&nbsp;+
+                    Budget Setup&nbsp;&nbsp;+
                   </button>
                 </div>
               </div>
@@ -192,7 +230,7 @@ const AIInsights = () => {
               {/* Main Content Section - Figma: gap 51px, height 437px */}
               <div className="flex flex-col items-center gap-[41px] w-full">
                 {/* Title */}
-                <h3 className="text-2xl font-semibold text-black leading-4 text-center w-full">
+                <h3 className="text-2xl font-semibold text-black leading-[1.35] tracking-wide text-center w-full">
                   AI Insight & Suggestion
                 </h3>
 
@@ -261,7 +299,7 @@ const AIInsights = () => {
               {/* Adjust Budget Button - Figma: 461x54px, padding 15px 136px */}
               <button
                 onClick={handleAdjustBudget}
-                className="bg-[#238D88] text-white font-semibold text-base leading-[22.4px] py-[15px] px-[136px] rounded-[15px] hover:bg-[#1a6d68] transition-colors"
+                className="w-full sm:w-auto bg-[#238D88] text-white font-semibold text-base leading-[22.4px] py-[15px] px-10 sm:px-[160px] lg:px-[200px] rounded-[15px] hover:bg-[#1a6d68] transition-colors text-center max-w-full sm:max-w-none"
               >
                 Refresh
               </button>

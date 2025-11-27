@@ -75,11 +75,11 @@ const AvatarSelectionModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-hidden"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-[24px] shadow-lg max-w-[520px] w-full mx-4 max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-[24px] shadow-lg max-w-[520px] w-full mx-4 max-h-[90vh] overflow-y-auto no-scrollbar"
         onClick={(e) => e.stopPropagation()}
         style={{ fontFamily: "DM Sans, sans-serif" }}
       >
@@ -103,7 +103,7 @@ const AvatarSelectionModal = ({
           </div>
 
           {/* Colour Section */}
-          <div className="flex flex-col gap-4 pl-8">
+          <div className="flex flex-col gap-4  sm:pl-8">
             <h3
               className="text-[20px] font-bold text-black"
               style={{ fontFamily: "DM Sans, sans-serif" }}
@@ -129,7 +129,7 @@ const AvatarSelectionModal = ({
           </div>
 
           {/* Avatar Section */}
-          <div className="flex flex-col gap-4 pl-8">
+          <div className="flex flex-col gap-4  sm:pl-8">
             <h3
               className="text-[20px] font-bold text-black"
               style={{ fontFamily: "DM Sans, sans-serif" }}
@@ -169,11 +169,11 @@ const AvatarSelectionModal = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex gap-24 px-20 pb-6 pt-6 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-24 px-4 sm:px-20 pb-6 pt-6 justify-center">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 flex items-center justify-center font-semibold hover:opacity-80 transition-opacity rounded-[12px] h-[48px] border border-gray-300"
+            className="w-full sm:flex-1 flex items-center justify-center font-semibold hover:opacity-80 transition-opacity rounded-[12px] h-[48px] border border-gray-300 px-6"
             style={{
               backgroundColor: "transparent",
               color: "#000000",
@@ -187,7 +187,7 @@ const AvatarSelectionModal = ({
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 flex items-center justify-center font-semibold text-white hover:opacity-90 transition-opacity rounded-[12px] h-[48px]"
+            className="w-full sm:flex-1 flex items-center justify-center font-semibold text-white hover:opacity-90 transition-opacity rounded-[12px] h-[48px] px-6"
             style={{
               backgroundColor: "#238D88",
               fontSize: "15px",

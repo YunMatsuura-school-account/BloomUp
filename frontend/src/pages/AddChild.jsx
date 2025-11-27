@@ -206,7 +206,7 @@ export default function AddChild() {
     }
   };
 
-  return (
+  const pageBody = (
     <div className="min-h-screen w-full" style={{ backgroundColor: "#FFFFFF" }}>
       {/* Back button - Mobile only */}
       <div className="md:hidden p-4">
@@ -451,4 +451,6 @@ export default function AddChild() {
       </div>
     </div>
   );
+
+  return pageBody;
 }

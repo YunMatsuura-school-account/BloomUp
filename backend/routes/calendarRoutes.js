@@ -55,6 +55,7 @@
 
 
 // backend/routes/calendarRoutes.js
+// backend/routes/calendarRoutes.js
 const express = require('express');
 const router = express.Router();
 const calendarCtrl = require('../controllers/calendarController');
@@ -106,3 +107,4 @@ router.get('/debug/status', async (req, res) => {
 });
 
 module.exports = router;
+

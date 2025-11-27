@@ -184,9 +184,8 @@ export default function Account() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
-          {children.map((child, index) => {
+          {children.map((child) => {
             const age = calculateAge(child.dateOfBirth);
-            const isFirstChild = index === 0;
             return (
               <button
                 key={child._id}
@@ -247,7 +246,7 @@ export default function Account() {
                     <img
                       src={trashBinIcon}
                       alt="delete"
-                      style={{ width: isFirstChild ? "30px" : "40px", height: isFirstChild ? "30px" : "40px" }}
+                      style={{ width: "34px", height: "34px" }}
                     />
                   </button>
                 </div>
@@ -257,9 +256,9 @@ export default function Account() {
 
           <button
             className="rounded-2xl p-4 text-left hover:opacity-90 transition-opacity flex items-center border-2 border-dashed h-[78px] md:h-[135.14px]"
-            style={{ 
-              backgroundColor: "#C0C0C0",
-              borderColor: "rgba(0, 0, 0, 0.2)"
+            style={{
+              backgroundColor: "transparent",
+              borderColor: "#F3BE08",
             }}
             onClick={() => {
               if (userId) {
@@ -277,7 +276,14 @@ export default function Account() {
             }}
             aria-label="Add your child here"
           >
-            <div className="flex items-center justify-center overflow-hidden rounded-full md:w-[75.14px] md:h-[75.14px]" style={{ width: "62px", height: "62px", backgroundColor: "#777777" }}>
+            <div
+              className="flex items-center justify-center overflow-hidden rounded-full md:w-[75.14px] md:h-[75.14px]"
+              style={{
+                width: "62px",
+                height: "62px",
+                backgroundColor: "#F3BE08",
+              }}
+            >
               <svg 
                 width="72" 
                 height="72" 
@@ -287,7 +293,7 @@ export default function Account() {
               >
                 <path 
                   d="M47.0723 49.5713V46.9046C47.0723 45.4901 46.5003 44.1336 45.4823 43.1334C44.4642 42.1332 43.0834 41.5713 41.6437 41.5713H33.5008C32.0611 41.5713 30.6803 42.1332 29.6623 43.1334C28.6442 44.1336 28.0723 45.4901 28.0723 46.9046V49.5713M43.0008 30.9046C43.0008 33.8501 40.5704 36.238 37.5723 36.238C34.5741 36.238 32.1437 33.8501 32.1437 30.9046C32.1437 27.9591 34.5741 25.5713 37.5723 25.5713C40.5704 25.5713 43.0008 27.9591 43.0008 30.9046Z" 
-                  stroke="white" 
+                  stroke="#000000" 
                   strokeWidth="2" 
                   strokeLinecap="round" 
                   strokeLinejoin="round"
@@ -296,17 +302,17 @@ export default function Account() {
             </div>
 
             <div className="p-4">
-              <div className="font-semibold md:leading-[24px]" style={{ fontSize: "14px", lineHeight: "24px", color: "#5A5A5A" }}>
+              <div className="font-semibold md:leading-[24px]" style={{ fontSize: "14px", lineHeight: "24px", color: "#000000" }}>
                 Add your child here
               </div>
-              <div className="md:text-sm" style={{ fontSize: "12px", color: "#5A5A5A" }}>Age</div>
+              <div className="md:text-sm" style={{ fontSize: "12px", color: "#000000" }}>Age</div>
             </div>
 
             <div className="flex justify-end flex-1 items-center">
               {/* Mobile: Pencil icon with #4F4F4F background */}
               <button
                 className="md:hidden flex items-center justify-center rounded-full"
-                style={{ width: "34px", height: "34px", backgroundColor: "#4F4F4F" }}
+                style={{ width: "34px", height: "34px", backgroundColor: "#F3BE08" }}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (userId) {
@@ -328,7 +334,7 @@ export default function Account() {
                 >
                   <path 
                     d="M24.9999 15.0004L28.9999 19.0004M31.1739 16.8124C31.7026 16.2838 31.9997 15.5668 31.9998 14.8192C31.9999 14.0716 31.703 13.3546 31.1744 12.8259C30.6459 12.2972 29.9289 12.0001 29.1813 12C28.4337 11.9999 27.7166 12.2968 27.1879 12.8254L13.8419 26.1744C13.6098 26.4059 13.438 26.6909 13.3419 27.0044L12.0209 31.3564C11.9951 31.4429 11.9931 31.5347 12.0153 31.6222C12.0374 31.7097 12.0829 31.7896 12.1467 31.8534C12.2106 31.9172 12.2906 31.9624 12.3781 31.9845C12.4656 32.0065 12.5575 32.0044 12.6439 31.9784L16.9969 30.6584C17.3101 30.5631 17.5951 30.3925 17.8269 30.1614L31.1739 16.8124Z" 
-                    stroke="white" 
+                    stroke="#000000" 
                     strokeWidth="2" 
                     strokeLinecap="round" 
                     strokeLinejoin="round"
@@ -336,7 +342,14 @@ export default function Account() {
                 </svg>
               </button>
               {/* Desktop: Plus icon */}
-              <div className="hidden md:flex items-center justify-center rounded-full" style={{ width: "48.09px", height: "48.09px", backgroundColor: "#777777" }}>
+              <div
+                className="hidden md:flex items-center justify-center rounded-full"
+                style={{
+                  width: "48.09px",
+                  height: "48.09px",
+                  backgroundColor: "#F3BE08",
+                }}
+              >
                 <svg 
                   width="48.09" 
                   height="48.09" 
@@ -350,7 +363,7 @@ export default function Account() {
                     y1={48.09 / 2} 
                     x2={(48.09 + 18.03) / 2} 
                     y2={48.09 / 2} 
-                    stroke="#5A5A5A" 
+                    stroke="#000000" 
                     strokeWidth="3.00572" 
                     strokeLinecap="round"
                   />
@@ -360,7 +373,7 @@ export default function Account() {
                     y1={(48.09 - 18.03) / 2} 
                     x2={48.09 / 2} 
                     y2={(48.09 + 18.03) / 2} 
-                    stroke="#5A5A5A" 
+                    stroke="#000000" 
                     strokeWidth="3.00572" 
                     strokeLinecap="round"
                   />

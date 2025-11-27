@@ -91,7 +91,7 @@ const ArticleHeader = ({ categories, currentFilter, onFilterChange }) => {
 
   const handleSettings = () => {
     setShowProfileMenu(false);
-    navigate("/settings");
+    navigate("/settings", { state: { fromPath: location.pathname } });
   };
 
   const handleLogout = () => {

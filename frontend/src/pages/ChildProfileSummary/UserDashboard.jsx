@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AvatarDropUpload from "../../components/AvatarDropUpload";
 import AddEventModal from "../../components/AddEventModal";
 import ChildAvatar from "../../components/ChildAvatar";
@@ -8,6 +8,7 @@ import "../../styles/articles.css";
 export default function UserDashboard() {
   const BASE = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [me, setMe] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -148,7 +149,7 @@ export default function UserDashboard() {
 
   const onEdit = () => {
     navigate("/settings", {
-      state: { user: me, userId: me?.id },
+      state: { user: me, userId: me?.id, fromPath: location.pathname },
     });
   };
 
