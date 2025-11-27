@@ -164,7 +164,7 @@ const DashboardUpcomingEvents = ({
       </h2>
 
       <div className="flex-1 overflow-hidden">
-        <div className="overflow-y-auto pr-1 max-h-[420px] lg:max-h-[520px] [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent scrollbar-none">
+        <div className="overflow-y-auto pr-1 max-h-[540px] [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent scrollbar-none">
           {loading && (
             <div className="flex items-center justify-center h-20 p-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#238D88]"></div>
@@ -175,18 +175,18 @@ const DashboardUpcomingEvents = ({
           )}
 
           {!loading && events.length === 0 && (
-            <div className="h-full flex items-center rounded-[20px] border-2 border-dashed border-[#F3BE08] justify-center p-4">
-              <div className="text-center">
-                <CalendarIcon className="w-12 h-12 text-[#232527] mx-auto mb-3" />
-                <h3 className="text-xl font-semibold text-[#1F2A37] mb-2">
+            <div className="w-full min-h-[500px] flex items-center justify-center rounded-[12px] border-[3px] border-dashed border-[#F3BE08] px-10 py-12">
+              <div className="text-center space-y-3">
+                <CalendarIcon className="w-14 h-14 text-[#232527] mx-auto" />
+                <h3 className="text-2xl font-semibold text-[#1F2A37]">
                   No upcoming events!
                 </h3>
-                <p className="text-base text-[#111827] mb-4">
+                <p className="text-base text-[#111827]">
                   Start by adding events to see here.
                 </p>
                 <button
                   onClick={onAddEvent}
-                  className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-6 py-2 font-semibold text-sm text-[#111111] shadow-[0_4px_12px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
+                  className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-7 py-2.5 font-semibold text-base text-[#111111] shadow-[0_8px_20px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
                 >
                   Add Event&nbsp;+
                 </button>
