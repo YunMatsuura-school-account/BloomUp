@@ -192,7 +192,7 @@ const AIInsights = () => {
               {/* Main Content Section - Figma: gap 51px, height 437px */}
               <div className="flex flex-col items-center gap-[41px] w-full">
                 {/* Title */}
-                <h3 className="text-2xl font-semibold text-black leading-4 text-center w-full">
+                <h3 className="text-2xl font-semibold text-black leading-[1.35] tracking-wide text-center w-full">
                   AI Insight & Suggestion
                 </h3>
 
@@ -261,7 +261,7 @@ const AIInsights = () => {
               {/* Adjust Budget Button - Figma: 461x54px, padding 15px 136px */}
               <button
                 onClick={handleAdjustBudget}
-                className="bg-[#238D88] text-white font-semibold text-base leading-[22.4px] py-[15px] px-[136px] rounded-[15px] hover:bg-[#1a6d68] transition-colors"
+                className="w-full sm:w-auto bg-[#238D88] text-white font-semibold text-base leading-[22.4px] py-[15px] px-10 sm:px-[160px] lg:px-[200px] rounded-[15px] hover:bg-[#1a6d68] transition-colors text-center max-w-full sm:max-w-none"
               >
                 Refresh
               </button>
