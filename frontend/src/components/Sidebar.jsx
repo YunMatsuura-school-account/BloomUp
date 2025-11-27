@@ -22,7 +22,7 @@ import ChildAvatar from "./ChildAvatar";
  */
 export default function Sidebar({
   isOpen = false,
-  onClose = () => {},
+  onClose = () => { },
   items = [],
   headerTitle,
   onLogout,
@@ -91,55 +91,53 @@ export default function Sidebar({
             ? me.familyName
             : me?.name || "BloomUp";
         setDisplayName(name);
-      } catch {}
+      } catch { }
     })();
   }, []);
 
   const navItems = items.length
     ? items
     : [
-        {
-          label: navLabelWithIcon("Dashboard", <DashboardIcon size={24} />),
-          to: "/dashboard",
-          end: true,
-        },
-        {
-          label: navLabelWithIcon(
-            "Budget Management",
-            <BudgetIcon size={26} />
-          ),
-          to: "/dashboard/budget",
-        },
-        {
-          label: navLabelWithIcon("Calendar", <CalendarIcon size={24} />),
-          to: "/calendar",
-        },
-        {
-          label: navLabelWithIcon(
-            "Articles & Resources",
-            <ArticlesIcon size={26} />
-          ),
-          to: "/articles",
-        },
-        {
-          label: navLabelWithIcon("Your Family", <FamilyIcon size={26} />),
-          to: "/account",
-        },
-      ];
+      {
+        label: navLabelWithIcon("Dashboard", <DashboardIcon size={24} />),
+        to: "/dashboard",
+        end: true,
+      },
+      {
+        label: navLabelWithIcon(
+          "Budget Management",
+          <BudgetIcon size={26} />
+        ),
+        to: "/dashboard/budget",
+      },
+      {
+        label: navLabelWithIcon("Calendar", <CalendarIcon size={24} />),
+        to: "/calendar",
+      },
+      {
+        label: navLabelWithIcon(
+          "Articles & Resources",
+          <ArticlesIcon size={26} />
+        ),
+        to: "/articles",
+      },
+      {
+        label: navLabelWithIcon("Your Family", <FamilyIcon size={26} />),
+        to: "/account",
+      },
+    ];
 
   return (
     <>
       <div
         onClick={onClose}
-        className={`fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-200 ${
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-200 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
       />
 
       <aside
-        className={`fixed md:relative z-50 left-0 top-0 h-full md:h-screen w-[300px] md:w-[300px] bg-white text-[#232527] transition-transform duration-300 md:transition-none shadow-md md:shadow-none flex flex-col no-scrollbar ${
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        }`}
+        className={`fixed md:relative z-50 left-0 top-0 h-full md:h-screen w-[300px] md:w-[300px] bg-white text-[#232527] transition-transform duration-300 md:transition-none shadow-md md:shadow-none flex flex-col no-scrollbar ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          }`}
       >
         {/* Brand + chips */}
         <div className="pt-8">
@@ -210,10 +208,9 @@ export default function Sidebar({
                   to={item.to}
                   end={item.end}
                   className={({ isActive }) =>
-                    `flex items-center gap-[14px] px-4 py-5 rounded-[12px] text-[16px] font-semibold ${
-                      isActive
-                        ? "bg-[#238D88] text-white"
-                        : "bg-white text-[#232527] hover:bg-[#F5F5F5]"
+                    `flex items-center gap-[14px] px-4 py-5 rounded-[12px] text-[16px] font-semibold ${isActive
+                      ? "bg-[#238D88] text-white"
+                      : "bg-white text-[#232527] hover:bg-[#F5F5F5]"
                     }`
                   }
                   onClick={onClose}
@@ -289,11 +286,19 @@ function renderChips(
               e.stopPropagation();
               selectChild(null);
               setShowDropdown(false);
+              // Force calendar refresh when "All" is selected
+              setTimeout(() => {
+                if (window.location.pathname === '/calendar') {
+                  const event = new CustomEvent('childSelectionChanged', {
+                    detail: { childId: null }
+                  });
+                  window.dispatchEvent(event);
+                }
+              }, 100);
             }}
             aria-pressed={isAllSelected}
-            className={`rounded-full flex items-center justify-center text-white text-[14px] font-semibold transition-all hover:scale-105 ${
-              isAllSelected ? "ring-2 ring-[#238D88]/50 ring-offset-2" : ""
-            }`}
+            className={`rounded-full flex items-center justify-center text-white text-[14px] font-semibold transition-all hover:scale-105 ${isAllSelected ? "ring-2 ring-[#238D88]/50 ring-offset-2" : ""
+              }`}
             style={{
               width: `${chipSize}px`,
               height: `${chipSize}px`,
@@ -317,9 +322,8 @@ function renderChips(
                 selectChild(child);
                 setShowDropdown(false);
               }}
-              className={`rounded-full transition-all hover:scale-105 ${
-                isSelected ? "ring-2 ring-[#238D88]/50 ring-offset-2" : ""
-              }`}
+              className={`rounded-full transition-all hover:scale-105 ${isSelected ? "ring-2 ring-[#238D88]/50 ring-offset-2" : ""
+                }`}
               style={{ width: `${chipSize}px`, height: `${chipSize}px` }}
               title={child.name}
             >
@@ -348,15 +352,13 @@ function renderChips(
                     selectChild(child);
                     setShowDropdown(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors ${
-                    isSelected ? "bg-[#238D88] text-white" : ""
-                  }`}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors ${isSelected ? "bg-[#238D88] text-white" : ""
+                    }`}
                 >
                   <ChildAvatar child={child} width={32} height={32} />
                   <span
-                    className={`text-sm font-medium ${
-                      isSelected ? "text-white" : "text-gray-700"
-                    }`}
+                    className={`text-sm font-medium ${isSelected ? "text-white" : "text-gray-700"
+                      }`}
                   >
                     {child.name}
                   </span>

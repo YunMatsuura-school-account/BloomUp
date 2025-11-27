@@ -328,70 +328,70 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
   const DatePickerModal = () => {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-        <div className="bg-white rounded-lg w-[600px] p-6">
-          <h3 className="text-2xl font-semibold text-[#232527] mb-4 text-center">Date</h3>
+        <div className="bg-white rounded-lg w-[450px] p-4"> {/* Reduced width from w-[600px] to w-[450px] and padding from p-6 to p-4 */}
+          <h3 className="text-xl font-semibold text-[#232527] mb-3 text-center">Date</h3> {/* Reduced text size and margin */}
 
           {/* Date Display Header */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="w-48">
-              <div className="text-[16px] font-dm-sans font-medium text-black mb-2">Starts</div>
+          <div className="flex justify-between items-center mb-4"> {/* Reduced margin */}
+            <div className="w-40"> {/* Reduced width */}
+              <div className="text-[14px] font-dm-sans font-medium text-black mb-1">Starts</div> {/* Reduced text size and margin */}
               {startFormatted ? (
-                <div className="flex items-baseline gap-3">
-                  <div className="text-[60px] font-dm-sans font-bold text-black leading-[26px]">
+                <div className="flex items-baseline gap-2"> {/* Reduced gap */}
+                  <div className="text-[40px] font-dm-sans font-bold text-black leading-[20px]"> {/* Reduced text size and leading */}
                     {startFormatted.day}
                   </div>
                   <div className="flex flex-col">
-                    <div className="text-[16px] font-dm-sans font-normal text-black">
+                    <div className="text-[14px] font-dm-sans font-normal text-black"> {/* Reduced text size */}
                       {startFormatted.month} {startFormatted.year}
                     </div>
-                    <div className="text-[16px] font-dm-sans font-normal text-black">
+                    <div className="text-[14px] font-dm-sans font-normal text-black"> {/* Reduced text size */}
                       {startFormatted.dayName}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-400">Select start date</div>
+                <div className="text-gray-400 text-sm">Select start date</div>
               )}
             </div>
 
-            <div className="w-48">
-              <div className={`text-[16px] font-dm-sans font-medium ${endFormatted ? 'text-black' : 'text-[#A0A0A0]'} mb-2`}>
+            <div className="w-40"> {/* Reduced width */}
+              <div className={`text-[14px] font-dm-sans font-medium ${endFormatted ? 'text-black' : 'text-[#A0A0A0]'} mb-1`}> {/* Reduced text size and margin */}
                 Ends
               </div>
               {endFormatted ? (
-                <div className="flex items-baseline gap-3">
-                  <div className={`text-[60px] font-dm-sans font-bold ${endFormatted ? 'text-black' : 'text-[#A0A0A0]'} leading-[26px]`}>
+                <div className="flex items-baseline gap-2"> {/* Reduced gap */}
+                  <div className={`text-[40px] font-dm-sans font-bold ${endFormatted ? 'text-black' : 'text-[#A0A0A0]'} leading-[20px]`}> {/* Reduced text size and leading */}
                     {endFormatted.day}
                   </div>
                   <div className="flex flex-col">
-                    <div className={`text-[16px] font-dm-sans font-normal ${endFormatted ? 'text-black' : 'text-[#777777]'}`}>
+                    <div className={`text-[14px] font-dm-sans font-normal ${endFormatted ? 'text-black' : 'text-[#777777]'}`}> {/* Reduced text size */}
                       {endFormatted.month} {endFormatted.year}
                     </div>
-                    <div className={`text-[16px] font-dm-sans font-normal ${endFormatted ? 'text-black' : 'text-[#777777]'}`}>
+                    <div className={`text-[14px] font-dm-sans font-normal ${endFormatted ? 'text-black' : 'text-[#777777]'}`}> {/* Reduced text size */}
                       {endFormatted.dayName}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-400">Select end date</div>
+                <div className="text-gray-400 text-sm">Select end date</div>
               )}
             </div>
           </div>
 
           {/* Calendar */}
-          <div className="border border-[#A0A0A0] rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-[16px] font-dm-sans font-semibold text-[#202020]">
+          <div className="border border-[#A0A0A0] rounded-lg p-3 mb-4"> {/* Reduced padding and margin */}
+            <div className="flex items-center justify-between mb-3"> {/* Reduced margin */}
+              <div className="text-[14px] font-dm-sans font-semibold text-[#202020]"> {/* Reduced text size */}
                 {currentMonth.toLocaleString('en-US', { month: 'long', year: 'numeric' })}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1"> {/* Reduced gap */}
                 <button onClick={handlePrevMonth} className="p-1 hover:bg-gray-100 rounded">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"> {/* Reduced icon size */}
                     <path d="M15 19L8 12L15 5" stroke="#444444" strokeWidth="2" />
                   </svg>
                 </button>
                 <button onClick={handleNextMonth} className="p-1 hover:bg-gray-100 rounded">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"> {/* Reduced icon size */}
                     <path d="M9 5L16 12L9 19" stroke="#444444" strokeWidth="2" />
                   </svg>
                 </button>
@@ -399,23 +399,23 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
             </div>
 
             {/* Weekday Headers */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
+            <div className="grid grid-cols-7 gap-1 mb-1"> {/* Reduced margin */}
               {['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'].map((day) => (
-                <div key={day} className="text-center text-[14px] font-dm-sans font-normal text-[#C1C1C1] py-1">
+                <div key={day} className="text-center text-[12px] font-dm-sans font-normal text-[#C1C1C1] py-1"> {/* Reduced text size */}
                   {day}
                 </div>
               ))}
             </div>
 
             {/* Calendar Days */}
-            <div className="grid grid-cols-7 gap-1 min-h-[200px]">
+            <div className="grid grid-cols-7 gap-1 min-h-[150px]"> {/* Reduced min-height */}
               {calendarDays.map((day, index) => (
-                <div key={index} className="flex items-center justify-center min-h-[32px]">
+                <div key={index} className="flex items-center justify-center min-h-[24px]"> {/* Reduced min-height */}
                   <button
                     onClick={() => handleDayClick(day)}
                     disabled={!day}
                     className={`
-                      w-8 h-8 text-[14px] font-dm-sans font-semibold rounded transition-all flex items-center justify-center
+                      w-6 h-6 text-[12px] font-dm-sans font-semibold rounded transition-all flex items-center justify-center
                       ${!day ? 'invisible' : ''}
                       ${isStartDate(day) || isEndDate(day) ? 'bg-[#F3BE08] text-black' : ''}
                       ${isDaySelected(day) && !isStartDate(day) && !isEndDate(day) ? 'bg-[#F3BE08] bg-opacity-30' : ''}
@@ -429,16 +429,16 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
             </div>
           </div>
 
-          <div className="flex justify-center gap-8">
+          <div className="flex justify-center gap-6"> {/* Reduced gap */}
             <button
               onClick={() => setShowDatePicker(false)}
-              className="w-32 px-6 py-3 bg-white border border-gray-300 rounded text-[#444444] text-sm font-dm-sans font-normal leading-[26px] tracking-[0.3px]"
+              className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px]" /* Reduced size */
             >
               Cancel
             </button>
             <button
               onClick={handleSaveDate}
-              className="w-32 px-6 py-3 bg-[#238D88] text-white rounded text-sm font-dm-sans font-semibold leading-[26px] tracking-[0.3px]"
+              className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px]" /* Reduced size */
             >
               Save
             </button>
@@ -533,8 +533,8 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       };
 
       return (
-        <div className="relative h-32 overflow-hidden">
-          <div className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 h-8 bg-[#F3BE08] opacity-20 rounded pointer-events-none"></div>
+        <div className="relative h-24 overflow-hidden"> 
+          <div className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 h-6 bg-[#F3BE08] opacity-20 rounded pointer-events-none"></div> {/* Reduced height */}
 
           <div
             ref={columnRef}
@@ -545,7 +545,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
             }}
           >
             <div
-              className="py-12 space-y-1"
+              className="py-10 space-y-0.5"
               style={{
                 WebkitOverflowScrolling: 'touch',
               }}
@@ -554,7 +554,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                 <div
                   key={index}
                   data-value={item}
-                  className={`h-8 flex items-center justify-center cursor-pointer text-[16px] font-nunito font-light leading-6 tracking-[0.05px] rounded transition-colors ${selectedValue === item
+                  className={`h-6 flex items-center justify-center cursor-pointer text-[14px] font-nunito font-light leading-5 tracking-[0.05px] rounded transition-colors ${selectedValue === item
                     ? 'text-[#238D88] font-semibold'
                     : 'text-[#238D88] hover:bg-[#F3BE08] hover:bg-opacity-20'
                     }`}
@@ -573,12 +573,12 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-        <div className="bg-white rounded-[10px] w-full max-w-md p-6">
-          <div className="w-full flex flex-col justify-start items-start gap-2.5">
-            <div className="self-stretch flex flex-col justify-center items-center gap-6">
-              <div className="self-stretch flex flex-col justify-center items-center gap-5">
-                <div className="self-stretch justify-start items-start gap-2.5 inline-flex">
-                  <div className="text-center flex flex-col justify-center text-[#232527] text-[24px] font-dm-sans font-semibold">
+        <div className="bg-white rounded-[10px] w-[380px] p-4">
+          <div className="w-full flex flex-col justify-start items-start gap-2">
+            <div className="self-stretch flex flex-col justify-center items-center gap-4">
+              <div className="self-stretch flex flex-col justify-center items-center gap-3">
+                <div className="self-stretch justify-start items-start gap-2 inline-flex">
+                  <div className="text-center flex flex-col justify-center text-[#232527] text-[20px] font-dm-sans font-semibold">
                     Time
                   </div>
                 </div>
@@ -586,10 +586,10 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                 <div className="w-full">
                   <div className="self-stretch relative overflow-hidden">
                     {/* Start Time Section */}
-                    <div className="mb-6">
-                      <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-3">Start Time</div>
-                      <div className="flex items-center justify-center gap-2 bg-white rounded-lg p-4">
-                        <div className="w-16">
+                    <div className="mb-4">
+                      <div className="text-[14px] font-dm-sans font-medium text-[#232527] mb-2">Start Time</div>
+                      <div className="flex items-center justify-center gap-1 bg-white rounded-lg p-2">
+                        <div className="w-12">
                           <TimeColumn
                             selectedValue={selectedHour}
                             setSelectedValue={setSelectedHour}
@@ -599,11 +599,11 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                           />
                         </div>
 
-                        <div className="w-4 text-center text-[#219653] text-[16px] font-nunito font-light leading-6 tracking-[0.05px]">
+                        <div className="w-3 text-center text-[#219653] text-[14px] font-nunito font-light leading-5 tracking-[0.05px]"> {/* Reduced text size */}
                           :
                         </div>
 
-                        <div className="w-16">
+                        <div className="w-12"> {/* Reduced width */}
                           <TimeColumn
                             selectedValue={selectedMinute}
                             setSelectedValue={setSelectedMinute}
@@ -613,7 +613,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                           />
                         </div>
 
-                        <div className="w-16">
+                        <div className="w-12"> {/* Reduced width */}
                           <TimeColumn
                             selectedValue={selectedPeriod}
                             setSelectedValue={setSelectedPeriod}
@@ -627,9 +627,9 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
                     {/* End Time Section */}
                     <div>
-                      <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-3">End Time</div>
-                      <div className="flex items-center justify-center gap-2 bg-white rounded-lg p-4">
-                        <div className="w-16">
+                      <div className="text-[14px] font-dm-sans font-medium text-[#232527] mb-2">End Time</div> {/* Reduced text size */}
+                      <div className="flex items-center justify-center gap-1 bg-white rounded-lg p-2"> {/* Reduced padding and gap */}
+                        <div className="w-12"> {/* Reduced width */}
                           <TimeColumn
                             selectedValue={selectedEndHour}
                             setSelectedValue={setSelectedEndHour}
@@ -639,11 +639,11 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                           />
                         </div>
 
-                        <div className="w-4 text-center text-[#219653] text-[16px] font-nunito font-light leading-6 tracking-[0.05px]">
+                        <div className="w-3 text-center text-[#219653] text-[14px] font-nunito font-light leading-5 tracking-[0.05px]"> {/* Reduced text size */}
                           :
                         </div>
 
-                        <div className="w-16">
+                        <div className="w-12"> {/* Reduced width */}
                           <TimeColumn
                             selectedValue={selectedEndMinute}
                             setSelectedValue={setSelectedEndMinute}
@@ -653,7 +653,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                           />
                         </div>
 
-                        <div className="w-16">
+                        <div className="w-12"> {/* Reduced width */}
                           <TimeColumn
                             selectedValue={selectedEndPeriod}
                             setSelectedValue={setSelectedEndPeriod}
@@ -668,16 +668,16 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                 </div>
               </div>
 
-              <div className="w-full flex justify-center gap-4 mt-4">
+              <div className="w-full flex justify-center gap-4 mt-2"> {/* Reduced margin and gap */}
                 <button
                   onClick={() => setShowTimePicker(false)}
-                  className="w-32 px-6 py-3 bg-white border border-gray-300 rounded text-[#444444] text-sm font-dm-sans font-normal leading-[26px] tracking-[0.3px] hover:bg-gray-50 transition-colors"
+                  className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors" 
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveTime}
-                  className="w-32 px-6 py-3 bg-[#238D88] text-white rounded text-sm font-dm-sans font-semibold leading-[26px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors"
+                  className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors" 
                 >
                   Save
                 </button>
@@ -689,7 +689,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     );
   };
 
-  // Category functions - UPDATED
+  // Category functions - UPDATED with delete functionality
   const handleCategorySelect = (categoryName) => {
     setSelectedCategory(categoryName);
   };
@@ -732,6 +732,49 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     }
   };
 
+  // Delete category function
+  const handleDeleteCategory = async (categoryId, categoryName) => {
+    try {
+      // First check if category is used in any events
+      const token = localStorage.getItem("accessToken");
+
+      // Show confirmation dialog
+      const confirmed = window.confirm(`Are you sure you want to delete the category "${categoryName}"?`);
+      if (!confirmed) return;
+
+      console.log('Attempting to delete category:', categoryId, categoryName);
+
+      // Call the DELETE endpoint
+      const deleteRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/categories/${categoryId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const result = await deleteRes.json();
+      console.log('Delete category response:', result);
+
+      if (deleteRes.ok) {
+        // Remove category from local state
+        setCategories(prev => prev.filter(cat => cat._id !== categoryId));
+
+        // Reset selected category if it was the deleted one
+        if (selectedCategory === categoryName) {
+          setSelectedCategory('Others');
+          setCategory('Others');
+        }
+
+        alert('Category deleted successfully');
+      } else {
+        alert(result.message || 'Failed to delete category');
+      }
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      alert('Failed to delete category. Please try again.');
+    }
+  };
   // Alert functions
   const handleAlertSelect = (alert) => {
     setAlertTime(alert);
@@ -746,15 +789,13 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     }
   };
 
-  // Notes/URL/Attachments Modal Component - FIXED: Optimized for smooth typing
+  // Notes/URL/Attachments Modal Component
   const NotesModal = () => {
-    // Use refs to avoid re-renders on every keystroke
     const notesRef = useRef(notes);
     const urlRef = useRef(url);
     const attachmentsRef = useRef(attachments);
 
     const handleSaveNotes = () => {
-      // Update the actual state only when saving
       setNotes(notesRef.current);
       setUrl(urlRef.current);
       setAttachments(attachmentsRef.current);
@@ -762,7 +803,6 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     };
 
     const handleCancel = () => {
-      // Reset refs to current state when canceling
       notesRef.current = notes;
       urlRef.current = url;
       attachmentsRef.current = attachments;
@@ -783,7 +823,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                 </div>
 
                 <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                  {/* Notes Section - FIXED: Using uncontrolled input with ref */}
+                  {/* Notes Section */}
                   <div className="w-full">
                     <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-2">Add notes</div>
                     <div className="flex items-center border-b-2 border-gray-300 px-2 py-3 focus-within:border-[#238D88]">
@@ -800,7 +840,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                     </div>
                   </div>
 
-                  {/* URL Section - FIXED: Using uncontrolled input with ref */}
+                  {/* URL Section */}
                   <div className="w-full">
                     <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-2">URL</div>
                     <div className="flex items-center border-b-2 border-gray-300 px-2 py-3 focus-within:border-[#238D88]">
@@ -817,7 +857,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                     </div>
                   </div>
 
-                  {/* Attachments Section - FIXED: Using uncontrolled input with ref */}
+                  {/* Attachments Section */}
                   <div className="w-full">
                     <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-2">Attachments</div>
                     <div className="flex items-center border-b-2 border-gray-300 px-2 py-3 focus-within:border-[#238D88]">
@@ -984,7 +1024,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     }
   }
 
-  // Delete event function
+  // Delete event function - UPDATED: Only trash icon
   async function handleDelete() {
     if (!initialData?._id) {
       window.alert('No event to delete.');
@@ -1071,19 +1111,19 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      {/* Main Modal Container - DECREASED HEIGHT: Reduced gap from 10 to 6 */}
-      <div className="bg-white rounded-[10px] w-full max-w-2xl overflow-hidden">
-        <div className="w-full h-full p-6 bg-white flex flex-col justify-start items-start gap-2.5">
-          <div className="self-stretch flex flex-col justify-start items-center gap-6"> {/* CHANGED: gap-10 to gap-6 */}
-            <div className="self-stretch flex flex-col justify-start items-start gap-5">
+      {/* Main Modal Container  */}
+      <div className="bg-white rounded-[10px] w-[606px]">
+        <div className="w-full bg-white flex flex-col justify-start items-start gap-2.5 p-6">
+          <div className="self-stretch flex flex-col justify-start items-center gap-4"> 
+            <div className="self-stretch flex flex-col justify-start items-start gap-4"> 
 
-              {/* Title Section with Delete Button for Edit Mode */}
-              <div className="justify-between items-center gap-5 inline-flex w-full">
-                <div className="flex items-center gap-5">
+              {/* Title Section with Trash Icon for Edit Mode */}
+              <div className="justify-between items-center gap-4 inline-flex w-full"> 
+                <div className="flex items-center gap-4"> 
                   {/* Show circle only when NOT "All Children" */}
                   {selectedChild !== 'All' && selectedChildData && (
-                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                      <ChildAvatar child={selectedChildData} width={48} height={48} />
+                    <div className="w-10 h-10 bg-zinc-300 rounded-full overflow-hidden flex-shrink-0"> 
+                      <ChildAvatar child={selectedChildData} width={40} height={40} /> 
                     </div>
                   )}
                   {/* Don't show circle when "All Children" is selected */}
@@ -1093,45 +1133,47 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder="Enter Event Title"
-                      className="w-full bg-transparent border-none outline-none text-[35px] font-poppins font-semibold leading-[26px] tracking-[0.30px] placeholder-[#A0A0A0] text-[#232527] focus:outline-none focus:border-none p-0"
+                      className="w-full bg-transparent border-none outline-none text-[28px] font-poppins font-semibold leading-[24px] tracking-[0.30px] placeholder-[#A0A0A0] text-[#232527] focus:outline-none focus:border-none p-0"
                       style={{
-                        minHeight: '40px'
+                        minHeight: '32px' // Reduced from 40px
                       }}
                     />
                     {!title && (
-                      <div className="absolute inset-0 pointer-events-none text-[#A0A0A0] text-[35px] font-poppins font-semibold leading-[26px] tracking-[0.30px]">
+                      <div className="absolute inset-0 pointer-events-none text-[#A0A0A0] text-[28px] font-poppins font-semibold leading-[24px] tracking-[0.30px]">
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Delete Button - Only show in Edit mode */}
+                {/* Trash Icon - Only show in Edit mode */}
                 {initialData && (
-                  <button
-                    onClick={handleDelete}
-                    disabled={deleting}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <span>{deleting ? 'Deleting...' : 'Delete'}</span>
-                  </button>
+                  <div className="relative group">
+                    <button
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className="flex items-center gap-2 p-1 text-red-600 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" // Reduced padding
+                      title="Delete Event"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> {/* Reduced from w-6 h-6 */}
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 )}
               </div>
 
               {/* Category Section */}
               <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                <div className="self-stretch justify-center flex flex-col text-black text-[20px] font-dm-sans font-semibold leading-[26px] tracking-[0.30px]">
+                <div className="self-stretch justify-center flex flex-col text-black text-[18px] font-dm-sans font-semibold leading-[22px] tracking-[0.30px]"> {/* Reduced text size */}
                   Category
                 </div>
                 <div className="relative">
                   <button
                     onClick={() => setShowCategoryPanel(true)}
-                    className="w-48 h-10 px-4 bg-[#F3BE08] rounded-[6px] justify-between items-center inline-flex text-black text-[16px] font-dm-sans font-normal leading-[26px] tracking-[0.30px] hover:bg-[#e0ab07] transition-colors border border-gray-300"
+                    className="w-48 h-9 px-4 bg-[#F3BE08] rounded-[6px] justify-between items-center inline-flex text-black text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px] hover:bg-[#e0ab07] transition-colors border border-gray-300" // Reduced height and text size
                   >
                     <span>{category || 'Select Category'}</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> {/* Reduced icon size */}
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
@@ -1140,42 +1182,45 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
               {/* Select Children Section */}
               <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                <div className="self-stretch justify-center flex flex-col text-black text-[16px] font-dm-sans font-normal leading-[26px] tracking-[0.30px]">
+                <div className="self-stretch justify-center flex flex-col text-black text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px]"> {/* Reduced text size */}
                   Select the child that will be assigned to the event
                 </div>
                 <div className="relative">
                   <button
                     onClick={() => setShowChildrenDropdown(!showChildrenDropdown)}
-                    className="w-48 h-10 bg-[#238D88] border border-gray-300 rounded-lg px-4 py-3 text-left focus:outline-none focus:border-[#238D88] text-black-700 flex justify-between items-center"
+                    className="w-48 h-9 bg-[#238D88] border border-gray-300 rounded-lg px-4 py-2 text-left focus:outline-none focus:border-[#238D88] text-white flex justify-between items-center" // Reduced height
                   >
                     <div className="flex items-center gap-2">
                       {selectedChild !== 'All' ? (
                         <>
                           <ChildAvatar
                             child={childrenList.find(c => c._id === selectedChild)}
-                            width={24}
-                            height={24}
+                            width={20}
+                            height={20} // Reduced from 24
                           />
-                          <span>{getSelectedChildName()}</span>
+                          <span className="text-white text-[14px]"> {/* Reduced text size */}
+                            {getSelectedChildName()}
+                          </span>
                         </>
                       ) : (
-                        <span>{getSelectedChildName()}</span>
+                        <span className="text-white text-[14px]"> {/* Reduced text size */}
+                          {getSelectedChildName()}
+                        </span>
                       )}
                     </div>
 
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"> {/* Reduced icon size */}
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
                   {showChildrenDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto"> {/* Reduced max height */}
                       <button
                         onClick={() => {
                           setSelectedChild('All');
                           setShowChildrenDropdown(false);
                         }}
-                        className={`w-full px-4 py-3 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors ${selectedChild === 'All' ? 'bg-[#238D88] text-black' : 'text-gray-700'
-                          }`}
+                        className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors text-[14px] ${selectedChild === 'All' ? 'bg-[#238D88] text-white' : 'text-gray-700'}`} // Reduced padding and text size
                       >
                         <span>All Children</span>
                       </button>
@@ -1187,39 +1232,37 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                             setSelectedChild(child._id);
                             setShowChildrenDropdown(false);
                           }}
-                          className={`w-full px-4 py-3 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors ${selectedChild === child._id ? 'bg-[#238D88] text-black' : 'text-gray-700'
-                            }`}
+                          className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors text-[14px] ${selectedChild === child._id ? 'bg-[#238D88] text-white' : 'text-gray-700'}`} // Reduced padding and text size
                         >
-                          <ChildAvatar child={child} width={24} height={24} />
+                          <ChildAvatar child={child} width={20} height={20} /> {/* Reduced from 24 */}
                           <span>{child.name}</span>
                         </button>
                       ))}
                     </div>
                   )}
-
                 </div>
               </div>
 
               {/* Divider */}
-              <div className="self-stretch h-0 outline outline-2 outline-[#BFBFBF] outline-offset-[-1px]"></div>
+              <div className="self-stretch h-0 outline outline-1 outline-[#BFBFBF] outline-offset-[-1px]"></div> {/* Reduced outline from 2 to 1 */}
 
               {/* Date and Time Section */}
               <div className="w-full flex flex-col justify-start items-start gap-1">
-                <div className="self-stretch justify-center flex flex-col text-black text-[20px] font-dm-sans font-semibold leading-[26px] tracking-[0.30px]">
+                <div className="self-stretch justify-center flex flex-col text-black text-[18px] font-dm-sans font-semibold leading-[22px] tracking-[0.30px]"> 
                   Date and Time
                 </div>
-                <div className="w-full flex flex-col justify-start items-start gap-2">
+                <div className="w-full flex flex-col justify-start items-start gap-1"> {/* Reduced gap from gap-2 to gap-1 */}
                   {/* Date Button */}
                   <button
                     onClick={() => setShowDatePicker(true)}
-                    className="w-full max-w-md justify-center flex flex-col text-[#777777] text-[16px] font-dm-sans font-medium leading-[26px] tracking-[0.30px] hover:text-black transition-colors text-left py-2"
+                    className="w-full max-w-md justify-center flex flex-col text-[#777777] text-[14px] font-dm-sans font-medium leading-[20px] tracking-[0.30px] hover:text-black transition-colors text-left py-1" 
                   >
                     {getDateDisplayText() || 'Enter Date'}
                   </button>
                   {/* Time Button */}
                   <button
                     onClick={() => setShowTimePicker(true)}
-                    className="w-full max-w-md justify-center flex flex-col text-[#777777] text-[16px] font-dm-sans font-medium leading-[26px] tracking-[0.30px] hover:text-black transition-colors text-left py-2"
+                    className="w-full max-w-md justify-center flex flex-col text-[#777777] text-[14px] font-dm-sans font-medium leading-[20px] tracking-[0.30px] hover:text-black transition-colors text-left py-1" 
                   >
                     {getTimeDisplayText() || 'Time Setting'}
                   </button>
@@ -1228,27 +1271,27 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
               {/* Alert Section */}
               <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                <div className="self-stretch justify-center flex flex-col text-black text-[20px] font-dm-sans font-semibold leading-[26px] tracking-[0.30px]">
+                <div className="self-stretch justify-center flex flex-col text-black text-[18px] font-dm-sans font-semibold leading-[22px] tracking-[0.30px]"> 
                   Alert
                 </div>
                 <button
                   onClick={() => setShowAlertPanel(true)}
-                  className="self-stretch px-3 py-2 rounded border border-[#BFBFBF] justify-between items-start inline-flex hover:bg-gray-50 transition-colors"
+                  className="self-stretch px-2 py-1.5 rounded border border-[#BFBFBF] justify-between items-start inline-flex hover:bg-gray-50 transition-colors"
                 >
-                  <div className="justify-center flex flex-col text-black text-[16px] font-dm-sans font-normal leading-[26px] tracking-[0.30px]">
+                  <div className="justify-center flex flex-col text-black text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px]"> 
                     {alertTime}
                   </div>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
               </div>
 
-              {/* Add Notes, URL or Attachments Link - WITH SPACING */}
-              <div className="mt-4">
+              {/* Add Notes, URL or Attachments Link */}
+              <div className="mt-2"> {/* Reduced margin from mt-4 to mt-2 */}
                 <button
                   onClick={() => setShowNotesModal(true)}
-                  className="self-stretch justify-center flex flex-col text-black text-[16px] font-dm-sans font-semibold underline leading-[26px] tracking-[0.30px] hover:text-[#238D88] transition-colors text-left"
+                  className="self-stretch justify-center flex flex-col text-black text-[14px] font-dm-sans font-semibold underline leading-[20px] tracking-[0.30px] hover:text-[#238D88] transition-colors text-left" // Reduced text size
                 >
                   Add Notes, URL, or Attachments
                 </button>
@@ -1256,18 +1299,18 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
             </div>
 
             {/* Action Buttons */}
-            <div className="w-full flex justify-center gap-8 mt-4"> {/* CHANGED: mt-6 to mt-4 */}
+            <div className="w-full flex justify-center gap-6 mt-2"> {/* Reduced gap from gap-8 to gap-6 and margin from mt-4 to mt-2 */}
               <button
                 onClick={onClose}
                 disabled={saving || deleting}
-                className="w-32 px-6 py-3 bg-white border border-gray-300 rounded text-[#444444] text-sm font-dm-sans font-normal leading-[26px] tracking-[0.3px] hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-24 px-4 py-1.5 bg-white border border-gray-300 rounded-[5px] text-[#444444] text-[12px] font-dm-sans font-normal leading-[18px] tracking-[0.3px] hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" // Reduced padding and text size
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || deleting}
-                className="w-32 px-6 py-3 bg-[#238D88] text-white rounded hover:bg-[#1d7470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-1.5 bg-[#238D88] text-white rounded-[5px] hover:bg-[#1d7470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-[12px] font-dm-sans font-semibold leading-[18px] tracking-[0.3px]" // Reduced padding and text size
               >
                 {saving ? 'Saving...' : (initialData ? 'Update' : 'Confirm')}
               </button>
@@ -1276,16 +1319,16 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         </div>
       </div>
 
-      {/* Category Panel - UPDATED: Added scroll and removed background color from list items */}
+      {/* All other modal components (Category Panel, Add Category Panel, Alert Panel, etc.) remain the same */}
       {showCategoryPanel && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-          <div className="bg-white rounded-[10px] w-[500px] p-6">
-            <div className="w-full h-full flex flex-col justify-start items-start gap-2.5">
-              <div className="self-stretch flex flex-col justify-start items-center gap-10">
-                <div className="self-stretch flex flex-col justify-start items-start gap-5">
+          <div className="bg-white rounded-[10px] w-[450px] p-4"> {/* Reduced width from w-[500px] to w-[450px] and padding from p-6 to p-4 */}
+            <div className="w-full h-full flex flex-col justify-start items-start gap-2">
+              <div className="self-stretch flex flex-col justify-start items-center gap-6">
+                <div className="self-stretch flex flex-col justify-start items-start gap-3">
                   {/* Header with increased width for label */}
                   <div className="self-stretch justify-between items-center inline-flex">
-                    <div className="justify-center flex flex-col text-black text-[28px] font-dm-sans font-semibold leading-[26px] tracking-[0.30px] w-64">
+                    <div className="justify-center flex flex-col text-black text-[22px] font-dm-sans font-semibold leading-[24px] tracking-[0.30px] w-48"> {/* Reduced text size and width */}
                       Category Name
                     </div>
                     <button
@@ -1293,69 +1336,66 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
                         setShowCategoryPanel(false);
                         setShowAddCategoryPanel(true);
                       }}
-                      className="w-48 h-10 px-5 bg-[#F3BE08] rounded-[5px] justify-center items-center gap-2.5 inline-flex"
+                      className="w-40 h-8 px-4 bg-[#F3BE08] rounded-[5px] justify-center items-center gap-2.5 inline-flex" /* Reduced size */
                     >
-                      <div className="justify-center flex flex-col text-black text-[16px] font-dm-sans font-normal leading-[26px] tracking-[0.30px]">
+                      <div className="justify-center flex flex-col text-black text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px]"> {/* Reduced text size */}
                         Add Category +
                       </div>
                     </button>
                   </div>
 
-                  {/* Category List - UPDATED: Added scroll and removed background color from items */}
-                  {/* <div className="w-full max-h-60 overflow-y-auto flex flex-col justify-start items-start gap-4">
+                  {/* Category List - UPDATED: Added delete icons */}
+                  <div className="w-full max-h-48 overflow-y-auto flex flex-col justify-start items-start gap-2"> {/* Reduced max-height and gap */}
                     {categories.map(cat => (
-                      <button
-                        key={cat._id}
-                        onClick={() => handleCategorySelect(cat.category)}
-                        className={`w-full justify-start items-center gap-5 inline-flex p-2 rounded transition-colors hover:bg-gray-100`}
-                      >
-                        <div className={`w-5 h-5 bg-white rounded-full border-2 ${selectedCategory === cat.category ? 'border-[#F3BE08] bg-[#F3BE08]' : 'border-gray-300'}`}></div>
-                        <div className="justify-center flex flex-col text-black text-[16px] font-dm-sans font-normal leading-[26px] tracking-[0.30px]">
-                          {cat.category}
-                        </div>
-                      </button>
-                    ))}
-                  </div> */}
-
-                  <div className="w-full max-h-60 overflow-y-auto flex flex-col justify-start items-start gap-4">
-                    {categories.map(cat => (
-                      <button
-                        key={cat._id}
-                        onClick={() => handleCategorySelect(cat.category)}
-                        className={`w-full justify-start items-center gap-5 inline-flex p-2 rounded transition-colors hover:bg-gray-100 ${selectedCategory === cat.category ? '' : ''
-                          }`}
-                      >
-                        <div
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedCategory === cat.category
+                      <div key={cat._id} className="w-full flex items-center justify-between gap-3 p-1.5 rounded transition-colors hover:bg-gray-100"> {/* Reduced gap and padding */}
+                        <button
+                          onClick={() => handleCategorySelect(cat.category)}
+                          className="flex-1 flex items-center gap-3" /* Reduced gap */
+                        >
+                          <div
+                            className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedCategory === cat.category
                               ? 'border-[#F3BE08] bg-[#F3BE08]'
                               : 'border-gray-300 bg-white'
-                            }`}
-                        >
-                          {selectedCategory === cat.category && (
-                            <div className="w-2 h-2 bg-[#F3BE08] rounded-full"></div>
-                          )}
-                        </div>
-                        <div className={`justify-center flex flex-col text-[16px] font-dm-sans font-normal leading-[26px] tracking-[0.30px] ${selectedCategory === cat.category ? 'text-[#238D88] font-semibold' : 'text-black'
-                          }`}>
-                          {cat.category}
-                        </div>
-                      </button>
+                              }`} /* Reduced size */
+                          >
+                            {selectedCategory === cat.category && (
+                              <div className="w-1.5 h-1.5 bg-[#F3BE08] rounded-full"></div> /* Reduced size */
+                            )}
+                          </div>
+                          <div className={`justify-center flex flex-col text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px] ${selectedCategory === cat.category ? 'text-[#238D88] font-semibold' : 'text-black'
+                            }`}>
+                            {cat.category}
+                          </div>
+                        </button>
+
+                        {/* Delete Icon - Only show for user-created categories */}
+                        {cat.createdBy && (
+                          <button
+                            onClick={() => handleDeleteCategory(cat._id, cat.category)}
+                            className="p-0.5 text-red-500 hover:text-red-700 transition-colors" /* Reduced padding */
+                            title="Delete Category"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
-
                 </div>
 
                 {/* Action Buttons with increased width */}
-                <div className="w-full justify-center items-center gap-8 inline-flex">
+                <div className="w-full justify-center items-center gap-6 inline-flex">
                   <button
                     onClick={() => setShowCategoryPanel(false)}
-                    className="w-32 px-6 py-3 bg-white border border-gray-300 rounded text-[#444444] text-sm font-dm-sans font-normal leading-[26px] tracking-[0.3px] hover:bg-gray-50 transition-colors"
+                    className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors" /* Reduced size */
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSaveCategory}
-                    className="w-32 px-6 py-3 bg-[#238D88] text-white rounded text-sm font-dm-sans font-semibold leading-[26px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors"
+                    className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors" /* Reduced size */
                   >
                     Save
                   </button>
@@ -1369,29 +1409,29 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       {/* Add Category Panel */}
       {showAddCategoryPanel && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-          <div className="bg-white rounded-lg w-96 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Add New Category</h3>
+          <div className="bg-white rounded-lg w-[350px] p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Add New Category</h3>
             <input
               type="text"
               value={newCategoryName}
               onChange={e => setNewCategoryName(e.target.value)}
               placeholder="Add New Category"
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-2 focus:outline-none focus:border-[#238D88] text-gray-700"
+              className="w-full border border-gray-300 rounded px-3 py-2 mb-2 text-[14px] focus:outline-none focus:border-[#238D88] text-gray-700" /* Reduced text size */
             />
-            <p className="text-sm text-gray-500 mb-4">Suggestions: Medical, Stationary, etc.</p>
+            <p className="text-sm text-gray-500 mb-3">Suggestions: Medical, Stationary, etc.</p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => {
                   setShowAddCategoryPanel(false);
                   setNewCategoryName('');
                 }}
-                className="w-32 px-6 py-3 bg-white border border-gray-300 rounded text-[#444444] text-sm font-dm-sans font-normal leading-[26px] tracking-[0.3px] hover:bg-gray-50 transition-colors"
+                className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors" /* Reduced size */
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddCategory}
-                className="w-32 px-6 py-3 bg-[#238D88] text-white rounded text-sm font-dm-sans font-semibold leading-[26px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors"
+                className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors" /* Reduced size */
               >
                 Save
               </button>
@@ -1403,40 +1443,40 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       {/* Alert Panel */}
       {showAlertPanel && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-          <div className="bg-white rounded-lg w-96 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">Select Alert Time</h3>
+          <div className="bg-white rounded-lg w-[350px] p-4"> 
+            <div className="flex justify-between items-center mb-3"> 
+              <h3 className="text-lg font-semibold text-gray-800">Select Alert Time</h3> 
               <button
                 onClick={() => {
                   setShowAlertPanel(false);
                   setShowCustomAlertPanel(true);
                 }}
-                className="px-3 py-1 bg-[#F3BE08] text-black rounded text-sm font-medium hover:bg-amber-500 transition-colors"
+                className="px-2 py-1 bg-[#F3BE08] text-black rounded text-[12px] font-medium hover:bg-amber-500 transition-colors" /* Reduced padding and text size */
               >
                 Custom +
               </button>
             </div>
-            <div className="space-y-2 mb-4">
+            <div className="space-y-1 mb-3"> 
               {ALERT_OPTIONS.map(option => (
                 <button
                   key={option}
                   onClick={() => handleAlertSelect(option)}
-                  className="w-full px-4 py-3 text-left hover:bg-[#238D88] hover:text-white transition-colors rounded-lg"
+                  className="w-full px-3 py-2 text-left hover:bg-[#238D88] hover:text-white transition-colors rounded-lg text-[14px]" /* Reduced padding and text size */
                 >
                   {option}
                 </button>
               ))}
             </div>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-2"> {/* Reduced gap */}
               <button
                 onClick={() => setShowAlertPanel(false)}
-                className="w-32 px-6 py-3 bg-white border border-gray-300 rounded text-[#444444] text-sm font-dm-sans font-normal leading-[26px] tracking-[0.3px] hover:bg-gray-50 transition-colors"
+                className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors" /* Reduced size */
               >
                 Cancel
               </button>
               <button
                 onClick={() => setShowAlertPanel(false)}
-                className="w-32 px-6 py-3 bg-[#238D88] text-white rounded text-sm font-dm-sans font-semibold leading-[26px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors"
+                className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors" /* Reduced size */
               >
                 Save
               </button>
@@ -1445,37 +1485,40 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         </div>
       )}
 
+
+
+
       {/* Custom Alert Panel */}
       {showCustomAlertPanel && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-          <div className="bg-white rounded-lg w-96 p-6">
-            <h3 className="text-2xl font-bold text-black text-center mb-2">Customize your alert</h3>
-            <p className="text-center text-gray-600 mb-4">
+          <div className="bg-white rounded-lg w-[350px] p-4"> {/* Reduced width and padding */}
+            <h3 className="text-xl font-bold text-black text-center mb-2">Customize your alert</h3> {/* Reduced text size */}
+            <p className="text-center text-gray-600 text-[14px] mb-3"> {/* Reduced text size and margin */}
               Write your own custom alert date for getting reminder for this item!
             </p>
-            <div className="mb-6">
-              <label className="block text-gray-700 mb-2">Alert</label>
+            <div className="mb-4"> {/* Reduced margin */}
+              <label className="block text-gray-700 text-[14px] mb-1">Alert</label> {/* Reduced text size */}
               <input
                 type="text"
                 value={customAlertText}
                 onChange={e => setCustomAlertText(e.target.value)}
                 placeholder="Ex: before 5 days"
-                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#238D88] text-gray-700"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#238D88] text-gray-700" /* Reduced text size */
               />
             </div>
-            <div className="flex justify-center gap-3">
+            <div className="flex justify-center gap-2"> {/* Reduced gap */}
               <button
                 onClick={() => {
                   setShowCustomAlertPanel(false);
                   setCustomAlertText('');
                 }}
-                className="w-32 px-6 py-3 bg-white border border-gray-300 rounded text-[#444444] text-sm font-dm-sans font-normal leading-[26px] tracking-[0.3px] hover:bg-gray-50 transition-colors"
+                className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors" /* Reduced size */
               >
                 Cancel
               </button>
               <button
                 onClick={handleCustomAlertSave}
-                className="w-32 px-6 py-3 bg-[#238D88] text-white rounded text-sm font-dm-sans font-semibold leading-[26px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors"
+                className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors" /* Reduced size */
               >
                 Confirm
               </button>
@@ -1502,9 +1545,6 @@ function formatForInput(isoOrDate) {
   const pad = n => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-
-
-
 
 
 
