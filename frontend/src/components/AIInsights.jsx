@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useChild } from "../contexts/ChildContext";
+import Loader from "./Loader";
 
 const BulbIcon = ({ className = "w-14 h-14" }) => (
   <svg
@@ -138,11 +139,8 @@ const AIInsights = () => {
       <div className="flex-1 bg-[#EFEFEF] rounded-[15px] p-0 flex flex-col min-h-0">
         <div className="flex-1 bg-white rounded-[20px] px-[45px] py-9 flex flex-col min-h-0 shadow-sm">
           {loading ? (
-            <div className="flex flex-col items-center justify-center gap-6 flex-1">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#238D88]"></div>
-              <p className="text-large font-medium text-black leading-7">
-                Loading AI insights…
-              </p>
+            <div className="flex-1 flex items-center justify-center min-h-[400px]">
+              <Loader fullPage={false} size="md" className="bg-transparent" />
             </div>
           ) : showEmptyState ? (
             <div className="flex-1 relative overflow-hidden">

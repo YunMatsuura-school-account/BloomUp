@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import AvatarDropUpload from "../../components/AvatarDropUpload";
 import AddEventModal from "../../components/AddEventModal";
 import ChildAvatar from "../../components/ChildAvatar";
+import Loader from "../../components/Loader";
 import "../../styles/articles.css";
 
 export default function UserDashboard() {
@@ -137,7 +138,7 @@ export default function UserDashboard() {
   }, [BASE, navigate]);
 
   if (loading) {
-    return <p className="text-white p-6">Loading...</p>;
+    return <Loader />;
   }
 
   if (err) {

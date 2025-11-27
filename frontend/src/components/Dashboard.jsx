@@ -5,6 +5,7 @@ import AIInsights from "./AIInsights";
 import ScheduleCalendar from "./ScheduleCalendar";
 import DashboardUpcomingEvents from "./DashboardUpcomingEvents";
 import RecommendedArticles from "./RecommendedArticles";
+import Loader from "./Loader";
 import { useChild } from "../contexts/ChildContext";
 
 const Dashboard = () => {
@@ -116,12 +117,7 @@ const Dashboard = () => {
   }, [selectedChild, user?.id]);
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <p className="mt-2 text-gray-600">Loading dashboard...</p>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (

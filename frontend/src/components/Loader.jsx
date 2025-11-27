@@ -7,8 +7,14 @@ import React from "react";
  * @param {boolean} fullPage - If true, takes full page height with header offset (default: true)
  * @param {string} size - Size of the logo: 'sm' (50px), 'md' (70px), 'lg' (90px) (default: 'md')
  * @param {string} className - Additional CSS classes for the container
+ * @param {boolean} transparent - If true, uses transparent background (default: false)
  */
-const Loader = ({ fullPage = true, size = "md", className = "" }) => {
+const Loader = ({
+  fullPage = true,
+  size = "md",
+  className = "",
+  transparent = false,
+}) => {
   const sizeMap = {
     sm: 50,
     md: 70,
@@ -17,10 +23,15 @@ const Loader = ({ fullPage = true, size = "md", className = "" }) => {
 
   const logoSize = sizeMap[size] || sizeMap.md;
 
+  // Check if className contains bg-transparent
+  const hasTransparentBg = className.includes("bg-transparent") || transparent;
+
   return (
     <div
-      className={`bg-[#EFEFEF] flex items-center justify-center ${
-        fullPage ? "min-h-screen" : "min-h-[400px]"
+      className={`${
+        hasTransparentBg ? "" : "bg-[#EFEFEF]"
+      } flex items-center justify-center ${
+        fullPage ? "min-h-screen" : ""
       } ${className}`}
       style={fullPage ? { marginTop: "-95px" } : {}}
     >

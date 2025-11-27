@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ChildAvatar from "../../components/ChildAvatar";
 import AddEventModal from "../../components/AddEventModal";
+import Loader from "../../components/Loader";
 
 export default function ChildDashboard() {
   const { childId } = useParams();
@@ -221,7 +222,7 @@ export default function ChildDashboard() {
 
 
   if (loading) {
-    return <p className="text-white p-6">Loading...</p>;
+    return <Loader />;
   }
 
   if (err) {

@@ -71,25 +71,19 @@ export default function Header() {
   return (
     <>
       <header
-        className={`w-full flex items-center justify-between md:justify-end ${
+        className={`w-full flex items-center justify-between md:justify-end px-6 py-4 md:px-[59px] md:py-[29px] ${
           shouldUseWhiteBg
             ? `bg-[#FFFFFF] ${
                 isAccountPage ? "md:bg-[#EFEFEF]" : "md:bg-[#efefef]"
               }`
             : "bg-[#efefef]"
-        } ${
-          shouldUseAccountPadding ? "px-6 py-4 md:px-[59px] md:py-[29px]" : ""
         }`}
         style={{
-          height: "95px",
-          ...(shouldUseAccountPadding ? {} : { padding: "29px 59px" }),
+          height: "auto",
+          minHeight: "70px",
         }}
       >
-        <div
-          className={`w-full flex items-center justify-between md:justify-end ${
-            shouldUseAccountPadding ? "md:max-w-[1234px] md:mx-auto" : ""
-          }`}
-        >
+        <div className="w-full flex items-center justify-between md:justify-end">
           {/* Mobile hamburger */}
           <button
             className="md:hidden p-2 rounded-md hover:bg-gray-200/60"

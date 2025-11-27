@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { logout } from "../utils/auth";
+import Loader from "./Loader";
 
 const AuthGuard = ({ children }) => {
   const [loading, setLoading] = useState(true);
@@ -178,8 +179,8 @@ const AuthGuard = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="min-h-screen bg-[#EFEFEF] flex items-center justify-center">
+        <Loader fullPage={false} transparent />
       </div>
     );
   }

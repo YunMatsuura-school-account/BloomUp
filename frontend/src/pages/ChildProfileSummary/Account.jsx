@@ -6,6 +6,7 @@ import trashBinIcon from "../../icons/trashBinIcon.svg";
 import plusIcon from "../../icons/plusIcon.svg";
 import plusSvg from "../../icons/plus.svg";
 import ChildAvatar from "../../components/ChildAvatar";
+import Loader from "../../components/Loader";
 
 export default function Account() {
   const BASE = import.meta.env.VITE_BACKEND_URL;
@@ -121,7 +122,7 @@ export default function Account() {
   }, [BASE, navigate]);
 
   if (loading) {
-    return <p className="text-white p-6">Loading...</p>;
+    return <Loader />;
   }
 
   return (

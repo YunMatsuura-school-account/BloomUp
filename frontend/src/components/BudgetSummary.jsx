@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
+import Loader from "./Loader";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -200,12 +201,11 @@ const BudgetSummary = () => {
       <div className="flex flex-col flex-1">
         {loading ? (
           <div className="flex-1 bg-white rounded-[15px] flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4 text-[#238D88]">
-              <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-[#238D88]"></div>
-              <p className="text-sm font-medium text-black">
-                Loading budget summary…
-              </p>
-            </div>
+            <Loader
+              fullPage={false}
+              size="md"
+              className="min-h-[400px] bg-white rounded-[15px]"
+            />
           </div>
         ) : showEmptyState ? (
           <div className="flex-1 relative overflow-hidden bg-white rounded-[15px]">
