@@ -26,7 +26,7 @@ function DashboardLayout() {
     <ChildProvider>
       <div className="flex h-screen overflow-hidden">
         {/* Sidebar (responsive) */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 w-0 md:w-auto">
           <Sidebar isOpen={open} onClose={() => setOpen(false)} />
         </div>
 
@@ -39,7 +39,10 @@ function DashboardLayout() {
             !isChildDashboardPage && <Header />}
 
           {/* Scrollable content area */}
-          <div className="flex-1 overflow-y-auto no-scrollbar p-0" style={{ minHeight: 0 }}>
+          <div
+            className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar p-0"
+            style={{ minHeight: 0 }}
+          >
             <Outlet />
           </div>
         </div>
