@@ -240,15 +240,15 @@ const BudgetSummary = () => {
               </div>
 
               {/* Category Cards Grid - Grayscale */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
                 {["Education", "Medicine", "Education", "Consumable"].map(
                   (label, index) => (
                     <div
                       key={`${label}-${index}`}
-                      className="bg-white rounded-[15px] p-6 shadow-sm flex flex-col items-center gap-2 relative min-h-[200px]"
+                      className="bg-white rounded-[15px] p-3 sm:p-6 shadow-sm flex flex-col items-center gap-1 sm:gap-2 relative min-h-[160px] sm:min-h-[200px] overflow-hidden"
                     >
                       {/* Donut Background Ring - Grayscale */}
-                      <div className="relative w-[180px] h-[180px] mb-[-70px]">
+                      <div className="relative w-[140px] h-[140px] sm:w-[140px] sm:h-[140px] lg:w-[180px] lg:h-[180px] mt-2 sm:mt-0 mb-[-50px] sm:mb-[-50px] lg:mb-[-70px]">
                         <svg
                           className="w-full h-full"
                           viewBox="0 0 100 100"
@@ -260,18 +260,18 @@ const BudgetSummary = () => {
                             r="43"
                             fill="none"
                             stroke="#E5E7EB"
-                            strokeWidth="5"
+                            strokeWidth="6"
                             strokeDasharray="168 270"
                             strokeLinecap="round"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center translate-y-[-6px]">
-                          <p className="text-2xl font-medium text-gray-300">
+                        <div className="absolute inset-0 flex items-center justify-center translate-y-[-5px] sm:translate-y-[-6px]">
+                          <p className="text-lg sm:text-xl lg:text-2xl font-medium text-gray-300">
                             $2,456.76
                           </p>
                         </div>
                       </div>
-                      <p className="text-lg font-semibold text-gray-300 text-center mt-1">
+                      <p className="text-sm sm:text-base lg:text-lg font-semibold text-gray-300 text-center mt-1">
                         {label}
                       </p>
                     </div>
@@ -337,14 +337,14 @@ const BudgetSummary = () => {
             </div>
 
             {/* Category Cards Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               {categories.map((category, index) => (
                 <div
                   key={`${category.name}-${index}`}
-                  className="bg-white rounded-[15px] p-6 shadow-sm flex flex-col items-center gap-2 relative min-h-[200px]"
+                  className="bg-white rounded-[15px] p-3 sm:p-6 shadow-sm flex flex-col items-center gap-1 sm:gap-2 relative min-h-[160px] sm:min-h-[200px] overflow-hidden"
                 >
                   {/* Donut Background Ring with 30% gap at bottom */}
-                  <div className="relative w-[180px] h-[180px] mb-[-70px]">
+                  <div className="relative w-[140px] h-[140px] sm:w-[140px] sm:h-[140px] lg:w-[180px] lg:h-[180px] mt-2 sm:mt-0 mb-[-50px] sm:mb-[-50px] lg:mb-[-70px]">
                     <svg
                       className="w-full h-full"
                       viewBox="0 0 100 100"
@@ -357,7 +357,7 @@ const BudgetSummary = () => {
                         r="43"
                         fill="none"
                         stroke="#E5E7EB"
-                        strokeWidth="5"
+                        strokeWidth="6"
                         strokeDasharray="168 270"
                         strokeLinecap="round"
                       />
@@ -368,7 +368,7 @@ const BudgetSummary = () => {
                         r="43"
                         fill="none"
                         stroke="#238D88"
-                        strokeWidth="5"
+                        strokeWidth="6"
                         strokeDasharray={`${
                           (categories[index]?.percent || 0) * 168
                         } 270`}
@@ -377,15 +377,15 @@ const BudgetSummary = () => {
                       />
                     </svg>
                     {/* Center amount */}
-                    <div className="absolute inset-0 flex items-center justify-center translate-y-[-6px]">
-                      <p className="text-2xl font-medium text-black">
+                    <div className="absolute inset-0 flex items-center justify-center translate-y-[-5px] sm:translate-y-[-6px]">
+                      <p className="text-lg sm:text-xl lg:text-2xl font-medium text-black">
                         {category.amount}
                       </p>
                     </div>
                   </div>
 
                   {/* Category Name */}
-                  <p className="text-lg font-semibold text-black text-center mt-1">
+                  <p className="text-sm sm:text-base lg:text-lg font-semibold text-black text-center mt-1">
                     {category.name}
                   </p>
                 </div>
