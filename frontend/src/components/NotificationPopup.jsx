@@ -1,5 +1,7 @@
 // frontend/src/components/NotificationPopup.jsx
 // COMPLETE FINAL VERSION - Past events at bottom + Better error messages + Mark as viewed on click
+// frontend/src/components/NotificationPopup.jsx
+// UPDATED VERSION - Click only marks as viewed, no ReminderModal opening
 import React, { useState, useEffect, useRef } from 'react';
 import ReminderModal from './ReminderModal';
 import CustomReminderModal from './CustomReminderModal';
@@ -422,151 +424,15 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
     return reminder.alert;
   };
 
-  // UPDATED: Click handlers mark as viewed AND open reminder modal
+  // UPDATED: Click handlers now only mark as viewed
   const handleEventClick = (event) => {
     console.log(' Event clicked:', event.title, 'ID:', event._id);
     markItemAsViewed('event', event._id);
-
-    // Check if event has passed
-    if (isEventPassed(event.startDate)) {
-      alert('This event has already passed. You cannot set a reminder for past events.');
-      return;
-    }
-
-    setSelectedEvent(event);
-    setCustomDaysPreview('');
-
-    const existingReminder = reminders.find(r => r.eventId === event._id);
-
-    if (existingReminder) {
-      if (existingReminder.customAlert) {
-        setCustomDaysPreview(existingReminder.customDays.toString());
-      }
-    }
-
-    setShowReminderModal(true);
   };
 
   const handleReminderClick = (reminder) => {
     console.log(' Reminder clicked:', reminder.eventTitle, 'ID:', reminder._id);
     markItemAsViewed('reminder', reminder._id);
-
-    const event = upcomingEvents.find(e => e._id === reminder.eventId);
-    if (event) {
-      handleEventClick(event);
-    }
-  };
-
-  const handleReminderSelect = async (alertType) => {
-    console.log(' Reminder alert selected:', alertType);
-
-    if (alertType === 'Custom') {
-      setShowReminderModal(false);
-      setShowCustomModal(true);
-    } else {
-      const success = await saveReminder(selectedEvent, alertType);
-      if (success) {
-        setShowReminderModal(false);
-        setSelectedEvent(null);
-
-        console.log(' Refreshing data after save...');
-        await Promise.all([fetchReminders(), fetchUpcomingEvents()]);
-      }
-    }
-  };
-
-  const handleCustomReminderSave = async (customDays) => {
-    const success = await saveReminder(selectedEvent, 'Custom', customDays);
-    if (success) {
-      setShowCustomModal(false);
-      setShowReminderModal(false);
-      setSelectedEvent(null);
-
-      console.log(' Refreshing data after custom save...');
-      await Promise.all([fetchReminders(), fetchUpcomingEvents()]);
-    }
-  };
-
-  const handleReminderModalClose = () => {
-    setShowReminderModal(false);
-    setSelectedEvent(null);
-  };
-
-  const handleCustomModalClose = () => {
-    setShowCustomModal(false);
-    setCustomDaysPreview('');
-  };
-
-  const handleCustomDaysChange = (days) => {
-    setCustomDaysPreview(days);
-  };
-
-  const saveReminder = async (event, alertType, customDays = null) => {
-    try {
-      const token = localStorage.getItem('accessToken');
-
-      if (!token) {
-        console.error(' No authentication token found');
-        alert('Please log in to save reminders');
-        return false;
-      }
-
-      if (!event || !event._id) {
-        console.error(' Invalid event data:', event);
-        alert('Unable to save reminder: Invalid event');
-        return false;
-      }
-
-      // Check if event has passed
-      if (isEventPassed(event.startDate)) {
-        alert('This event has already passed. You cannot set a reminder for past events.');
-        return false;
-      }
-
-      const reminderData = {
-        eventId: event._id,
-        eventTitle: event.title,
-        eventDate: event.startDate,
-        alert: alertType,
-        customAlert: alertType === 'Custom',
-        customDays: customDays
-      };
-
-
-
-      const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reminders`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(reminderData)
-      });
-
-      const data = await resp.json();
-
-      if (!resp.ok) {
-        console.error('Server error:', data);
-
-        // Better error messages
-        if (resp.status === 400) {
-          alert('Unable to save reminder. Please check your settings and try again.');
-        } else if (resp.status === 401) {
-          alert('Your session has expired. Please log in again.');
-        } else {
-          alert('This event has already passed or the reminder could not be saved.');
-        }
-        return false;
-      }
-
-      console.log('Reminder saved successfully:', data);
-      return true;
-
-    } catch (err) {
-      console.error(' Error saving reminder:', err);
-      alert('Unable to save reminder. Please try again later.');
-      return false;
-    }
   };
 
   const handleMarkAllAsRead = async () => {
@@ -774,26 +640,6 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
           )}
         </div>
       </div>
-
-      {showReminderModal && (
-        <ReminderModal
-          isOpen={showReminderModal}
-          onClose={handleReminderModalClose}
-          onSelectAlert={handleReminderSelect}
-          event={selectedEvent}
-          customDaysPreview={customDaysPreview}
-          existingReminder={reminders.find(r => r.eventId === selectedEvent?._id)}
-        />
-      )}
-
-      {showCustomModal && (
-        <CustomReminderModal
-          isOpen={showCustomModal}
-          onClose={handleCustomModalClose}
-          onSave={handleCustomReminderSave}
-          onDaysChange={handleCustomDaysChange}
-        />
-      )}
     </>
   );
 };
