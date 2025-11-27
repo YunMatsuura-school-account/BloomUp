@@ -1485,6 +1485,9 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         </div>
       )}
 
+
+
+
       {/* Custom Alert Panel */}
       {showCustomAlertPanel && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
@@ -1542,9 +1545,6 @@ function formatForInput(isoOrDate) {
   const pad = n => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-
-
-
 
 
 

@@ -502,6 +502,7 @@
 
 ///////New code
 // frontend/src/components/UpcomingEvents.jsx
+// frontend/src/components/UpcomingEvents.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ChildAvatar from "./ChildAvatar";

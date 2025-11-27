@@ -1,3 +1,4 @@
+//frontend/src/layout/DashboardLayout.jsx
 import { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
@@ -49,3 +50,4 @@ function DashboardLayout() {
 }
 
 export default DashboardLayout;
+
