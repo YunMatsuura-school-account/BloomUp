@@ -322,7 +322,7 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
 
                   {/* Events - Show only title without time */}
                   {eventsByDay[dayObj.day] && (
-                    <div className="flex flex-col" style={{ rowGap: "6px" }}>
+                    <div className="flex flex-col" style={{ rowGap: "0px" }}>
                       {eventsByDay[dayObj.day].slice(0, 2).map((event, idx) => (
                         <div
                           key={`${event._id}-${idx}`}
