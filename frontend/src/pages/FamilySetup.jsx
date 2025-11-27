@@ -152,9 +152,9 @@ export default function FamilySetup() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col lg:flex-row font-['DM_Sans']">
-      {/* Left Side - Gradient Background with Content */}
-      <div className="hidden lg:flex lg:w-[40%] relative overflow-hidden flex-shrink-0">
+    <div className="min-h-screen w-full bg-white flex flex-col lg:flex-row font-['DM_Sans'] overflow-x-hidden">
+      {/* Left Side - Gradient Background with Content (Fixed on large screens) */}
+      <div className="hidden lg:flex lg:w-[40%] lg:fixed lg:left-0 lg:top-0 lg:h-screen relative overflow-hidden flex-shrink-0">
         <div
           className="absolute inset-0"
           style={{
@@ -187,8 +187,8 @@ export default function FamilySetup() {
         </div>
       </div>
 
-      {/* Right Side - Form */}
-      <div className="flex-1 flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-12">
+      {/* Right Side - Form (with left margin to account for fixed left panel) */}
+      <div className="flex-1 lg:ml-[40%] flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-12 overflow-y-auto no-scrollbar">
         <div className="flex flex-col items-center w-full max-w-[640px] gap-8 sm:gap-10 lg:w-[651px] lg:gap-[50px]">
           {/* Title */}
           <h2 className="text-center font-semibold text-[28px] sm:text-[34px] lg:text-[40px] leading-[1.4] text-[#232527]">
@@ -208,7 +208,11 @@ export default function FamilySetup() {
               </h3>
 
               {/* Form Fields */}
-              <div className="flex flex-col w-full max-w-[480px] gap-10 sm:gap-12 lg:w-[461px] lg:gap-[81px]">
+              <div
+                className={`flex flex-col w-full max-w-[480px] gap-10 sm:gap-12 lg:w-[461px] ${
+                  children.length > 0 ? "lg:gap-[30px]" : "lg:gap-[81px]"
+                }`}
+              >
                 <div className="flex flex-col gap-4 lg:gap-[15px]">
                   {/* Family Name Section */}
                   <div className="flex flex-col gap-2 lg:gap-[5px]">
@@ -219,7 +223,7 @@ export default function FamilySetup() {
                       value={familyName}
                       onChange={(e) => setFamilyName(e.target.value)}
                       placeholder="Family love"
-                      className="w-full bg-white font-medium text-center outline-none rounded-[15px] py-[14px] px-4 text-base text-[#000000]"
+                      className="w-full bg-white font-medium  outline-none rounded-[15px] py-[14px] px-4 text-base text-[#000000]"
                     />
                   </div>
 
@@ -235,15 +239,15 @@ export default function FamilySetup() {
                         {children.map((c) => (
                           <div
                             key={c._id}
-                            className="rounded-[15px] px-5 py-3.5 flex items-center justify-between bg-[#238D88]"
+                            className="rounded-[15px] px-5 py-5 flex items-center justify-between bg-[#ffffff]"
                           >
                             <div className="flex items-center gap-3">
-                              <ChildAvatar child={c} width={40} height={40} />
+                              <ChildAvatar child={c} width={50} height={50} />
                               <div>
-                                <div className="font-medium text-sm text-white">
+                                <div className="font-medium text-lg text-[#000000]">
                                   {c.name || "Your child's name"}
                                 </div>
-                                <div className="text-xs text-white opacity-90">
+                                <div className="text-sm text-[#000000] ">
                                   Age {calcAge(c.dateOfBirth)}
                                 </div>
                               </div>
@@ -324,7 +328,11 @@ export default function FamilySetup() {
             </div>
 
             {/* Save Button */}
-            <div className="flex flex-col items-center gap-2 mt-4 lg:mt-10 lg:h-[54px] lg:gap-[10px]">
+            <div
+              className={`flex flex-col items-center gap-2 mt-4 ${
+                children.length > 0 ? "lg:mt-4" : "lg:mt-10"
+              } lg:h-[54px] lg:gap-[10px]`}
+            >
               <button
                 type="submit"
                 className="w-full max-w-[440px] h-[54px] bg-[#238D88] rounded-[15px] flex items-center justify-center font-semibold text-white text-base hover:opacity-90 transition-opacity lg:max-w-[461px]"
