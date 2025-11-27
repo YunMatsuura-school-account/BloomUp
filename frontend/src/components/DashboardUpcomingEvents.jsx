@@ -186,7 +186,7 @@ const DashboardUpcomingEvents = ({
                 </p>
                 <button
                   onClick={onAddEvent}
-                  className="inline-flex items-center justify-center rounded-full bg-[#F3BE08] px-7 py-2.5 font-semibold text-base text-[#111111] shadow-[0_8px_20px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
+                  className="inline-flex items-center justify-center rounded-lg bg-[#F3BE08] px-7 py-2.5 font-semibold text-base text-[#111111] shadow-[0_8px_20px_rgba(243,190,8,0.35)] hover:bg-[#E0B108] transition-colors"
                 >
                   Add Event&nbsp;+
                 </button>
