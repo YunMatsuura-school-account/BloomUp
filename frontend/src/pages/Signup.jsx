@@ -55,10 +55,37 @@ export default function Signup() {
       const data = await res.json();
       if (res.ok) {
         setMessage("Signup successful!");
-        setTimeout(
-          () => navigate("/login", { state: { fromSignup: true } }),
-          1500
-        );
+        // Automatically log in the user after signup
+        try {
+          const loginRes = await fetch(
+            `${import.meta.env.VITE_BACKEND_URL}/api/auth/login`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, password }),
+            }
+          );
+          const loginData = await loginRes.json();
+          if (loginRes.ok && loginData.accessToken) {
+            localStorage.setItem("accessToken", loginData.accessToken);
+            // Set onboarding mode and navigate to family-setup
+            sessionStorage.setItem("onboardingMode", "true");
+            setTimeout(() => navigate("/family-setup"), 500);
+          } else {
+            // If auto-login fails, fall back to login page
+            setTimeout(
+              () => navigate("/login", { state: { fromSignup: true } }),
+              1500
+            );
+          }
+        } catch (loginErr) {
+          console.error("Auto-login error:", loginErr);
+          // If auto-login fails, fall back to login page
+          setTimeout(
+            () => navigate("/login", { state: { fromSignup: true } }),
+            1500
+          );
+        }
       } else {
         setMessage(data?.message || "Signup failed");
       }
