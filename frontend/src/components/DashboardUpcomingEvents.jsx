@@ -210,7 +210,7 @@ const DashboardUpcomingEvents = ({
                     className="bg-white rounded-2xl border border-[#F4F4F5] p-4 transition cursor-pointer hover:shadow-md"
                   >
                     {dateSegments && (
-                      <div className="flex justify-end mb-3">
+                      <div className="flex justify-end mb-[-2px]">
                         <p className="text-sm font-semibold text-[#0F172A] whitespace-nowrap">
                           <span className="text-[#0F172A]">
                             {dateSegments.start.date}

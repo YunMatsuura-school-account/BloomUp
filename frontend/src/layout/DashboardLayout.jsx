@@ -14,6 +14,14 @@ function DashboardLayout() {
   const isSettingsPage = path === "/settings";
   const isChildDashboardPage = path.startsWith("/child-dashboard");
 
+  // Determine if header should be fixed (sticky) or scroll with content
+  const shouldHeaderBeFixed = isArticlesPage;
+  const shouldShowHeader =
+    !isArticlesPage &&
+    !isAddChildPage &&
+    !isSettingsPage &&
+    !isChildDashboardPage;
+
   // Expose global hook for Header hamburger (mobile)
   // so Header can open the Sidebar from pages rendered inside the layout
   useEffect(() => {
@@ -33,17 +41,13 @@ function DashboardLayout() {
 
         {/* Main content area */}
         <div className="flex-1 flex flex-col bg-[#EFEFEF] overflow-hidden">
-          {/* Dashboard Header (skip on Article pages, Add Child, Settings, Child Dashboard) */}
-          {!isArticlesPage &&
-            !isAddChildPage &&
-            !isSettingsPage &&
-            !isChildDashboardPage && <Header />}
-
-          {/* Scrollable content area */}
+          {/* Scrollable content area - Header is now inside for non-fixed pages */}
           <div
             className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar p-0"
             style={{ minHeight: 0 }}
           >
+            {/* Header scrolls with content (except for Articles page which has its own fixed header) */}
+            {shouldShowHeader && <Header />}
             <Outlet />
           </div>
         </div>
@@ -53,4 +57,3 @@ function DashboardLayout() {
 }
 
 export default DashboardLayout;
-
