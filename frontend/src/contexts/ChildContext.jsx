@@ -2,6 +2,28 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 
 const ChildContext = createContext();
 
+// Helper to get saved child ID from localStorage
+const getSavedChildId = () => {
+  try {
+    return localStorage.getItem("selectedChildId");
+  } catch {
+    return null;
+  }
+};
+
+// Helper to save child ID to localStorage
+const saveChildId = (childId) => {
+  try {
+    if (childId) {
+      localStorage.setItem("selectedChildId", childId);
+    } else {
+      localStorage.removeItem("selectedChildId");
+    }
+  } catch {
+    // Ignore localStorage errors
+  }
+};
+
 export const useChild = () => {
   const context = useContext(ChildContext);
   if (!context) {
@@ -47,8 +69,22 @@ export const ChildProvider = ({ children: reactChildren }) => {
           if (childrenRes.ok) {
             const childrenData = await childrenRes.json();
             setChildren(childrenData);
-            if (childrenData.length > 0) {
-              setSelectedChild(childrenData[0]); // Select first child by default
+            
+            // Try to restore previously selected child from localStorage
+            const savedChildId = getSavedChildId();
+            if (savedChildId && childrenData.length > 0) {
+              const savedChild = childrenData.find(c => c._id === savedChildId);
+              if (savedChild) {
+                setSelectedChild(savedChild);
+              } else {
+                // Saved child not found, select first child
+                setSelectedChild(childrenData[0]);
+                saveChildId(childrenData[0]._id);
+              }
+            } else if (childrenData.length > 0) {
+              // No saved child, select first child by default
+              setSelectedChild(childrenData[0]);
+              saveChildId(childrenData[0]._id);
             }
           }
         }
@@ -65,6 +101,8 @@ export const ChildProvider = ({ children: reactChildren }) => {
   const selectChild = (child) => {
     console.log("ChildContext - selectChild called with:", child);
     setSelectedChild(child);
+    // Save to localStorage so it persists across page navigation
+    saveChildId(child?._id || null);
     console.log("ChildContext - selectedChild updated");
   };
 

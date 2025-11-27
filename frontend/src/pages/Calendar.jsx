@@ -1159,7 +1159,7 @@
 //frontend/src/pages/Calendar.jsx
 //frontend/src/pages/Calendar.jsx
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import AddEventModal from "../components/AddEventModal";
 import UpcomingEvents from "../components/UpcomingEvents";
@@ -1910,7 +1910,8 @@ export default function CalendarPage() {
   };
 
   // Calendar functions (keep your existing calendar functions)
-  async function fetchEventsForRange(info) {
+  // Use useCallback to ensure the function updates when selectedChild changes
+  const fetchEventsForRange = useCallback(async (info) => {
     const start = info.start.toISOString();
     const end = info.end.toISOString();
 
@@ -1943,8 +1944,10 @@ export default function CalendarPage() {
       const data = await resp.json();
       if (!resp.ok) throw new Error(data?.message || "Failed to load events");
 
+      // Use child's background color for events
+      const childColor = selectedChild?.backgroundColor;
       let fcEvents = (data.events || []).map((ev) => {
-        const eventColor = ev.color || '#F3BE08';
+        const eventColor = childColor || ev.color || '#F3BE08';
         return {
           id: ev._id,
           title: ev.title,
@@ -1968,6 +1971,8 @@ export default function CalendarPage() {
           const vaccRes = await fetch(vaccUrl);
           if (vaccRes.ok) {
             const vaccData = await vaccRes.json();
+            // Use child's background color for vaccination events too
+            const vaccColor = childColor || "#006F69";
             const vaccinationEvents = (vaccData?.recommendations || [])
               .filter((r) => {
                 if (!r?.recommendedDate) return false;
@@ -1983,13 +1988,14 @@ export default function CalendarPage() {
                 id: `vacc-${r.name}-${r.recommendedDate}`,
                 title: `${r.name} vaccination`,
                 start: r.recommendedDate,
-                backgroundColor: "#006F69",
+                backgroundColor: vaccColor,
+                borderColor: vaccColor,
                 extendedProps: {
                   raw: {
                     title: `${r.name} vaccination`,
                     startDate: r.recommendedDate,
                     type: "vaccination",
-                    color: "#006F69",
+                    color: vaccColor,
                   },
                 },
               }));
@@ -2005,7 +2011,7 @@ export default function CalendarPage() {
       console.error("Error loading events", err);
       return [];
     }
-  }
+  }, [selectedChild, userData]);
 
   // Handle event click from UpcomingEvents
   const handleEventClickFromUpcoming = (event) => {
