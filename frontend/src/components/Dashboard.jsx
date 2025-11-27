@@ -42,6 +42,8 @@ const Dashboard = () => {
               const vaccData = await vaccRes.json();
               const today = new Date();
               today.setHours(0, 0, 0, 0);
+              // Use child's background color for vaccination events
+              const childColor = selectedChild?.backgroundColor || "#006F69";
               vaccinationEvents = (vaccData?.recommendations || [])
                 .filter((r) => {
                   if (!r?.recommendedDate) return false;
@@ -54,7 +56,7 @@ const Dashboard = () => {
                   title: `${r.name} vaccination`,
                   date: r.recommendedDate,
                   type: "vaccination",
-                  color: "#006F69", // Vaccination color
+                  color: childColor, // Use child's background color
                 }));
             }
           } catch (e) {
@@ -89,11 +91,13 @@ const Dashboard = () => {
 
           if (calendarRes.ok) {
             const calendarData = await calendarRes.json();
+            // Use child's background color for events, fallback to event color or default
+            const childColor = selectedChild?.backgroundColor;
             calendarEventList = (calendarData.events || []).map((ev) => ({
               title: ev.title || "Event",
               date: ev.startDate, // ScheduleCalendar expects 'date' field
               type: ev.category || "event",
-              color: ev.color || "#F3BE08", // Default color for custom events
+              color: childColor || ev.color || "#F3BE08", // Use child's color first
               _id: ev._id,
               endDate: ev.endDate,
               notes: ev.notes,

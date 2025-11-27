@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import ChildAvatar from "./ChildAvatar";
+import { useChild } from "../contexts/ChildContext";
 
 const CalendarIcon = ({ className = "w-7 h-7" }) => (
   <svg
@@ -29,6 +30,7 @@ const DashboardUpcomingEvents = ({
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
+  const { user } = useChild();
 
   const fetchUpcomingEvents = async () => {
     try {
@@ -36,22 +38,24 @@ const DashboardUpcomingEvents = ({
       const base = import.meta.env.VITE_BACKEND_URL || "";
 
       const now = new Date();
+      now.setHours(0, 0, 0, 0);
       const start = now.toISOString();
       const thirtyDaysLater = new Date();
       thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
       const end = thirtyDaysLater.toISOString();
 
+      const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("authToken") ||
+        localStorage.getItem("accessToken");
+
+      // Fetch calendar events
       const params = new URLSearchParams();
       params.set("start", start);
       params.set("end", end);
       if (selectedChild?._id) {
         params.set("child", selectedChild._id);
       }
-
-      const token =
-        localStorage.getItem("token") ||
-        localStorage.getItem("authToken") ||
-        localStorage.getItem("accessToken");
 
       const resp = await fetch(`${base}/api/calendar?${params.toString()}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -72,11 +76,62 @@ const DashboardUpcomingEvents = ({
         );
       }
 
-      const upcomingEvents = (json.events || [])
+      const calendarEvents = (json.events || [])
         .filter((e) => e?.startDate && new Date(e.startDate) >= now)
-        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+        .map((e) => ({
+          ...e,
+          eventType: "calendar",
+        }));
 
-      setEvents(upcomingEvents);
+      // Fetch vaccination recommendations if child is selected
+      let vaccinationEvents = [];
+      if (selectedChild?._id && user?.id) {
+        try {
+          const vaccUrl = `${base}/api/users/${user.id}/children/${
+            selectedChild._id
+          }/vaccinations/recommendations${
+            selectedChild.dateOfBirth
+              ? `?birthDate=${encodeURIComponent(selectedChild.dateOfBirth)}`
+              : ""
+          }`;
+
+          const vaccRes = await fetch(vaccUrl, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+
+          if (vaccRes.ok) {
+            const vaccData = await vaccRes.json();
+            // Get all upcoming vaccinations (no 30-day limit for vaccinations)
+            vaccinationEvents = (vaccData?.recommendations || [])
+              .filter((r) => {
+                if (!r?.recommendedDate) return false;
+                const vaccDate = new Date(r.recommendedDate);
+                vaccDate.setHours(0, 0, 0, 0);
+                // Only show future vaccinations
+                return vaccDate >= now;
+              })
+              .map((r) => ({
+                _id: `vacc-${r.name}-${r.recommendedDate}`,
+                title: `${r.name} vaccination`,
+                startDate: r.recommendedDate,
+                notes:
+                  r.description ||
+                  `Recommended vaccination for ${selectedChild.name}`,
+                eventType: "vaccination",
+                color: "#006F69",
+              }));
+          }
+        } catch (e) {
+          console.error("Error fetching vaccinations:", e);
+        }
+      }
+
+      // Combine and sort all events by date (ascending order)
+      const allEvents = [...calendarEvents, ...vaccinationEvents].sort(
+        (a, b) => new Date(a.startDate) - new Date(b.startDate)
+      );
+
+      setEvents(allEvents);
     } catch (e) {
       console.error("Error fetching upcoming events:", e);
       setEvents([]);
@@ -88,13 +143,13 @@ const DashboardUpcomingEvents = ({
   useEffect(() => {
     fetchUpcomingEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedChild?._id, refreshTrigger]);
+  }, [selectedChild?._id, refreshTrigger, user?.id]);
 
   const getDateSegments = (startDateString, endDateString) => {
     if (!startDateString) return null;
     const startDate = new Date(startDateString);
     const endDate = endDateString ? new Date(endDateString) : null;
-    const optionsDate = { month: "short", day: "2-digit" };
+    const optionsDate = { month: "short", day: "2-digit", year: "numeric" };
     const optionsTime = { hour: "2-digit", minute: "2-digit" };
 
     const start = {
@@ -202,6 +257,7 @@ const DashboardUpcomingEvents = ({
                   event.endDate
                 );
                 const titleParts = getTitleParts(event);
+                const isVaccination = event.eventType === "vaccination";
 
                 return (
                   <div
@@ -210,8 +266,17 @@ const DashboardUpcomingEvents = ({
                     className="bg-white rounded-2xl border border-[#F4F4F5] p-4 transition cursor-pointer hover:shadow-md"
                   >
                     {dateSegments && (
-                      <div className="flex justify-end mb-[-2px]">
-                        <p className="text-sm font-semibold text-[#0F172A] whitespace-nowrap">
+                      <div className="flex justify-between items-center mb-[-2px]">
+                        {isVaccination && (
+                          <span className="text-xs font-medium text-[#006F69] bg-[#006F69]/10 px-2 py-0.5 rounded-full">
+                            Vaccination
+                          </span>
+                        )}
+                        <p
+                          className={`text-sm font-semibold text-[#0F172A] whitespace-nowrap ${
+                            !isVaccination ? "ml-auto" : ""
+                          }`}
+                        >
                           <span className="text-[#0F172A]">
                             {dateSegments.start.date}
                           </span>{" "}
@@ -229,7 +294,7 @@ const DashboardUpcomingEvents = ({
                       </div>
                     )}
 
-                    <div className="flex gap-3 items-start">
+                    <div className="flex gap-3 items-start mt-2">
                       {selectedChild && (
                         <div className="flex-shrink-0">
                           <ChildAvatar

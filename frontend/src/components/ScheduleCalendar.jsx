@@ -403,38 +403,183 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
 
                 return (
                   <div className="space-y-3">
-                    {dayEvents.map((event, idx) => (
-                      <div
-                        key={idx}
-                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start gap-3">
-                          {/* Color Indicator */}
-                          <div
-                            className="w-4 h-4 rounded-full flex-shrink-0 mt-1"
-                            style={{
-                              backgroundColor: event.color || "#F3BE08",
-                            }}
-                          ></div>
+                    {dayEvents.map((event, idx) => {
+                      // Format time for display
+                      const eventDate = new Date(event.date);
+                      const timeStr = eventDate.toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+                      const dateStr = eventDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "2-digit",
+                        year: "numeric",
+                      });
 
-                          {/* Event Details - Only show title */}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-gray-800 mb-1">
-                              {event.title || "Event"}
-                            </h4>
-                            {event.notes && (
-                              <p className="text-sm text-gray-600 mt-2">
-                                <span className="font-medium">Notes:</span>{" "}
-                                {event.notes}
+                      // Format end date/time if exists
+                      let endTimeStr = null;
+                      let endDateStr = null;
+                      if (event.endDate) {
+                        const endDate = new Date(event.endDate);
+                        endTimeStr = endDate.toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        });
+                        endDateStr = endDate.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "2-digit",
+                          year: "numeric",
+                        });
+                      }
+
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => navigate("/calendar")}
+                          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer hover:bg-gray-50"
+                        >
+                          <div className="flex items-start gap-3">
+                            {/* Color Indicator */}
+                            <div
+                              className="w-4 h-4 rounded-full flex-shrink-0 mt-1"
+                              style={{
+                                backgroundColor: event.color || "#F3BE08",
+                              }}
+                            ></div>
+
+                            {/* Event Details */}
+                            <div className="flex-1 min-w-0">
+                              {/* Title */}
+                              <h4 className="font-semibold text-gray-800 mb-2">
+                                {event.title || "Event"}
+                              </h4>
+
+                              {/* Event Type Badge */}
+                              {event.type && (
+                                <span
+                                  className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-2"
+                                  style={{
+                                    backgroundColor: `${event.color || "#F3BE08"}20`,
+                                    color: event.color || "#F3BE08",
+                                  }}
+                                >
+                                  {event.type === "vaccination"
+                                    ? "Vaccination"
+                                    : event.type.charAt(0).toUpperCase() +
+                                      event.type.slice(1)}
+                                </span>
+                              )}
+
+                              {/* Date & Time */}
+                              <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                  />
+                                </svg>
+                                <span>{dateStr}</span>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                <span>
+                                  {timeStr}
+                                  {endTimeStr && (
+                                    <>
+                                      <span className="mx-1 text-gray-400">
+                                        →
+                                      </span>
+                                      {endDateStr !== dateStr && (
+                                        <span>{endDateStr} </span>
+                                      )}
+                                      {endTimeStr}
+                                    </>
+                                  )}
+                                </span>
+                              </div>
+
+                              {/* Notes */}
+                              {event.notes && (
+                                <div className="mt-2 pt-2 border-t border-gray-100">
+                                  <p className="text-sm text-gray-600">
+                                    <span className="font-medium">Notes:</span>{" "}
+                                    {event.notes}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Click hint */}
+                              <p className="text-xs text-[#238D88] mt-2 flex items-center gap-1">
+                                <span>Click to view in Calendar</span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-3 w-3"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 5l7 7-7 7"
+                                  />
+                                </svg>
                               </p>
-                            )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 );
               })()}
+            </div>
+
+            {/* Modal Footer - View All in Calendar Button */}
+            <div className="p-4 border-t border-gray-200">
+              <button
+                onClick={() => navigate("/calendar")}
+                className="w-full bg-[#238D88] text-white font-semibold py-3 px-4 rounded-lg hover:bg-[#1a6d68] transition-colors flex items-center justify-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                Open Full Calendar
+              </button>
             </div>
           </div>
         </div>
