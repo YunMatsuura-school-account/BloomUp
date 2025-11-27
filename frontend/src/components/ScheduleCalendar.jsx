@@ -178,7 +178,7 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
         {/* Calendar Header */}
         <div className="flex justify-between items-center p-2 border-b border-[rgba(218,220,224,0.6)]">
           {/* Left: Month & Year */}
-          <div className="flex items-center gap-3.5 px-3.5">
+          <div className="flex items-center gap-3.5 px-1 lg:px-4">
             <div className="flex gap-2.5 items-center">
               <select
                 className="text-base font-semibold text-[#333333] bg-transparent outline-none"
@@ -247,7 +247,7 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
               </svg>
             </button>
             <button
-              className="p-2  rounded-xl bg-[#F3BE08]"
+              className="p-2 mr-4 lg:mr-2 rounded-xl bg-[#F3BE08]"
               title="Open full calendar"
               onClick={() => navigate("/calendar")}
             >
