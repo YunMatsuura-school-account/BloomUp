@@ -12,25 +12,41 @@ import {
 import { Bar } from "react-chartjs-2";
 import BudgetSetup from "./BudgetSetup";
 import UploadReceipt from "../pages/UploadReceipt";
+import Loader from "./Loader";
 
 const defaultCategoryColors = {
-  'Education': '#0073E7',
-  'Medical': '#0CC68E',
-  'Consumable': '#F3BE08',
-  'Food': '#E95900',
-  'Clothes': '#EC4899',
-  'Entertainment': '#8B5CF6',
-  'Transport': '#3B82F6',
-  'Other': '#B76EF6'
+  Education: "#0073E7",
+  Medical: "#0CC68E",
+  Consumable: "#F3BE08",
+  Food: "#E95900",
+  Clothes: "#EC4899",
+  Entertainment: "#8B5CF6",
+  Transport: "#3B82F6",
+  Other: "#B76EF6",
 };
 
 // Extended color palette for dynamic categories
 const colorPalette = [
-  '#a8dfe9ff', '#c8dd97ff', '#aa9664ff', '#F97316', 
-  '#EC4899', '#8B5CF6', '#3B82F6', '#6B7280',
-  '#EF4444', '#F59E0B', '#84CC16', '#06B6D4',
-  '#8B5CF6', '#D946EF', '#F43F5E', '#14B8A6',
-  '#0EA5E9', '#6366F1', '#A855F7', '#EC4899'
+  "#a8dfe9ff",
+  "#c8dd97ff",
+  "#aa9664ff",
+  "#F97316",
+  "#EC4899",
+  "#8B5CF6",
+  "#3B82F6",
+  "#6B7280",
+  "#EF4444",
+  "#F59E0B",
+  "#84CC16",
+  "#06B6D4",
+  "#8B5CF6",
+  "#D946EF",
+  "#F43F5E",
+  "#14B8A6",
+  "#0EA5E9",
+  "#6366F1",
+  "#A855F7",
+  "#EC4899",
 ];
 
 function getCategoryColor(categoryName, index) {
@@ -79,7 +95,10 @@ function BudgetAllocationBar({ overview }) {
           Budget Allocation
         </h3>
         <div className="text-[12px] md:text-[16px] text-gray-600 font-sans flex flex-col gap-1">
-          Total Allocated <span className="font-medium text-[12px] md:text-[32px] font-numbers">${overview.total}</span>
+          Total Allocated{" "}
+          <span className="font-medium text-[12px] md:text-[32px] font-numbers">
+            ${overview.total}
+          </span>
         </div>
       </div>
 
@@ -753,7 +772,7 @@ function Budget() {
             //     `It's a new month! Set your budget for ${monthName} ${currentYear}?`
             //   )
             // ) {
-              setShowBudgetSetup(true);
+            setShowBudgetSetup(true);
             // }
           }
         }, 1500);
@@ -799,9 +818,9 @@ function Budget() {
               "December",
             ];
             const monthName = monthNames[currentMonth - 1];
-            
+
             // if (confirm(`It's a new month! Set your budget for ${monthName} ${currentYear}?`)) {
-              setShowBudgetSetup(true);
+            setShowBudgetSetup(true);
             // }
           }, 1500);
         }
@@ -1280,12 +1299,16 @@ function Budget() {
       title: { display: false },
       tooltip: {
         enabled: hasData,
-        backgroundColor: '#E2E2E2',
-        titleColor: '#000000',
-        bodyColor: '#000000',
+        backgroundColor: "#E2E2E2",
+        titleColor: "#000000",
+        bodyColor: "#000000",
         padding: 12,
-        titleFont: { size: 13, weight: 'bold', family: 'DM Sans, system-ui, sans-serif'  },
-        bodyFont: { size: 12, family: 'DM Sans, system-ui, sans-serif' },
+        titleFont: {
+          size: 13,
+          weight: "bold",
+          family: "DM Sans, system-ui, sans-serif",
+        },
+        bodyFont: { size: 12, family: "DM Sans, system-ui, sans-serif" },
         callbacks: {
           label: function (context) {
             let label = context.dataset.label || "";
@@ -1391,24 +1414,7 @@ function Budget() {
   });
 
   if (loading) {
-    return (
-      <div className="bg-[#EFEFEF] min-h-screen flex items-center justify-center">
-        {/* <div className="text-[15px] md:text-lg text-gray-600 font-sans">Loading budget...</div> */}
-        <svg width="126" height="126" viewBox="0 0 126 126" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="62.5234" cy="62.5241" r="33.601" stroke="#238D88" stroke-opacity="0.6" stroke-width="3.40264"/>
-<circle cx="62.5235" cy="62.5243" r="47.2116" stroke="#238D88" stroke-opacity="0.4" stroke-width="3.40264"/>
-<circle cx="62.5234" cy="62.5235" r="60.8221" stroke="#238D88" stroke-opacity="0.1" stroke-width="3.40264"/>
-<rect x="39.981" y="40.8323" width="44.2343" height="44.2343" rx="22.1171" fill="#238D88"/>
-<path d="M55.809 62.4475C55.809 62.4475 62.1272 64.687 62.0319 70.605" stroke="white" stroke-width="2.38243" stroke-miterlimit="10" stroke-linecap="round"/>
-<path d="M54.8129 68.6697C50.92 68.6697 47.7561 65.5058 47.7561 61.6128V54.5608H54.8129C58.7059 54.5608 61.8698 57.7247 61.8698 61.6176C61.8698 65.5058 58.7059 68.6697 54.8129 68.6697ZM50.129 61.6128C50.129 64.1954 52.2303 66.2968 54.8129 66.2968C57.3955 66.2968 59.4968 64.1954 59.4968 61.6128C59.4968 59.0303 57.3955 56.9289 54.8129 56.9289H50.129V61.6128Z" fill="white"/>
-<path d="M54.8132 54.6804C58.6441 54.6804 61.7509 57.7871 61.7509 61.6181C61.7509 65.4491 58.6441 68.5558 54.8132 68.5558C50.9822 68.551 47.8755 65.4443 47.8755 61.6133V54.6804H54.8132ZM54.8132 66.4163C57.4672 66.4163 59.6162 64.2674 59.6162 61.6133C59.6162 58.9593 57.4672 56.8103 54.8132 56.8103H50.0101V61.6133C50.0101 64.2674 52.1591 66.4163 54.8132 66.4163ZM54.8132 54.4421H47.8755H47.6372V54.6804V61.6181C47.6372 65.573 50.8583 68.794 54.8132 68.794C58.768 68.794 61.9891 65.573 61.9891 61.6181C61.9891 57.6584 58.768 54.4421 54.8132 54.4421ZM50.2484 57.0533H54.8132C57.329 57.0533 59.3779 59.1022 59.3779 61.6181C59.3779 64.134 57.329 66.1829 54.8132 66.1829C52.2973 66.1829 50.2484 64.134 50.2484 61.6181V57.0533Z" fill="white"/>
-<path d="M69.3842 68.6698C65.4913 68.6698 62.3274 65.5059 62.3274 61.613C62.3274 57.72 65.4913 54.5562 69.3842 54.5562H76.441V61.613C76.441 65.5059 73.2771 68.6698 69.3842 68.6698ZM69.3842 56.9338C66.8016 56.9338 64.7003 59.0352 64.7003 61.6177C64.7003 64.2003 66.8016 66.3016 69.3842 66.3016C71.9668 66.3016 74.0681 64.2003 74.0681 61.6177V56.9338H69.3842Z" fill="white"/>
-<path d="M76.3215 54.6804V61.6181C76.3215 65.4491 73.2148 68.5558 69.3838 68.5558C65.5528 68.5558 62.4461 65.4491 62.4461 61.6181C62.4461 57.7871 65.5528 54.6804 69.3838 54.6804H76.3215ZM69.3838 66.4163C72.0379 66.4163 74.1869 64.2674 74.1869 61.6133V56.8151H69.3838C66.7298 56.8151 64.5808 58.964 64.5808 61.6181C64.5808 64.2674 66.7345 66.4163 69.3838 66.4163ZM76.5598 54.4421H76.3215H69.3838C65.429 54.4421 62.2079 57.6632 62.2079 61.6181C62.2079 65.573 65.429 68.794 69.3838 68.794C73.3387 68.794 76.5598 65.573 76.5598 61.6181V54.6804V54.4421ZM69.3838 66.1781C66.868 66.1781 64.8191 64.1292 64.8191 61.6133C64.8191 59.0974 66.868 57.0485 69.3838 57.0485H73.9486V61.6133C73.9486 64.1292 71.8997 66.1781 69.3838 66.1781Z" fill="white"/>
-<path d="M68.521 62.4475C68.521 62.4475 61.9359 64.687 62.0359 70.605" stroke="white" stroke-width="2.38243" stroke-miterlimit="10" stroke-linecap="round"/>
-</svg>
-
-      </div>
-    );
+    return <Loader />;
   }
 
   if (error) {
@@ -1438,44 +1444,57 @@ function Budget() {
         {/* Consolidated Budget Overview Section */}
         <div className="bg-white rounded-xl p-6 mb-6">
           <div className="flex  md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <h2 className="text-[18px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">Budget Overview</h2>
-            <button 
-  onClick={() => setShowBudgetSetup(true)} 
-  className="flex justify-center items-center gap-[10px]  rounded-[15px]  bg-[#F3BE08] text-[15px] md:text-[20px] font-[400] leading-[140%] font-sans px-4 md:px-6 py-3 cursor-pointer border-none whitespace-nowrap"
->
-  {/* Text for desktop, icon for mobile */}
-  <span className="hidden md:inline">Budget Setup</span>
-  <svg 
-   
-    xmlns="http://www.w3.org/2000/svg" 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none"
-  >
-    <path 
-      d="M5 12H19M12 5V19" 
-      stroke="black" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    />
-  </svg>
-</button>
+            <h2 className="text-[18px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">
+              Budget Overview
+            </h2>
+            <button
+              onClick={() => setShowBudgetSetup(true)}
+              className="flex justify-center items-center gap-[10px]  rounded-[15px]  bg-[#F3BE08] text-[15px] md:text-[20px] font-[400] leading-[140%] font-sans px-4 md:px-6 py-3 cursor-pointer border-none whitespace-nowrap"
+            >
+              {/* Text for desktop, icon for mobile */}
+              <span className="hidden md:inline">Budget Setup</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M5 12H19M12 5V19"
+                  stroke="black"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-[#F5F5F5] rounded-lg p-5 text-center border border-gray-200">
-              <div className="text-[20px] text-gray-600 mb-2 font-sans ">Total Budget</div>
-              <div className="text-[19px] md:text-[36px]  font-medium text-gray-800 font-numbers">${overview.total?.toFixed(2) || "0.00"}</div>
+              <div className="text-[20px] text-gray-600 mb-2 font-sans ">
+                Total Budget
+              </div>
+              <div className="text-[19px] md:text-[36px]  font-medium text-gray-800 font-numbers">
+                ${overview.total?.toFixed(2) || "0.00"}
+              </div>
             </div>
             <div className="bg-[rgba(243,190,8,0.10)] rounded-lg p-5 text-center border border-[#F3BE08]">
-              <div className="text-[20px] mb-2 font-sans  text-[#636363]">Budget Spent</div>
-              <div className="text-[19px] md:text-[36px] font-medium text-[#F39D08] font-numbers">${overview.spent?.toFixed(2) || "0.00"}</div>
+              <div className="text-[20px] mb-2 font-sans  text-[#636363]">
+                Budget Spent
+              </div>
+              <div className="text-[19px] md:text-[36px] font-medium text-[#F39D08] font-numbers">
+                ${overview.spent?.toFixed(2) || "0.00"}
+              </div>
             </div>
             <div className="bg-[rgba(35,141,136,0.10)] rounded-lg p-5 text-center border border-[#238D88]">
-              <div className="text-[20px] mb-2 font-sans  text-[#636363]">Remaining</div>
-              <div className="text-[19px] md:text-[36px] font-medium text-[#238D88] font-numbers">${overview.remaining?.toFixed(2) || "0.00"}</div>
+              <div className="text-[20px] mb-2 font-sans  text-[#636363]">
+                Remaining
+              </div>
+              <div className="text-[19px] md:text-[36px] font-medium text-[#238D88] font-numbers">
+                ${overview.remaining?.toFixed(2) || "0.00"}
+              </div>
               {/* {overview.total > 0 && (
                 <div className="text-xs mt-2 font-sans font-medium text-[#238D88]">{overview.status}</div>
               )} */}
@@ -1487,7 +1506,6 @@ function Budget() {
           )} */}
         </div>
         <div>
-
           {overview.categories && overview.categories.length > 0 && (
             <BudgetAllocationBar overview={overview} />
           )}
@@ -1495,122 +1513,192 @@ function Budget() {
 
         <div className="bg-white rounded-xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-  <div className="flex items-center gap-3">
-    <h2 className="text-[15px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">Spending Overview</h2>
-    <div className="relative">
-      <button
-        onClick={() => setShowTimeframeMenu(!showTimeframeMenu)}
-        className="flex items-center gap-2 px-3 py-1.5 bg-white  border border-gray-300 rounded-md cursor-pointer text-sm text-gray-700 font-sans"
-      >
-        {selectedTimeframe}
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M6 9L12 15L18 9"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
-      {showTimeframeMenu && (
-        <>
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setShowTimeframeMenu(false)}
-          />
-          <div className="absolute left-0 top-10 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20 min-w-[140px]">
-            <button
-              onClick={() => {
-                setSelectedTimeframe("Weekly");
-                setShowTimeframeMenu(false);
-              }}
-              className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-none bg-transparent cursor-pointer font-sans ${
-                selectedTimeframe === "Weekly"
-                  ? "text-[#238D88] font-medium bg-[#f0f9f9]"
-                  : "text-gray-700"
-              }`}
-            >
-              Weekly
-            </button>
-            <button
-              onClick={() => {
-                setSelectedTimeframe("Monthly");
-                setShowTimeframeMenu(false);
-              }}
-              className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-none bg-transparent cursor-pointer font-sans ${
-                selectedTimeframe === "Monthly"
-                  ? "text-[#238D88] font-medium bg-[#f0f9f9]"
-                  : "text-gray-700"
-              }`}
-            >
-              Monthly
-            </button>
+            <div className="flex items-center gap-3">
+              <h2 className="text-[15px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">
+                Spending Overview
+              </h2>
+              <div className="relative">
+                <button
+                  onClick={() => setShowTimeframeMenu(!showTimeframeMenu)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-white  border border-gray-300 rounded-md cursor-pointer text-sm text-gray-700 font-sans"
+                >
+                  {selectedTimeframe}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M6 9L12 15L18 9"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                {showTimeframeMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setShowTimeframeMenu(false)}
+                    />
+                    <div className="absolute left-0 top-10 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20 min-w-[140px]">
+                      <button
+                        onClick={() => {
+                          setSelectedTimeframe("Weekly");
+                          setShowTimeframeMenu(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-none bg-transparent cursor-pointer font-sans ${
+                          selectedTimeframe === "Weekly"
+                            ? "text-[#238D88] font-medium bg-[#f0f9f9]"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        Weekly
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedTimeframe("Monthly");
+                          setShowTimeframeMenu(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-none bg-transparent cursor-pointer font-sans ${
+                          selectedTimeframe === "Monthly"
+                            ? "text-[#238D88] font-medium bg-[#f0f9f9]"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        Monthly
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="relative hidden md:inline">
+              <button
+                onClick={() => setShowCategoryMenu(!showCategoryMenu)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-white  border border-gray-300 rounded-md cursor-pointer text-sm text-gray-700 font-sans"
+              >
+                {selectedCategory}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M6 9L12 15L18 9"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              {showCategoryMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setShowCategoryMenu(false)}
+                  />
+                  <div className="absolute right-0 top-10 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20 min-w-[180px] max-h-[300px] overflow-y-auto">
+                    {getAvailableCategories().map((category) => (
+                      <button
+                        key={category}
+                        onClick={() => {
+                          setSelectedCategory(category);
+                          setShowCategoryMenu(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-none bg-transparent cursor-pointer font-sans ${
+                          selectedCategory === category
+                            ? "text-[#238D88] font-medium bg-[#f0f9f9]"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </>
-      )}
-    </div>
-  </div>
-  
-  <div className="relative hidden md:inline">
-    <button
-      onClick={() => setShowCategoryMenu(!showCategoryMenu)}
-      className="flex items-center gap-2 px-3 py-1.5 bg-white  border border-gray-300 rounded-md cursor-pointer text-sm text-gray-700 font-sans"
-    >
-      {selectedCategory}
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M6 9L12 15L18 9"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </button>
-    {showCategoryMenu && (
-      <>
-        <div
-          className="fixed inset-0 z-10"
-          onClick={() => setShowCategoryMenu(false)}
-        />
-        <div className="absolute right-0 top-10 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20 min-w-[180px] max-h-[300px] overflow-y-auto">
-          {getAvailableCategories().map((category) => (
-            <button
-              key={category}
-              onClick={() => {
-                setSelectedCategory(category);
-                setShowCategoryMenu(false);
-              }}
-              className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-none bg-transparent cursor-pointer font-sans ${
-                selectedCategory === category
-                  ? "text-[#238D88] font-medium bg-[#f0f9f9]"
-                  : "text-gray-700"
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-      </>
-    )}
-  </div>
-</div>
 
           <div className="h-80 relative">
             {!hasData && (
               <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                 <div className="text-center">
                   <div className="mb-3">
-                    <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto">
-                      <path d="M9 61L28.1464 41.8536C28.3417 41.6583 28.6583 41.6583 28.8536 41.8536L41.1464 54.1464C41.3417 54.3417 41.6583 54.3417 41.8536 54.1464L90 6" stroke="#232527" strokeWidth="6.5" strokeLinecap="round"/>
-                      <line x1="14" y1="89" x2="14" y2="79" stroke="#232527" strokeWidth="4" strokeLinecap="round"/>
-                      <line x1="62" y1="89" x2="62" y2="53" stroke="#232527" strokeWidth="4" strokeLinecap="round"/>
-                      <line x1="50" y1="89" x2="50" y2="67" stroke="#232527" strokeWidth="4" strokeLinecap="round"/>
-                      <line x1="26" y1="89" x2="26" y2="64" stroke="#232527" strokeWidth="4" strokeLinecap="round"/>
-                      <line x1="38" y1="89" x2="38" y2="74" stroke="#232527" strokeWidth="4" strokeLinecap="round"/>
-                      <line x1="74" y1="89" x2="74" y2="41" stroke="#232527" strokeWidth="4" strokeLinecap="round"/>
-                      <line x1="86" y1="89" x2="86" y2="29" stroke="#232527" strokeWidth="4" strokeLinecap="round"/>
+                    <svg
+                      width="80"
+                      height="80"
+                      viewBox="0 0 100 100"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="mx-auto"
+                    >
+                      <path
+                        d="M9 61L28.1464 41.8536C28.3417 41.6583 28.6583 41.6583 28.8536 41.8536L41.1464 54.1464C41.3417 54.3417 41.6583 54.3417 41.8536 54.1464L90 6"
+                        stroke="#232527"
+                        strokeWidth="6.5"
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1="14"
+                        y1="89"
+                        x2="14"
+                        y2="79"
+                        stroke="#232527"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1="62"
+                        y1="89"
+                        x2="62"
+                        y2="53"
+                        stroke="#232527"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1="50"
+                        y1="89"
+                        x2="50"
+                        y2="67"
+                        stroke="#232527"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1="26"
+                        y1="89"
+                        x2="26"
+                        y2="64"
+                        stroke="#232527"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1="38"
+                        y1="89"
+                        x2="38"
+                        y2="74"
+                        stroke="#232527"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1="74"
+                        y1="89"
+                        x2="74"
+                        y2="41"
+                        stroke="#232527"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                      />
+                      <line
+                        x1="86"
+                        y1="89"
+                        x2="86"
+                        y2="29"
+                        stroke="#232527"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                      />
                     </svg>
                   </div>
                   <div className="text-[15px] md:text-xl font-semibold text-gray-800 mb-1 font-sans">
@@ -1624,22 +1712,22 @@ function Budget() {
             )}
             <Bar data={getChartData()} options={chartOptions} />
           </div>
-                    {/* Mobile - Category pills below chart */}
-<div className="md:hidden flex flex-wrap gap-2 justify-center mt-4">
-  {getAvailableCategories().map((category) => (
-    <button
-      key={category}
-      onClick={() => setSelectedCategory(category)}
-      className={`px-4 py-2 rounded-full text-sm font-medium border-none cursor-pointer font-sans transition-colors ${
-        selectedCategory === category
-          ? "bg-[#238D88] text-white"
-          : "bg-[#E0F2F1] text-[#238D88]"
-      }`}
-    >
-      {category}
-    </button>
-  ))}
-</div>
+          {/* Mobile - Category pills below chart */}
+          <div className="md:hidden flex flex-wrap gap-2 justify-center mt-4">
+            {getAvailableCategories().map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-4 py-2 rounded-full text-sm font-medium border-none cursor-pointer font-sans transition-colors ${
+                  selectedCategory === category
+                    ? "bg-[#238D88] text-white"
+                    : "bg-[#E0F2F1] text-[#238D88]"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
 
           {hasData && (
             <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-xs text-gray-600 font-sans">
@@ -1654,11 +1742,16 @@ function Budget() {
             </div>
           )}
         </div>
-        
-        <div className="rounded-[15px] mb-6 bg-white" style={{ minHeight: '647px' }}>
+
+        <div
+          className="rounded-[15px] mb-6 bg-white"
+          style={{ minHeight: "647px" }}
+        >
           <div className="p-4 md:p-8 h-full flex flex-col">
             <div className="mb-6">
-              <h2 className="text-[15px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">Expense add and details</h2>
+              <h2 className="text-[15px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">
+                Expense add and details
+              </h2>
             </div>
 
             {expenses.length === 0 ? (
@@ -2061,7 +2154,9 @@ function Budget() {
                   </svg>
                 </div> */}
                 <div className="flex flex-col gap-1">
-                  <h3 className="text-[15px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">AI Insights & Suggestions</h3>
+                  <h3 className="text-[15px] md:text-[24px] font-semibold text-gray-800 m-0 font-sans">
+                    AI Insights & Suggestions
+                  </h3>
                   {insightsLoading && (
                     <span className="text-xs text-gray-500">
                       Analyzing your budget...
