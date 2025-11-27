@@ -97,8 +97,8 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen w-full bg-white flex flex-col lg:flex-row">
-      {/* Left Side - Gradient Background with Text */}
-      <div className="hidden lg:flex lg:w-[40%] relative overflow-hidden flex-shrink-0">
+      {/* Left Side - Gradient Background with Text (Fixed on large screens) */}
+      <div className="hidden lg:flex lg:w-[40%] lg:fixed lg:left-0 lg:top-0 lg:h-screen relative overflow-hidden flex-shrink-0">
         {/* Gradient Background */}
         <div
           className="absolute inset-0"
@@ -142,8 +142,8 @@ export default function Signup() {
         </div>
       </div>
 
-      {/* Right Side - Form */}
-      <div className="flex-1 lg:w-[60%] flex flex-col items-center justify-center px-4 lg:px-10 xl:px-14 py-10">
+      {/* Right Side - Form (with left margin to account for fixed left panel) */}
+      <div className="flex-1 lg:w-[60%] lg:ml-[40%] flex flex-col items-center justify-center px-4 lg:px-10 xl:px-14 py-10">
         {/* Header Text */}
         <div className="w-full flex justify-center mb-8">
           <h1
