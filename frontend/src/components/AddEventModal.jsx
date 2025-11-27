@@ -34,33 +34,43 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
   // Time selection states
   const [startTime, setStartTime] = useState(initialData?.startDate ? getTimeFromDate(initialData.startDate) : '12:00');
   const [endTime, setEndTime] = useState(initialData?.endDate ? getTimeFromDate(initialData.endDate) : '13:00');
-  const [showTimePicker, setShowTimePicker] = useState(false);
 
   // Category states
-  const [showCategoryPanel, setShowCategoryPanel] = useState(false);
-  const [showAddCategoryPanel, setShowAddCategoryPanel] = useState(false);
   const [categories, setCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Others');
 
   // Date picker states
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempStartDate, setTempStartDate] = useState(null);
   const [tempEndDate, setTempEndDate] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Alert panel states
-  const [showAlertPanel, setShowAlertPanel] = useState(false);
-  const [showCustomAlertPanel, setShowCustomAlertPanel] = useState(false);
   const [customAlertText, setCustomAlertText] = useState('');
 
-  // Notes/URL/Attachments modal state
-  const [showNotesModal, setShowNotesModal] = useState(false);
+  // Active panel state
+  const [activePanel, setActivePanel] = useState(null);
 
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [childrenList, setChildrenList] = useState([]);
   const [showChildrenDropdown, setShowChildrenDropdown] = useState(false);
+
+
+  useEffect(() => {
+    // This prevents the modal from closing when typing in inputs
+    const handleMouseDown = (e) => {
+      // If the click is on an input or textarea, don't close any panels
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        e.stopPropagation();
+      }
+    };
+
+    document.addEventListener('mousedown', handleMouseDown, true);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown, true);
+    };
+  }, []);
 
   // Load categories and children
   useEffect(() => {
@@ -154,11 +164,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         setTempEndDate(new Date(initialData.endDate));
       }
 
-      setShowCategoryPanel(false);
-      setShowAddCategoryPanel(false);
-      setShowAlertPanel(false);
-      setShowCustomAlertPanel(false);
-      setShowNotesModal(false);
+      setActivePanel(null);
       setSaving(false);
       setDeleting(false);
     } else if (isOpen) {
@@ -176,11 +182,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       setAttachments('');
       setTempStartDate(null);
       setTempEndDate(null);
-      setShowCategoryPanel(false);
-      setShowAddCategoryPanel(false);
-      setShowAlertPanel(false);
-      setShowCustomAlertPanel(false);
-      setShowNotesModal(false);
+      setActivePanel(null);
       setSaving(false);
       setDeleting(false);
     }
@@ -307,7 +309,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       tempEndDate.setHours(hours, minutes, 0, 0);
       setEndDate(formatForInput(tempEndDate));
     }
-    setShowDatePicker(false);
+    setActivePanel(null);
   };
 
   // Format date display for the calendar header
@@ -323,130 +325,6 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
   const startFormatted = tempStartDate ? formatDateDisplay(tempStartDate) : null;
   const endFormatted = tempEndDate ? formatDateDisplay(tempEndDate) : null;
-
-  // Date Picker Component
-  const DatePickerModal = () => {
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-        <div className="bg-white rounded-lg w-[450px] p-4"> {/* Reduced width from w-[600px] to w-[450px] and padding from p-6 to p-4 */}
-          <h3 className="text-xl font-semibold text-[#232527] mb-3 text-center">Date</h3> {/* Reduced text size and margin */}
-
-          {/* Date Display Header */}
-          <div className="flex justify-between items-center mb-4"> {/* Reduced margin */}
-            <div className="w-40"> {/* Reduced width */}
-              <div className="text-[14px] font-dm-sans font-medium text-black mb-1">Starts</div> {/* Reduced text size and margin */}
-              {startFormatted ? (
-                <div className="flex items-baseline gap-2"> {/* Reduced gap */}
-                  <div className="text-[40px] font-dm-sans font-bold text-black leading-[20px]"> {/* Reduced text size and leading */}
-                    {startFormatted.day}
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="text-[14px] font-dm-sans font-normal text-black"> {/* Reduced text size */}
-                      {startFormatted.month} {startFormatted.year}
-                    </div>
-                    <div className="text-[14px] font-dm-sans font-normal text-black"> {/* Reduced text size */}
-                      {startFormatted.dayName}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-gray-400 text-sm">Select start date</div>
-              )}
-            </div>
-
-            <div className="w-40"> {/* Reduced width */}
-              <div className={`text-[14px] font-dm-sans font-medium ${endFormatted ? 'text-black' : 'text-[#A0A0A0]'} mb-1`}> {/* Reduced text size and margin */}
-                Ends
-              </div>
-              {endFormatted ? (
-                <div className="flex items-baseline gap-2"> {/* Reduced gap */}
-                  <div className={`text-[40px] font-dm-sans font-bold ${endFormatted ? 'text-black' : 'text-[#A0A0A0]'} leading-[20px]`}> {/* Reduced text size and leading */}
-                    {endFormatted.day}
-                  </div>
-                  <div className="flex flex-col">
-                    <div className={`text-[14px] font-dm-sans font-normal ${endFormatted ? 'text-black' : 'text-[#777777]'}`}> {/* Reduced text size */}
-                      {endFormatted.month} {endFormatted.year}
-                    </div>
-                    <div className={`text-[14px] font-dm-sans font-normal ${endFormatted ? 'text-black' : 'text-[#777777]'}`}> {/* Reduced text size */}
-                      {endFormatted.dayName}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-gray-400 text-sm">Select end date</div>
-              )}
-            </div>
-          </div>
-
-          {/* Calendar */}
-          <div className="border border-[#A0A0A0] rounded-lg p-3 mb-4"> {/* Reduced padding and margin */}
-            <div className="flex items-center justify-between mb-3"> {/* Reduced margin */}
-              <div className="text-[14px] font-dm-sans font-semibold text-[#202020]"> {/* Reduced text size */}
-                {currentMonth.toLocaleString('en-US', { month: 'long', year: 'numeric' })}
-              </div>
-              <div className="flex gap-1"> {/* Reduced gap */}
-                <button onClick={handlePrevMonth} className="p-1 hover:bg-gray-100 rounded">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"> {/* Reduced icon size */}
-                    <path d="M15 19L8 12L15 5" stroke="#444444" strokeWidth="2" />
-                  </svg>
-                </button>
-                <button onClick={handleNextMonth} className="p-1 hover:bg-gray-100 rounded">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"> {/* Reduced icon size */}
-                    <path d="M9 5L16 12L9 19" stroke="#444444" strokeWidth="2" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Weekday Headers */}
-            <div className="grid grid-cols-7 gap-1 mb-1"> {/* Reduced margin */}
-              {['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'].map((day) => (
-                <div key={day} className="text-center text-[12px] font-dm-sans font-normal text-[#C1C1C1] py-1"> {/* Reduced text size */}
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            {/* Calendar Days */}
-            <div className="grid grid-cols-7 gap-1 min-h-[150px]"> {/* Reduced min-height */}
-              {calendarDays.map((day, index) => (
-                <div key={index} className="flex items-center justify-center min-h-[24px]"> {/* Reduced min-height */}
-                  <button
-                    onClick={() => handleDayClick(day)}
-                    disabled={!day}
-                    className={`
-                      w-6 h-6 text-[12px] font-dm-sans font-semibold rounded transition-all flex items-center justify-center
-                      ${!day ? 'invisible' : ''}
-                      ${isStartDate(day) || isEndDate(day) ? 'bg-[#F3BE08] text-black' : ''}
-                      ${isDaySelected(day) && !isStartDate(day) && !isEndDate(day) ? 'bg-[#F3BE08] bg-opacity-30' : ''}
-                      ${!isDaySelected(day) ? 'hover:bg-gray-100 text-[#202020]' : ''}
-                    `}
-                  >
-                    {day}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex justify-center gap-6"> {/* Reduced gap */}
-            <button
-              onClick={() => setShowDatePicker(false)}
-              className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px]" /* Reduced size */
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveDate}
-              className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px]" /* Reduced size */
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   // Time Picker Component
   const TimePicker = () => {
@@ -504,7 +382,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
       setStartTime(newStartTime);
       setEndTime(newEndTime);
-      setShowTimePicker(false);
+      setActivePanel(null);
     };
 
     const TimeColumn = ({
@@ -533,8 +411,8 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       };
 
       return (
-        <div className="relative h-24 overflow-hidden"> 
-          <div className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 h-6 bg-[#F3BE08] opacity-20 rounded pointer-events-none"></div> {/* Reduced height */}
+        <div className="relative h-24 overflow-hidden">
+          <div className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 h-6 bg-[#F3BE08] opacity-20 rounded pointer-events-none"></div>
 
           <div
             ref={columnRef}
@@ -572,116 +450,114 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     const minuteItems = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-        <div className="bg-white rounded-[10px] w-[380px] p-4">
-          <div className="w-full flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch flex flex-col justify-center items-center gap-4">
-              <div className="self-stretch flex flex-col justify-center items-center gap-3">
-                <div className="self-stretch justify-start items-start gap-2 inline-flex">
-                  <div className="text-center flex flex-col justify-center text-[#232527] text-[20px] font-dm-sans font-semibold">
-                    Time
-                  </div>
+      <div className="bg-white rounded-[10px] w-full h-full flex flex-col">
+        <div className="w-full flex flex-col justify-start items-start gap-2 p-4">
+          <div className="self-stretch flex flex-col justify-center items-center gap-4">
+            <div className="self-stretch flex flex-col justify-center items-center gap-3">
+              <div className="self-stretch justify-start items-start gap-2 inline-flex">
+                <div className="text-center flex flex-col justify-center text-[#232527] text-[20px] font-dm-sans font-semibold">
+                  Time
                 </div>
+              </div>
 
-                <div className="w-full">
-                  <div className="self-stretch relative overflow-hidden">
-                    {/* Start Time Section */}
-                    <div className="mb-4">
-                      <div className="text-[14px] font-dm-sans font-medium text-[#232527] mb-2">Start Time</div>
-                      <div className="flex items-center justify-center gap-1 bg-white rounded-lg p-2">
-                        <div className="w-12">
-                          <TimeColumn
-                            selectedValue={selectedHour}
-                            setSelectedValue={setSelectedHour}
-                            items={Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))}
-                            isStart={true}
-                            type="hour"
-                          />
-                        </div>
+              <div className="w-full">
+                <div className="self-stretch relative overflow-hidden">
+                  {/* Start Time Section */}
+                  <div className="mb-4">
+                    <div className="text-[14px] font-dm-sans font-medium text-[#232527] mb-2">Start Time</div>
+                    <div className="flex items-center justify-center gap-1 bg-white rounded-lg p-2">
+                      <div className="w-12">
+                        <TimeColumn
+                          selectedValue={selectedHour}
+                          setSelectedValue={setSelectedHour}
+                          items={Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))}
+                          isStart={true}
+                          type="hour"
+                        />
+                      </div>
 
-                        <div className="w-3 text-center text-[#219653] text-[14px] font-nunito font-light leading-5 tracking-[0.05px]"> {/* Reduced text size */}
-                          :
-                        </div>
+                      <div className="w-3 text-center text-[#219653] text-[14px] font-nunito font-light leading-5 tracking-[0.05px]">
+                        :
+                      </div>
 
-                        <div className="w-12"> {/* Reduced width */}
-                          <TimeColumn
-                            selectedValue={selectedMinute}
-                            setSelectedValue={setSelectedMinute}
-                            items={minuteItems}
-                            isStart={true}
-                            type="minute"
-                          />
-                        </div>
+                      <div className="w-12">
+                        <TimeColumn
+                          selectedValue={selectedMinute}
+                          setSelectedValue={setSelectedMinute}
+                          items={minuteItems}
+                          isStart={true}
+                          type="minute"
+                        />
+                      </div>
 
-                        <div className="w-12"> {/* Reduced width */}
-                          <TimeColumn
-                            selectedValue={selectedPeriod}
-                            setSelectedValue={setSelectedPeriod}
-                            items={['AM', 'PM']}
-                            isStart={true}
-                            type="period"
-                          />
-                        </div>
+                      <div className="w-12">
+                        <TimeColumn
+                          selectedValue={selectedPeriod}
+                          setSelectedValue={setSelectedPeriod}
+                          items={['AM', 'PM']}
+                          isStart={true}
+                          type="period"
+                        />
                       </div>
                     </div>
+                  </div>
 
-                    {/* End Time Section */}
-                    <div>
-                      <div className="text-[14px] font-dm-sans font-medium text-[#232527] mb-2">End Time</div> {/* Reduced text size */}
-                      <div className="flex items-center justify-center gap-1 bg-white rounded-lg p-2"> {/* Reduced padding and gap */}
-                        <div className="w-12"> {/* Reduced width */}
-                          <TimeColumn
-                            selectedValue={selectedEndHour}
-                            setSelectedValue={setSelectedEndHour}
-                            items={Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))}
-                            isStart={false}
-                            type="hour"
-                          />
-                        </div>
+                  {/* End Time Section */}
+                  <div>
+                    <div className="text-[14px] font-dm-sans font-medium text-[#232527] mb-2">End Time</div>
+                    <div className="flex items-center justify-center gap-1 bg-white rounded-lg p-2">
+                      <div className="w-12">
+                        <TimeColumn
+                          selectedValue={selectedEndHour}
+                          setSelectedValue={setSelectedEndHour}
+                          items={Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))}
+                          isStart={false}
+                          type="hour"
+                        />
+                      </div>
 
-                        <div className="w-3 text-center text-[#219653] text-[14px] font-nunito font-light leading-5 tracking-[0.05px]"> {/* Reduced text size */}
-                          :
-                        </div>
+                      <div className="w-3 text-center text-[#219653] text-[14px] font-nunito font-light leading-5 tracking-[0.05px]">
+                        :
+                      </div>
 
-                        <div className="w-12"> {/* Reduced width */}
-                          <TimeColumn
-                            selectedValue={selectedEndMinute}
-                            setSelectedValue={setSelectedEndMinute}
-                            items={minuteItems}
-                            isStart={false}
-                            type="minute"
-                          />
-                        </div>
+                      <div className="w-12">
+                        <TimeColumn
+                          selectedValue={selectedEndMinute}
+                          setSelectedValue={setSelectedEndMinute}
+                          items={minuteItems}
+                          isStart={false}
+                          type="minute"
+                        />
+                      </div>
 
-                        <div className="w-12"> {/* Reduced width */}
-                          <TimeColumn
-                            selectedValue={selectedEndPeriod}
-                            setSelectedValue={setSelectedEndPeriod}
-                            items={['AM', 'PM']}
-                            isStart={false}
-                            type="period"
-                          />
-                        </div>
+                      <div className="w-12">
+                        <TimeColumn
+                          selectedValue={selectedEndPeriod}
+                          setSelectedValue={setSelectedEndPeriod}
+                          items={['AM', 'PM']}
+                          isStart={false}
+                          type="period"
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="w-full flex justify-center gap-4 mt-2"> {/* Reduced margin and gap */}
-                <button
-                  onClick={() => setShowTimePicker(false)}
-                  className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors" 
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveTime}
-                  className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors" 
-                >
-                  Save
-                </button>
-              </div>
+            <div className="w-full flex justify-center gap-4 mt-2">
+              <button
+                onClick={() => setActivePanel(null)}
+                className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveTime}
+                className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -689,14 +565,14 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     );
   };
 
-  // Category functions - UPDATED with delete functionality
+  // Category functions
   const handleCategorySelect = (categoryName) => {
     setSelectedCategory(categoryName);
   };
 
   const handleSaveCategory = () => {
     setCategory(selectedCategory);
-    setShowCategoryPanel(false);
+    setActivePanel(null);
   };
 
   const handleAddCategory = async () => {
@@ -721,7 +597,6 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
         setCategories(prev => [...prev, data.category]);
         setSelectedCategory(data.category.category);
         setNewCategoryName('');
-        setShowAddCategoryPanel(false);
       } else {
         const error = await res.json();
         alert(error.message || 'Failed to add category');
@@ -735,16 +610,13 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
   // Delete category function
   const handleDeleteCategory = async (categoryId, categoryName) => {
     try {
-      // First check if category is used in any events
       const token = localStorage.getItem("accessToken");
 
-      // Show confirmation dialog
       const confirmed = window.confirm(`Are you sure you want to delete the category "${categoryName}"?`);
       if (!confirmed) return;
 
       console.log('Attempting to delete category:', categoryId, categoryName);
 
-      // Call the DELETE endpoint
       const deleteRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/categories/${categoryId}`, {
         method: 'DELETE',
         headers: {
@@ -757,10 +629,8 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       console.log('Delete category response:', result);
 
       if (deleteRes.ok) {
-        // Remove category from local state
         setCategories(prev => prev.filter(cat => cat._id !== categoryId));
 
-        // Reset selected category if it was the deleted one
         if (selectedCategory === categoryName) {
           setSelectedCategory('Others');
           setCategory('Others');
@@ -775,123 +645,523 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
       alert('Failed to delete category. Please try again.');
     }
   };
+
   // Alert functions
   const handleAlertSelect = (alert) => {
     setAlertTime(alert);
-    setShowAlertPanel(false);
+    setActivePanel(null);
   };
 
   const handleCustomAlertSave = () => {
     if (customAlertText.trim()) {
       setAlertTime(customAlertText);
-      setShowCustomAlertPanel(false);
-      setShowAlertPanel(false);
+      setActivePanel(null);
     }
   };
 
-  // Notes/URL/Attachments Modal Component
-  const NotesModal = () => {
-    const notesRef = useRef(notes);
-    const urlRef = useRef(url);
-    const attachmentsRef = useRef(attachments);
+  // Notes/URL/Attachments Panel Component
+  // Notes Panel Component - Compact header with original input styling
+  const NotesPanel = () => {
+    const [tempNotes, setTempNotes] = useState(notes);
+    const [tempUrl, setTempUrl] = useState(url);
+    const [tempAttachments, setTempAttachments] = useState(attachments);
 
     const handleSaveNotes = () => {
-      setNotes(notesRef.current);
-      setUrl(urlRef.current);
-      setAttachments(attachmentsRef.current);
-      setShowNotesModal(false);
+      setNotes(tempNotes);
+      setUrl(tempUrl);
+      setAttachments(tempAttachments);
+      setActivePanel(null);
     };
 
     const handleCancel = () => {
-      notesRef.current = notes;
-      urlRef.current = url;
-      attachmentsRef.current = attachments;
-      setShowNotesModal(false);
+      setActivePanel(null);
     };
 
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-        <div className="bg-white rounded-[10px] w-full max-w-md p-6">
-          <div className="w-full h-full flex flex-col justify-start items-start gap-2.5">
-            <div className="self-stretch flex flex-col justify-start items-center gap-6">
-              <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                {/* Header */}
-                <div className="self-stretch justify-between items-center inline-flex">
-                  <div className="justify-center flex flex-col text-black text-[24px] font-dm-sans font-semibold leading-[26px] tracking-[0.30px]">
-                    Add Notes, URL, or Attachments
-                  </div>
-                </div>
-
-                <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                  {/* Notes Section */}
-                  <div className="w-full">
-                    <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-2">Add notes</div>
-                    <div className="flex items-center border-b-2 border-gray-300 px-2 py-3 focus-within:border-[#238D88]">
-                      <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      <input
-                        type="text"
-                        defaultValue={notes}
-                        onChange={(e) => notesRef.current = e.target.value}
-                        placeholder="Add notes"
-                        className="flex-1 focus:outline-none text-gray-700 placeholder-gray-400 bg-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  {/* URL Section */}
-                  <div className="w-full">
-                    <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-2">URL</div>
-                    <div className="flex items-center border-b-2 border-gray-300 px-2 py-3 focus-within:border-[#238D88]">
-                      <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                      </svg>
-                      <input
-                        type="url"
-                        defaultValue={url}
-                        onChange={(e) => urlRef.current = e.target.value}
-                        placeholder="Add URL"
-                        className="flex-1 focus:outline-none text-gray-700 placeholder-gray-400 bg-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Attachments Section */}
-                  <div className="w-full">
-                    <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-2">Attachments</div>
-                    <div className="flex items-center border-b-2 border-gray-300 px-2 py-3 focus-within:border-[#238D88]">
-                      <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                      </svg>
-                      <input
-                        type="text"
-                        defaultValue={attachments}
-                        onChange={(e) => attachmentsRef.current = e.target.value}
-                        placeholder="Add attachments"
-                        className="flex-1 focus:outline-none text-gray-700 placeholder-gray-400 bg-transparent"
-                      />
-                    </div>
-                  </div>
+      <div className="bg-white rounded-[10px] w-full h-full flex flex-col">
+        <div className="w-full h-full flex flex-col justify-start items-start gap-2 p-4">
+          <div className="self-stretch flex flex-col justify-start items-center gap-6">
+            <div className="self-stretch flex flex-col justify-start items-start gap-3">
+              {/* Header - Compact version */}
+              <div className="self-stretch justify-between items-center inline-flex">
+                <div className="justify-center flex flex-col text-black text-[22px] font-dm-sans font-semibold leading-[24px] tracking-[0.30px]">
+                  Add Notes, URL, or Attachments
                 </div>
               </div>
 
-              {/* Buttons */}
-              <div className="w-full flex justify-center gap-8 mt-2">
-                <button
-                  onClick={handleCancel}
-                  className="w-32 px-6 py-3 bg-white border border-gray-300 rounded text-[#444444] text-sm font-dm-sans font-normal leading-[26px] tracking-[0.3px] hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveNotes}
-                  className="w-32 px-6 py-3 bg-[#238D88] text-white rounded text-sm font-dm-sans font-semibold leading-[26px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors"
-                >
-                  Save
-                </button>
+              <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                {/* Notes Section - Original styling */}
+                <div className="w-full">
+                  <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-2">Add notes</div>
+                  <div className="flex items-center border-b-2 border-gray-300 px-2 py-3 focus-within:border-[#238D88]">
+                    <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={tempNotes}
+                      onChange={(e) => setTempNotes(e.target.value)}
+                      placeholder="Add notes"
+                      className="flex-1 focus:outline-none text-gray-700 placeholder-gray-400 bg-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* URL Section - Original styling */}
+                <div className="w-full">
+                  <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-2">URL</div>
+                  <div className="flex items-center border-b-2 border-gray-300 px-2 py-3 focus-within:border-[#238D88]">
+                    <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <input
+                      type="url"
+                      value={tempUrl}
+                      onChange={(e) => setTempUrl(e.target.value)}
+                      placeholder="Add URL"
+                      className="flex-1 focus:outline-none text-gray-700 placeholder-gray-400 bg-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Attachments Section - Original styling */}
+                <div className="w-full">
+                  <div className="text-[16px] font-dm-sans font-medium text-[#232527] mb-2">Attachments</div>
+                  <div className="flex items-center border-b-2 border-gray-300 px-2 py-3 focus-within:border-[#238D88]">
+                    <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={tempAttachments}
+                      onChange={(e) => setTempAttachments(e.target.value)}
+                      placeholder="Add attachments"
+                      className="flex-1 focus:outline-none text-gray-700 placeholder-gray-400 bg-transparent"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* Buttons - Matching Category Panel Style */}
+            <div className="w-full justify-center items-center gap-6 inline-flex">
+              <button
+                onClick={handleCancel}
+                className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveNotes}
+                className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Category Panel Component
+  const CategoryPanel = () => {
+    const [showAddCategory, setShowAddCategory] = useState(false);
+    const [localNewCategoryName, setLocalNewCategoryName] = useState('');
+    const addCategoryInputRef = useRef(null);
+
+    useEffect(() => {
+      if (showAddCategory && addCategoryInputRef.current) {
+        addCategoryInputRef.current.focus();
+      }
+    }, [showAddCategory]);
+
+    const handleAddCategoryClick = () => {
+      setShowAddCategory(true);
+      setLocalNewCategoryName('');
+    };
+
+    const handleSaveNewCategory = async () => {
+      if (!localNewCategoryName.trim()) {
+        alert('Please enter a category name');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem("accessToken");
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/categories`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ category: localNewCategoryName })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setCategories(prev => [...prev, data.category]);
+          setSelectedCategory(data.category.category);
+          setShowAddCategory(false);
+          setLocalNewCategoryName('');
+        } else {
+          const error = await res.json();
+          alert(error.message || 'Failed to add category');
+        }
+      } catch (error) {
+        console.error('Error adding category:', error);
+        alert('Failed to add category');
+      }
+    };
+
+    const handleCancelAddCategory = () => {
+      setShowAddCategory(false);
+      setLocalNewCategoryName('');
+    };
+
+    return (
+      <div className="bg-white rounded-[10px] w-full h-full flex flex-col">
+        <div className="w-full h-full flex flex-col justify-start items-start gap-2 p-4">
+          <div className="self-stretch flex flex-col justify-start items-center gap-6">
+            <div className="self-stretch flex flex-col justify-start items-start gap-3">
+              {/* Header */}
+              <div className="self-stretch justify-between items-center inline-flex">
+                <div className="text-black text-[22px] font-dm-sans font-semibold">
+                  Category Name
+                </div>
+                {!showAddCategory && (
+                  <button
+                    onClick={handleAddCategoryClick}
+                    className="w-40 h-8 px-4 bg-[#F3BE08] rounded-[5px] justify-center items-center gap-2.5 inline-flex"
+                  >
+                    <div className="text-black text-[14px] font-dm-sans font-normal">
+                      Add Category +
+                    </div>
+                  </button>
+                )}
+              </div>
+
+              {showAddCategory ? (
+                <div className="w-full p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Add New Category</div>
+                  <input
+                    ref={addCategoryInputRef}
+                    type="text"
+                    value={localNewCategoryName}
+                    onChange={(e) => setLocalNewCategoryName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSaveNewCategory();
+                      }
+                      if (e.key === 'Escape') {
+                        handleCancelAddCategory();
+                      }
+                    }}
+                    placeholder="Enter category name..."
+                    className="w-full border border-gray-300 rounded px-3 py-2 mb-2 text-[14px] focus:outline-none focus:border-[#238D88] text-gray-700 focus:ring-2 focus:ring-[#238D88] focus:ring-opacity-20 bg-white"
+                  />
+                  <p className="text-xs text-gray-500 mb-3">Suggestions: Medical, Stationary, etc.</p>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={handleCancelAddCategory}
+                      className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveNewCategory}
+                      className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold hover:bg-[#1d7470] transition-colors"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Category List */}
+                  <div className="w-full max-h-48 overflow-y-auto flex flex-col justify-start items-start gap-2">
+                    {categories.map(cat => (
+                      <div key={cat._id} className="w-full flex items-center justify-between gap-3 p-1.5 rounded transition-colors hover:bg-gray-100">
+                        <button
+                          onClick={() => handleCategorySelect(cat.category)}
+                          className="flex-1 flex items-center gap-3 text-left"
+                        >
+                          <div
+                            className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedCategory === cat.category
+                              ? 'border-[#F3BE08] bg-[#F3BE08]'
+                              : 'border-gray-300 bg-white'
+                              }`}
+                          >
+                            {selectedCategory === cat.category && (
+                              <div className="w-1.5 h-1.5 bg-[#F3BE08] rounded-full"></div>
+                            )}
+                          </div>
+                          <div className={`text-[14px] font-dm-sans font-normal ${selectedCategory === cat.category ? 'text-[#238D88] font-semibold' : 'text-black'
+                            }`}>
+                            {cat.category}
+                          </div>
+                        </button>
+
+                        {cat.createdBy && (
+                          <button
+                            onClick={() => handleDeleteCategory(cat._id, cat.category)}
+                            className="p-0.5 text-red-500 hover:text-red-700 transition-colors"
+                            title="Delete Category"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="w-full flex justify-center gap-6 mt-4">
+                    <button
+                      onClick={() => setActivePanel(null)}
+                      className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveCategory}
+                      className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold hover:bg-[#1d7470] transition-colors"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Date Picker Panel Component
+  const DatePickerPanel = () => {
+    return (
+      <div className="bg-white rounded-[10px] w-full h-full flex flex-col">
+        <div className="w-full flex flex-col justify-start items-start gap-2 p-4 h-full">
+          <h3 className="text-xl font-semibold text-[#232527] mb-2 text-center w-full">Date</h3>
+
+          {/* Compact Date Display Header */}
+          <div className="flex justify-between items-center mb-3 w-full">
+            <div className="w-40">
+              <div className="text-[12px] font-dm-sans font-medium text-black mb-1">Starts</div>
+              {startFormatted ? (
+                <div className="flex items-baseline gap-1">
+                  <div className="text-[28px] font-dm-sans font-bold text-black leading-[20px]">
+                    {startFormatted.day}
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="text-[12px] font-dm-sans font-normal text-black leading-tight">
+                      {startFormatted.month} {startFormatted.year}
+                    </div>
+                    <div className="text-[12px] font-dm-sans font-normal text-black leading-tight">
+                      {startFormatted.dayName}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-400 text-xs">Select start date</div>
+              )}
+            </div>
+
+            <div className="w-40">
+              <div className={`text-[12px] font-dm-sans font-medium ${endFormatted ? 'text-black' : 'text-[#A0A0A0]'} mb-1`}>
+                Ends
+              </div>
+              {endFormatted ? (
+                <div className="flex items-baseline gap-1">
+                  <div className={`text-[28px] font-dm-sans font-bold ${endFormatted ? 'text-black' : 'text-[#A0A0A0]'} leading-[20px]`}>
+                    {endFormatted.day}
+                  </div>
+                  <div className="flex flex-col">
+                    <div className={`text-[12px] font-dm-sans font-normal ${endFormatted ? 'text-black' : 'text-[#777777]'} leading-tight`}>
+                      {endFormatted.month} {endFormatted.year}
+                    </div>
+                    <div className={`text-[12px] font-dm-sans font-normal ${endFormatted ? 'text-black' : 'text-[#777777]'} leading-tight`}>
+                      {endFormatted.dayName}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-400 text-xs">Select end date</div>
+              )}
+            </div>
+          </div>
+
+          {/* Compact Calendar - Fixed Height */}
+          <div className="w-full flex-1 min-h-0">
+            <div className="border border-[#A0A0A0] rounded-lg p-3 w-full h-full">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[14px] font-dm-sans font-semibold text-[#202020]">
+                  {currentMonth.toLocaleString('en-US', { month: 'long', year: 'numeric' })}
+                </div>
+                <div className="flex gap-1">
+                  <button onClick={handlePrevMonth} className="p-1 hover:bg-gray-100 rounded">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M15 19L8 12L15 5" stroke="#444444" strokeWidth="2" />
+                    </svg>
+                  </button>
+                  <button onClick={handleNextMonth} className="p-1 hover:bg-gray-100 rounded">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 5L16 12L9 19" stroke="#444444" strokeWidth="2" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Weekday Headers */}
+              <div className="grid grid-cols-7 gap-1 mb-1">
+                {['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'].map((day) => (
+                  <div key={day} className="text-center text-[11px] font-dm-sans font-normal text-[#C1C1C1] py-1">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar Days - Compact */}
+              <div className="grid grid-cols-7 gap-1 min-h-[120px]">
+                {calendarDays.map((day, index) => (
+                  <div key={index} className="flex items-center justify-center min-h-[18px]">
+                    <button
+                      onClick={() => handleDayClick(day)}
+                      disabled={!day}
+                      className={`
+                      w-6 h-6 text-[11px] font-dm-sans font-semibold rounded transition-all flex items-center justify-center
+                      ${!day ? 'invisible' : ''}
+                      ${isStartDate(day) || isEndDate(day) ? 'bg-[#F3BE08] text-black' : ''}
+                      ${isDaySelected(day) && !isStartDate(day) && !isEndDate(day) ? 'bg-[#F3BE08] bg-opacity-30' : ''}
+                      ${!isDaySelected(day) ? 'hover:bg-gray-100 text-[#202020]' : ''}
+                    `}
+                    >
+                      {day}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-center gap-6 w-full mt-3">
+            <button
+              onClick={() => setActivePanel(null)}
+              className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveDate}
+              className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Alert Panel Component
+  const AlertPanel = () => {
+    const [showCustomAlert, setShowCustomAlert] = useState(false);
+    const [localCustomAlertText, setLocalCustomAlertText] = useState('');
+
+    const handleCustomAlertSave = () => {
+      if (localCustomAlertText.trim()) {
+        setAlertTime(localCustomAlertText);
+        setActivePanel(null);
+      }
+    };
+
+    if (showCustomAlert) {
+      return (
+        <div className="bg-white rounded-[10px] w-full h-full flex flex-col">
+          <div className="w-full h-full flex flex-col justify-start items-start gap-2 p-4">
+            <h3 className="text-xl font-bold text-black text-center mb-2 w-full">Customize your alert</h3>
+            <p className="text-center text-gray-600 text-[14px] mb-3 w-full">
+              Write your own custom alert date for getting reminder for this item!
+            </p>
+            <div className="mb-4 w-full">
+              <label className="block text-gray-700 text-[14px] mb-1">Alert</label>
+              <input
+                type="text"
+                value={localCustomAlertText}
+                onChange={e => setLocalCustomAlertText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCustomAlertSave();
+                  }
+                }}
+                placeholder="Ex: before 5 days"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#238D88] text-gray-700"
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-center gap-2 w-full">
+              <button
+                onClick={() => {
+                  setShowCustomAlert(false);
+                  setLocalCustomAlertText('');
+                }}
+                className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCustomAlertSave}
+                className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold hover:bg-[#1d7470] transition-colors"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-white rounded-[10px] w-full h-full flex flex-col">
+        <div className="w-full h-full flex flex-col justify-start items-start gap-2 p-4">
+          <div className="flex justify-between items-center mb-3 w-full">
+            <h3 className="text-lg font-semibold text-gray-800">Select Alert Time</h3>
+            <button
+              onClick={() => setShowCustomAlert(true)}
+              className="px-2 py-1 bg-[#F3BE08] text-black rounded text-[12px] font-medium hover:bg-amber-500 transition-colors"
+            >
+              Custom +
+            </button>
+          </div>
+          <div className="space-y-1 mb-3 w-full">
+            {ALERT_OPTIONS.map(option => (
+              <button
+                key={option}
+                onClick={() => handleAlertSelect(option)}
+                className="w-full px-3 py-2 text-left hover:bg-[#238D88] hover:text-white transition-colors rounded-lg text-[14px]"
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          <div className="flex justify-end gap-2 w-full">
+            <button
+              onClick={() => setActivePanel(null)}
+              className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => setActivePanel(null)}
+              className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold hover:bg-[#1d7470] transition-colors"
+            >
+              Save
+            </button>
           </div>
         </div>
       </div>
@@ -1024,7 +1294,7 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
     }
   }
 
-  // Delete event function - UPDATED: Only trash icon
+  // Delete event function
   async function handleDelete() {
     if (!initialData?._id) {
       window.alert('No event to delete.');
@@ -1111,430 +1381,250 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      {/* Main Modal Container  */}
+      {/* Main Modal Container */}
       <div className="bg-white rounded-[10px] w-[606px]">
         <div className="w-full bg-white flex flex-col justify-start items-start gap-2.5 p-6">
-          <div className="self-stretch flex flex-col justify-start items-center gap-4"> 
-            <div className="self-stretch flex flex-col justify-start items-start gap-4"> 
+          <div className="self-stretch flex flex-col justify-start items-center gap-4">
+            <div className="self-stretch flex flex-col justify-start items-start gap-4">
 
-              {/* Title Section with Trash Icon for Edit Mode */}
-              <div className="justify-between items-center gap-4 inline-flex w-full"> 
-                <div className="flex items-center gap-4"> 
-                  {/* Show circle only when NOT "All Children" */}
-                  {selectedChild !== 'All' && selectedChildData && (
-                    <div className="w-10 h-10 bg-zinc-300 rounded-full overflow-hidden flex-shrink-0"> 
-                      <ChildAvatar child={selectedChildData} width={40} height={40} /> 
+              {/* Show event title and basic info when panel is active */}
+              {activePanel && (
+                <div className="w-full mb-4">
+                  <div className="flex items-center gap-4">
+                    {selectedChild !== 'All' && selectedChildData && (
+                      <div className="w-10 h-10 bg-zinc-300 rounded-full overflow-hidden flex-shrink-0">
+                        <ChildAvatar child={selectedChildData} width={40} height={40} />
+                      </div>
+                    )}
+                    <div className="relative flex-1">
+                      <div className="text-[28px] font-poppins font-semibold leading-[24px] tracking-[0.30px] text-[#232527]">
+                        {title || 'New Event'}
+                      </div>
                     </div>
-                  )}
-                  {/* Don't show circle when "All Children" is selected */}
-                  <div className="relative flex-1">
-                    <input
-                      type="text"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Enter Event Title"
-                      className="w-full bg-transparent border-none outline-none text-[28px] font-poppins font-semibold leading-[24px] tracking-[0.30px] placeholder-[#A0A0A0] text-[#232527] focus:outline-none focus:border-none p-0"
-                      style={{
-                        minHeight: '32px' // Reduced from 40px
-                      }}
-                    />
-                    {!title && (
-                      <div className="absolute inset-0 pointer-events-none text-[#A0A0A0] text-[28px] font-poppins font-semibold leading-[24px] tracking-[0.30px]">
+                  </div>
+                  <div className="mt-2 text-sm text-gray-600">
+                    Creating event for: {getSelectedChildName()}
+                  </div>
+                </div>
+              )}
+
+              {/* Main content based on active panel */}
+              {activePanel === 'category' ? (
+                <CategoryPanel />
+              ) : activePanel === 'date' ? (
+                <DatePickerPanel />
+              ) : activePanel === 'time' ? (
+                <TimePicker />
+              ) : activePanel === 'alert' ? (
+                <AlertPanel />
+              ) : activePanel === 'notes' ? (
+                <NotesPanel />
+              ) : (
+                // Default main form
+                <>
+                  {/* Title Section with Trash Icon for Edit Mode */}
+                  <div className="justify-between items-center gap-4 inline-flex w-full">
+                    <div className="flex items-center gap-4">
+                      {/* Show circle only when NOT "All Children" */}
+                      {selectedChild !== 'All' && selectedChildData && (
+                        <div className="w-10 h-10 bg-zinc-300 rounded-full overflow-hidden flex-shrink-0">
+                          <ChildAvatar child={selectedChildData} width={40} height={40} />
+                        </div>
+                      )}
+                      {/* Don't show circle when "All Children" is selected */}
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
+                          placeholder="Enter Event Title"
+                          className="w-full bg-transparent border-none outline-none text-[28px] font-poppins font-semibold leading-[24px] tracking-[0.30px] placeholder-[#A0A0A0] text-[#232527] focus:outline-none focus:border-none p-0"
+                          style={{
+                            minHeight: '32px'
+                          }}
+                        />
+                        {!title && (
+                          <div className="absolute inset-0 pointer-events-none text-[#A0A0A0] text-[28px] font-poppins font-semibold leading-[24px] tracking-[0.30px]">
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Trash Icon - Only show in Edit mode */}
+                    {initialData && (
+                      <div className="relative group">
+                        <button
+                          onClick={handleDelete}
+                          disabled={deleting}
+                          className="flex items-center gap-2 p-1 text-red-600 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Delete Event"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </div>
                     )}
                   </div>
-                </div>
 
-                {/* Trash Icon - Only show in Edit mode */}
-                {initialData && (
-                  <div className="relative group">
+                  {/* Category Section */}
+                  <div className="self-stretch flex flex-col justify-start items-start gap-1">
+                    <div className="self-stretch justify-center flex flex-col text-black text-[18px] font-dm-sans font-semibold leading-[22px] tracking-[0.30px]">
+                      Category
+                    </div>
+                    <div className="relative">
+                      <button
+                        onClick={() => setActivePanel('category')}
+                        className="w-48 h-9 px-4 bg-[#F3BE08] rounded-[6px] justify-between items-center inline-flex text-black text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px] hover:bg-[#e0ab07] transition-colors border border-gray-300"
+                      >
+                        <span>{category || 'Select Category'}</span>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Select Children Section */}
+                  <div className="self-stretch flex flex-col justify-start items-start gap-1">
+                    <div className="self-stretch justify-center flex flex-col text-black text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px]">
+                      Select the child that will be assigned to the event
+                    </div>
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowChildrenDropdown(!showChildrenDropdown)}
+                        className="w-48 h-9 bg-[#238D88] border border-gray-300 rounded-lg px-4 py-2 text-left focus:outline-none focus:border-[#238D88] text-white flex justify-between items-center"
+                      >
+                        <div className="flex items-center gap-2">
+                          {selectedChild !== 'All' ? (
+                            <>
+                              <ChildAvatar
+                                child={childrenList.find(c => c._id === selectedChild)}
+                                width={20}
+                                height={20}
+                              />
+                              <span className="text-white text-[14px]">
+                                {getSelectedChildName()}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-white text-[14px]">
+                              {getSelectedChildName()}
+                            </span>
+                          )}
+                        </div>
+
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {showChildrenDropdown && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                          <button
+                            onClick={() => {
+                              setSelectedChild('All');
+                              setShowChildrenDropdown(false);
+                            }}
+                            className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors text-[14px] ${selectedChild === 'All' ? 'bg-[#238D88] text-white' : 'text-gray-700'}`}
+                          >
+                            <span>All Children</span>
+                          </button>
+
+                          {childrenList.map(child => (
+                            <button
+                              key={child._id}
+                              onClick={() => {
+                                setSelectedChild(child._id);
+                                setShowChildrenDropdown(false);
+                              }}
+                              className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors text-[14px] ${selectedChild === child._id ? 'bg-[#238D88] text-white' : 'text-gray-700'}`}
+                            >
+                              <ChildAvatar child={child} width={20} height={20} />
+                              <span>{child.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="self-stretch h-0 outline outline-1 outline-[#BFBFBF] outline-offset-[-1px]"></div>
+
+                  {/* Date and Time Section */}
+                  <div className="w-full flex flex-col justify-start items-start gap-1">
+                    <div className="self-stretch justify-center flex flex-col text-black text-[18px] font-dm-sans font-semibold leading-[22px] tracking-[0.30px]">
+                      Date and Time
+                    </div>
+                    <div className="w-full flex flex-col justify-start items-start gap-1">
+                      {/* Date Button */}
+                      <button
+                        onClick={() => setActivePanel('date')}
+                        className="w-full max-w-md justify-center flex flex-col text-[#777777] text-[14px] font-dm-sans font-medium leading-[20px] tracking-[0.30px] hover:text-black transition-colors text-left py-1"
+                      >
+                        {getDateDisplayText() || 'Enter Date'}
+                      </button>
+                      {/* Time Button */}
+                      <button
+                        onClick={() => setActivePanel('time')}
+                        className="w-full max-w-md justify-center flex flex-col text-[#777777] text-[14px] font-dm-sans font-medium leading-[20px] tracking-[0.30px] hover:text-black transition-colors text-left py-1"
+                      >
+                        {getTimeDisplayText() || 'Time Setting'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Alert Section */}
+                  <div className="self-stretch flex flex-col justify-start items-start gap-1">
+                    <div className="self-stretch justify-center flex flex-col text-black text-[18px] font-dm-sans font-semibold leading-[22px] tracking-[0.30px]">
+                      Alert
+                    </div>
                     <button
-                      onClick={handleDelete}
-                      disabled={deleting}
-                      className="flex items-center gap-2 p-1 text-red-600 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" // Reduced padding
-                      title="Delete Event"
+                      onClick={() => setActivePanel('alert')}
+                      className="self-stretch px-2 py-1.5 rounded border border-[#BFBFBF] justify-between items-start inline-flex hover:bg-gray-50 transition-colors"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> {/* Reduced from w-6 h-6 */}
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <div className="justify-center flex flex-col text-black text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px]">
+                        {alertTime}
+                      </div>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
                   </div>
-                )}
-              </div>
 
-              {/* Category Section */}
-              <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                <div className="self-stretch justify-center flex flex-col text-black text-[18px] font-dm-sans font-semibold leading-[22px] tracking-[0.30px]"> {/* Reduced text size */}
-                  Category
-                </div>
-                <div className="relative">
-                  <button
-                    onClick={() => setShowCategoryPanel(true)}
-                    className="w-48 h-9 px-4 bg-[#F3BE08] rounded-[6px] justify-between items-center inline-flex text-black text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px] hover:bg-[#e0ab07] transition-colors border border-gray-300" // Reduced height and text size
-                  >
-                    <span>{category || 'Select Category'}</span>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"> {/* Reduced icon size */}
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Select Children Section */}
-              <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                <div className="self-stretch justify-center flex flex-col text-black text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px]"> {/* Reduced text size */}
-                  Select the child that will be assigned to the event
-                </div>
-                <div className="relative">
-                  <button
-                    onClick={() => setShowChildrenDropdown(!showChildrenDropdown)}
-                    className="w-48 h-9 bg-[#238D88] border border-gray-300 rounded-lg px-4 py-2 text-left focus:outline-none focus:border-[#238D88] text-white flex justify-between items-center" // Reduced height
-                  >
-                    <div className="flex items-center gap-2">
-                      {selectedChild !== 'All' ? (
-                        <>
-                          <ChildAvatar
-                            child={childrenList.find(c => c._id === selectedChild)}
-                            width={20}
-                            height={20} // Reduced from 24
-                          />
-                          <span className="text-white text-[14px]"> {/* Reduced text size */}
-                            {getSelectedChildName()}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-white text-[14px]"> {/* Reduced text size */}
-                          {getSelectedChildName()}
-                        </span>
-                      )}
-                    </div>
-
-                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"> {/* Reduced icon size */}
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {showChildrenDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto"> {/* Reduced max height */}
-                      <button
-                        onClick={() => {
-                          setSelectedChild('All');
-                          setShowChildrenDropdown(false);
-                        }}
-                        className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors text-[14px] ${selectedChild === 'All' ? 'bg-[#238D88] text-white' : 'text-gray-700'}`} // Reduced padding and text size
-                      >
-                        <span>All Children</span>
-                      </button>
-
-                      {childrenList.map(child => (
-                        <button
-                          key={child._id}
-                          onClick={() => {
-                            setSelectedChild(child._id);
-                            setShowChildrenDropdown(false);
-                          }}
-                          className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors text-[14px] ${selectedChild === child._id ? 'bg-[#238D88] text-white' : 'text-gray-700'}`} // Reduced padding and text size
-                        >
-                          <ChildAvatar child={child} width={20} height={20} /> {/* Reduced from 24 */}
-                          <span>{child.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="self-stretch h-0 outline outline-1 outline-[#BFBFBF] outline-offset-[-1px]"></div> {/* Reduced outline from 2 to 1 */}
-
-              {/* Date and Time Section */}
-              <div className="w-full flex flex-col justify-start items-start gap-1">
-                <div className="self-stretch justify-center flex flex-col text-black text-[18px] font-dm-sans font-semibold leading-[22px] tracking-[0.30px]"> 
-                  Date and Time
-                </div>
-                <div className="w-full flex flex-col justify-start items-start gap-1"> {/* Reduced gap from gap-2 to gap-1 */}
-                  {/* Date Button */}
-                  <button
-                    onClick={() => setShowDatePicker(true)}
-                    className="w-full max-w-md justify-center flex flex-col text-[#777777] text-[14px] font-dm-sans font-medium leading-[20px] tracking-[0.30px] hover:text-black transition-colors text-left py-1" 
-                  >
-                    {getDateDisplayText() || 'Enter Date'}
-                  </button>
-                  {/* Time Button */}
-                  <button
-                    onClick={() => setShowTimePicker(true)}
-                    className="w-full max-w-md justify-center flex flex-col text-[#777777] text-[14px] font-dm-sans font-medium leading-[20px] tracking-[0.30px] hover:text-black transition-colors text-left py-1" 
-                  >
-                    {getTimeDisplayText() || 'Time Setting'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Alert Section */}
-              <div className="self-stretch flex flex-col justify-start items-start gap-1">
-                <div className="self-stretch justify-center flex flex-col text-black text-[18px] font-dm-sans font-semibold leading-[22px] tracking-[0.30px]"> 
-                  Alert
-                </div>
-                <button
-                  onClick={() => setShowAlertPanel(true)}
-                  className="self-stretch px-2 py-1.5 rounded border border-[#BFBFBF] justify-between items-start inline-flex hover:bg-gray-50 transition-colors"
-                >
-                  <div className="justify-center flex flex-col text-black text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px]"> 
-                    {alertTime}
+                  {/* Add Notes, URL or Attachments Link */}
+                  <div className="mt-2">
+                    <button
+                      onClick={() => setActivePanel('notes')}
+                      className="self-stretch justify-center flex flex-col text-black text-[14px] font-dm-sans font-semibold underline leading-[20px] tracking-[0.30px] hover:text-[#238D88] transition-colors text-left"
+                    >
+                      Add Notes, URL, or Attachments
+                    </button>
                   </div>
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-              </div>
 
-              {/* Add Notes, URL or Attachments Link */}
-              <div className="mt-2"> {/* Reduced margin from mt-4 to mt-2 */}
-                <button
-                  onClick={() => setShowNotesModal(true)}
-                  className="self-stretch justify-center flex flex-col text-black text-[14px] font-dm-sans font-semibold underline leading-[20px] tracking-[0.30px] hover:text-[#238D88] transition-colors text-left" // Reduced text size
-                >
-                  Add Notes, URL, or Attachments
-                </button>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="w-full flex justify-center gap-6 mt-2"> {/* Reduced gap from gap-8 to gap-6 and margin from mt-4 to mt-2 */}
-              <button
-                onClick={onClose}
-                disabled={saving || deleting}
-                className="w-24 px-4 py-1.5 bg-white border border-gray-300 rounded-[5px] text-[#444444] text-[12px] font-dm-sans font-normal leading-[18px] tracking-[0.3px] hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" // Reduced padding and text size
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving || deleting}
-                className="px-4 py-1.5 bg-[#238D88] text-white rounded-[5px] hover:bg-[#1d7470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-[12px] font-dm-sans font-semibold leading-[18px] tracking-[0.3px]" // Reduced padding and text size
-              >
-                {saving ? 'Saving...' : (initialData ? 'Update' : 'Confirm')}
-              </button>
+                  {/* Action Buttons */}
+                  <div className="w-full flex justify-center gap-6 mt-2">
+                    <button
+                      onClick={onClose}
+                      disabled={saving || deleting}
+                      className="w-24 px-4 py-1.5 bg-white border border-gray-300 rounded-[5px] text-[#444444] text-[12px] font-dm-sans font-normal leading-[18px] tracking-[0.3px] hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={saving || deleting}
+                      className="px-4 py-1.5 bg-[#238D88] text-white rounded-[5px] hover:bg-[#1d7470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-[12px] font-dm-sans font-semibold leading-[18px] tracking-[0.3px]"
+                    >
+                      {saving ? 'Saving...' : (initialData ? 'Update' : 'Confirm')}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
-
-      {/* All other modal components (Category Panel, Add Category Panel, Alert Panel, etc.) remain the same */}
-      {showCategoryPanel && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-          <div className="bg-white rounded-[10px] w-[450px] p-4"> {/* Reduced width from w-[500px] to w-[450px] and padding from p-6 to p-4 */}
-            <div className="w-full h-full flex flex-col justify-start items-start gap-2">
-              <div className="self-stretch flex flex-col justify-start items-center gap-6">
-                <div className="self-stretch flex flex-col justify-start items-start gap-3">
-                  {/* Header with increased width for label */}
-                  <div className="self-stretch justify-between items-center inline-flex">
-                    <div className="justify-center flex flex-col text-black text-[22px] font-dm-sans font-semibold leading-[24px] tracking-[0.30px] w-48"> {/* Reduced text size and width */}
-                      Category Name
-                    </div>
-                    <button
-                      onClick={() => {
-                        setShowCategoryPanel(false);
-                        setShowAddCategoryPanel(true);
-                      }}
-                      className="w-40 h-8 px-4 bg-[#F3BE08] rounded-[5px] justify-center items-center gap-2.5 inline-flex" /* Reduced size */
-                    >
-                      <div className="justify-center flex flex-col text-black text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px]"> {/* Reduced text size */}
-                        Add Category +
-                      </div>
-                    </button>
-                  </div>
-
-                  {/* Category List - UPDATED: Added delete icons */}
-                  <div className="w-full max-h-48 overflow-y-auto flex flex-col justify-start items-start gap-2"> {/* Reduced max-height and gap */}
-                    {categories.map(cat => (
-                      <div key={cat._id} className="w-full flex items-center justify-between gap-3 p-1.5 rounded transition-colors hover:bg-gray-100"> {/* Reduced gap and padding */}
-                        <button
-                          onClick={() => handleCategorySelect(cat.category)}
-                          className="flex-1 flex items-center gap-3" /* Reduced gap */
-                        >
-                          <div
-                            className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedCategory === cat.category
-                              ? 'border-[#F3BE08] bg-[#F3BE08]'
-                              : 'border-gray-300 bg-white'
-                              }`} /* Reduced size */
-                          >
-                            {selectedCategory === cat.category && (
-                              <div className="w-1.5 h-1.5 bg-[#F3BE08] rounded-full"></div> /* Reduced size */
-                            )}
-                          </div>
-                          <div className={`justify-center flex flex-col text-[14px] font-dm-sans font-normal leading-[20px] tracking-[0.30px] ${selectedCategory === cat.category ? 'text-[#238D88] font-semibold' : 'text-black'
-                            }`}>
-                            {cat.category}
-                          </div>
-                        </button>
-
-                        {/* Delete Icon - Only show for user-created categories */}
-                        {cat.createdBy && (
-                          <button
-                            onClick={() => handleDeleteCategory(cat._id, cat.category)}
-                            className="p-0.5 text-red-500 hover:text-red-700 transition-colors" /* Reduced padding */
-                            title="Delete Category"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Action Buttons with increased width */}
-                <div className="w-full justify-center items-center gap-6 inline-flex">
-                  <button
-                    onClick={() => setShowCategoryPanel(false)}
-                    className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors" /* Reduced size */
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveCategory}
-                    className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors" /* Reduced size */
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Category Panel */}
-      {showAddCategoryPanel && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-          <div className="bg-white rounded-lg w-[350px] p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Add New Category</h3>
-            <input
-              type="text"
-              value={newCategoryName}
-              onChange={e => setNewCategoryName(e.target.value)}
-              placeholder="Add New Category"
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-2 text-[14px] focus:outline-none focus:border-[#238D88] text-gray-700" /* Reduced text size */
-            />
-            <p className="text-sm text-gray-500 mb-3">Suggestions: Medical, Stationary, etc.</p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setShowAddCategoryPanel(false);
-                  setNewCategoryName('');
-                }}
-                className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors" /* Reduced size */
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddCategory}
-                className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors" /* Reduced size */
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Alert Panel */}
-      {showAlertPanel && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-          <div className="bg-white rounded-lg w-[350px] p-4"> 
-            <div className="flex justify-between items-center mb-3"> 
-              <h3 className="text-lg font-semibold text-gray-800">Select Alert Time</h3> 
-              <button
-                onClick={() => {
-                  setShowAlertPanel(false);
-                  setShowCustomAlertPanel(true);
-                }}
-                className="px-2 py-1 bg-[#F3BE08] text-black rounded text-[12px] font-medium hover:bg-amber-500 transition-colors" /* Reduced padding and text size */
-              >
-                Custom +
-              </button>
-            </div>
-            <div className="space-y-1 mb-3"> 
-              {ALERT_OPTIONS.map(option => (
-                <button
-                  key={option}
-                  onClick={() => handleAlertSelect(option)}
-                  className="w-full px-3 py-2 text-left hover:bg-[#238D88] hover:text-white transition-colors rounded-lg text-[14px]" /* Reduced padding and text size */
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-            <div className="flex justify-end gap-2"> {/* Reduced gap */}
-              <button
-                onClick={() => setShowAlertPanel(false)}
-                className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors" /* Reduced size */
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => setShowAlertPanel(false)}
-                className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors" /* Reduced size */
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-
-
-
-      {/* Custom Alert Panel */}
-      {showCustomAlertPanel && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-          <div className="bg-white rounded-lg w-[350px] p-4"> {/* Reduced width and padding */}
-            <h3 className="text-xl font-bold text-black text-center mb-2">Customize your alert</h3> {/* Reduced text size */}
-            <p className="text-center text-gray-600 text-[14px] mb-3"> {/* Reduced text size and margin */}
-              Write your own custom alert date for getting reminder for this item!
-            </p>
-            <div className="mb-4"> {/* Reduced margin */}
-              <label className="block text-gray-700 text-[14px] mb-1">Alert</label> {/* Reduced text size */}
-              <input
-                type="text"
-                value={customAlertText}
-                onChange={e => setCustomAlertText(e.target.value)}
-                placeholder="Ex: before 5 days"
-                className="w-full border border-gray-300 rounded px-3 py-2 text-[14px] focus:outline-none focus:border-[#238D88] text-gray-700" /* Reduced text size */
-              />
-            </div>
-            <div className="flex justify-center gap-2"> {/* Reduced gap */}
-              <button
-                onClick={() => {
-                  setShowCustomAlertPanel(false);
-                  setCustomAlertText('');
-                }}
-                className="w-28 px-4 py-2 bg-white border border-gray-300 rounded text-[#444444] text-[12px] font-dm-sans font-normal leading-[20px] tracking-[0.3px] hover:bg-gray-50 transition-colors" /* Reduced size */
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCustomAlertSave}
-                className="w-28 px-4 py-2 bg-[#238D88] text-white rounded text-[12px] font-dm-sans font-semibold leading-[20px] tracking-[0.3px] hover:bg-[#1d7470] transition-colors" /* Reduced size */
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Date Picker Modal */}
-      {showDatePicker && <DatePickerModal />}
-
-      {/* Time Picker Modal */}
-      {showTimePicker && <TimePicker />}
-
-      {/* Notes/URL/Attachments Modal */}
-      {showNotesModal && <NotesModal />}
     </div>
   );
 }
@@ -1545,7 +1635,6 @@ function formatForInput(isoOrDate) {
   const pad = n => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-
 
 
 
