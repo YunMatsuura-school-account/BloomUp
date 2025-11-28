@@ -69,22 +69,43 @@ export const ChildProvider = ({ children: reactChildren }) => {
           if (childrenRes.ok) {
             const childrenData = await childrenRes.json();
             setChildren(childrenData);
-            
+
             // Try to restore previously selected child from localStorage
             const savedChildId = getSavedChildId();
             if (savedChildId && childrenData.length > 0) {
-              const savedChild = childrenData.find(c => c._id === savedChildId);
-              if (savedChild) {
-                setSelectedChild(savedChild);
+              // "all" means show all children
+              if (savedChildId === "all") {
+                setSelectedChild(null);
               } else {
-                // Saved child not found, select first child
+                const savedChild = childrenData.find(
+                  (c) => c._id === savedChildId
+                );
+                if (savedChild) {
+                  setSelectedChild(savedChild);
+                } else {
+                  // Saved child not found, default based on children count
+                  if (childrenData.length > 1) {
+                    // More than one child: default to "All"
+                    setSelectedChild(null);
+                    saveChildId("all");
+                  } else {
+                    // Only one child: select it
+                    setSelectedChild(childrenData[0]);
+                    saveChildId(childrenData[0]._id);
+                  }
+                }
+              }
+            } else if (childrenData.length > 0) {
+              // No saved child - default based on children count
+              if (childrenData.length > 1) {
+                // More than one child: default to "All"
+                setSelectedChild(null);
+                saveChildId("all");
+              } else {
+                // Only one child: select it
                 setSelectedChild(childrenData[0]);
                 saveChildId(childrenData[0]._id);
               }
-            } else if (childrenData.length > 0) {
-              // No saved child, select first child by default
-              setSelectedChild(childrenData[0]);
-              saveChildId(childrenData[0]._id);
             }
           }
         }
@@ -102,7 +123,8 @@ export const ChildProvider = ({ children: reactChildren }) => {
     console.log("ChildContext - selectChild called with:", child);
     setSelectedChild(child);
     // Save to localStorage so it persists across page navigation
-    saveChildId(child?._id || null);
+    // Use "all" for null (All children selected)
+    saveChildId(child?._id || "all");
     console.log("ChildContext - selectedChild updated");
   };
 

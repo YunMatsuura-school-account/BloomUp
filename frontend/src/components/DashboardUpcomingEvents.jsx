@@ -1,6 +1,22 @@
 import { useEffect, useState } from "react";
 import ChildAvatar from "./ChildAvatar";
 import { useChild } from "../contexts/ChildContext";
+import Loader from "./Loader";
+
+// "All" avatar component - matches the sidebar "All" button style
+const AllChildrenAvatar = ({ width = 48, height = 48 }) => (
+  <div
+    className="rounded-full flex items-center justify-center text-white font-bold"
+    style={{
+      width: `${width}px`,
+      height: `${height}px`,
+      backgroundColor: "#238D88",
+      fontSize: `${Math.floor(width / 3)}px`,
+    }}
+  >
+    All
+  </div>
+);
 
 const CalendarIcon = ({ className = "w-7 h-7" }) => (
   <svg
@@ -30,7 +46,7 @@ const DashboardUpcomingEvents = ({
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
-  const { user } = useChild();
+  const { user, children } = useChild();
 
   const fetchUpcomingEvents = async () => {
     try {
@@ -53,6 +69,7 @@ const DashboardUpcomingEvents = ({
       const params = new URLSearchParams();
       params.set("start", start);
       params.set("end", end);
+      // Only filter by child if a specific child is selected (not "All")
       if (selectedChild?._id) {
         params.set("child", selectedChild._id);
       }
@@ -76,16 +93,26 @@ const DashboardUpcomingEvents = ({
         );
       }
 
+      // Map calendar events and attach child info if available
       const calendarEvents = (json.events || [])
         .filter((e) => e?.startDate && new Date(e.startDate) >= now)
-        .map((e) => ({
-          ...e,
-          eventType: "calendar",
-        }));
+        .map((e) => {
+          // Find the child associated with this event
+          const eventChild = e.child
+            ? children.find((c) => c._id === e.child || c._id === e.child._id)
+            : null;
+          return {
+            ...e,
+            eventType: "calendar",
+            childData: eventChild || null,
+          };
+        });
 
-      // Fetch vaccination recommendations if child is selected
+      // Fetch vaccination recommendations
       let vaccinationEvents = [];
+
       if (selectedChild?._id && user?.id) {
+        // Single child selected - fetch vaccinations for that child
         try {
           const vaccUrl = `${base}/api/users/${user.id}/children/${
             selectedChild._id
@@ -101,28 +128,69 @@ const DashboardUpcomingEvents = ({
 
           if (vaccRes.ok) {
             const vaccData = await vaccRes.json();
-            // Get all upcoming vaccinations (no 30-day limit for vaccinations)
             vaccinationEvents = (vaccData?.recommendations || [])
               .filter((r) => {
                 if (!r?.recommendedDate) return false;
                 const vaccDate = new Date(r.recommendedDate);
                 vaccDate.setHours(0, 0, 0, 0);
-                // Only show future vaccinations
                 return vaccDate >= now;
               })
               .map((r) => ({
-                _id: `vacc-${r.name}-${r.recommendedDate}`,
+                _id: `vacc-${selectedChild._id}-${r.name}-${r.recommendedDate}`,
                 title: `${r.name} vaccination`,
                 startDate: r.recommendedDate,
                 notes:
                   r.description ||
                   `Recommended vaccination for ${selectedChild.name}`,
                 eventType: "vaccination",
-                color: "#006F69",
+                color: selectedChild.backgroundColor || "#006F69",
+                childData: selectedChild,
               }));
           }
         } catch (e) {
           console.error("Error fetching vaccinations:", e);
+        }
+      } else if (!selectedChild && user?.id && children.length > 0) {
+        // "All" children selected - fetch vaccinations for all children
+        for (const child of children) {
+          try {
+            const vaccUrl = `${base}/api/users/${user.id}/children/${
+              child._id
+            }/vaccinations/recommendations${
+              child.dateOfBirth
+                ? `?birthDate=${encodeURIComponent(child.dateOfBirth)}`
+                : ""
+            }`;
+
+            const vaccRes = await fetch(vaccUrl, {
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+
+            if (vaccRes.ok) {
+              const vaccData = await vaccRes.json();
+              const childVaccinations = (vaccData?.recommendations || [])
+                .filter((r) => {
+                  if (!r?.recommendedDate) return false;
+                  const vaccDate = new Date(r.recommendedDate);
+                  vaccDate.setHours(0, 0, 0, 0);
+                  return vaccDate >= now;
+                })
+                .map((r) => ({
+                  _id: `vacc-${child._id}-${r.name}-${r.recommendedDate}`,
+                  title: `${r.name} vaccination`,
+                  startDate: r.recommendedDate,
+                  notes:
+                    r.description ||
+                    `Recommended vaccination for ${child.name}`,
+                  eventType: "vaccination",
+                  color: child.backgroundColor || "#006F69",
+                  childData: child,
+                }));
+              vaccinationEvents = [...vaccinationEvents, ...childVaccinations];
+            }
+          } catch (e) {
+            console.error(`Error fetching vaccinations for ${child.name}:`, e);
+          }
         }
       }
 
@@ -143,7 +211,7 @@ const DashboardUpcomingEvents = ({
   useEffect(() => {
     fetchUpcomingEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedChild?._id, refreshTrigger, user?.id]);
+  }, [selectedChild?._id, refreshTrigger, user?.id, children.length]);
 
   const getDateSegments = (startDateString, endDateString) => {
     if (!startDateString) return null;
@@ -192,7 +260,9 @@ const DashboardUpcomingEvents = ({
   };
 
   const getTitleParts = (event) => {
-    const childName = selectedChild?.name?.trim();
+    // Use childData from event if available (for "All" mode), otherwise use selectedChild
+    const eventChild = event.childData || selectedChild;
+    const childName = eventChild?.name?.trim();
     const title = event.title || "Event";
 
     if (childName) {
@@ -212,6 +282,11 @@ const DashboardUpcomingEvents = ({
     };
   };
 
+  // Get the child to display for an event (from event data or selectedChild)
+  const getEventChild = (event) => {
+    return event.childData || selectedChild;
+  };
+
   return (
     <div className="h-full flex flex-col">
       <h2 className="text-2xl font-semibold text-black ml-1 mb-4">
@@ -221,11 +296,8 @@ const DashboardUpcomingEvents = ({
       <div className="flex-1 overflow-hidden">
         <div className="overflow-y-auto pr-1 max-h-[540px] [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent scrollbar-none">
           {loading && (
-            <div className="flex items-center justify-center h-20 p-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#238D88]"></div>
-              <span className="ml-2 text-gray-600 text-sm">
-                Loading events...
-              </span>
+            <div className="flex items-center justify-center min-h-[400px]">
+              <Loader fullPage={false} size="md" className="bg-transparent" />
             </div>
           )}
 
@@ -258,6 +330,7 @@ const DashboardUpcomingEvents = ({
                 );
                 const titleParts = getTitleParts(event);
                 const isVaccination = event.eventType === "vaccination";
+                const eventChild = getEventChild(event);
 
                 return (
                   <div
@@ -266,44 +339,48 @@ const DashboardUpcomingEvents = ({
                     className="bg-white rounded-2xl border border-[#F4F4F5] p-4 transition cursor-pointer hover:shadow-md"
                   >
                     {dateSegments && (
-                      <div className="flex justify-between items-center mb-[-2px]">
+                      <div className="flex flex-wrap justify-between items-center gap-1 mb-1">
                         {isVaccination && (
-                          <span className="text-xs font-medium text-[#006F69] bg-[#006F69]/10 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] sm:text-xs font-medium text-[#006F69] bg-[#006F69]/10 px-1.5 sm:px-2 py-0.5 rounded-full">
                             Vaccination
                           </span>
                         )}
                         <p
-                          className={`text-sm font-semibold text-[#0F172A] whitespace-nowrap ${
+                          className={`text-[10px] sm:text-sm font-semibold text-[#0F172A] ${
                             !isVaccination ? "ml-auto" : ""
                           }`}
                         >
-                          <span className="text-[#0F172A]">
-                            {dateSegments.start.date}
-                          </span>{" "}
-                          {dateSegments.start.time}
+                          <span>{dateSegments.start.date}</span>{" "}
+                          <span className="hidden sm:inline">
+                            {dateSegments.start.time}
+                          </span>
                           {dateSegments.end && (
                             <>
-                              <span className="mx-1 text-[#C9CDD6]">~</span>
-                              <span className="text-[#0F172A]">
-                                {dateSegments.end.date}
-                              </span>{" "}
-                              {dateSegments.end.time}
+                              <span className="mx-0.5 sm:mx-1 text-[#C9CDD6]">
+                                ~
+                              </span>
+                              <span>{dateSegments.end.date}</span>{" "}
+                              <span className="hidden sm:inline">
+                                {dateSegments.end.time}
+                              </span>
                             </>
                           )}
                         </p>
                       </div>
                     )}
 
-                    <div className="flex gap-3 items-start mt-2">
-                      {selectedChild && (
-                        <div className="flex-shrink-0">
+                    <div className="flex gap-3 items-center mt-0">
+                      <div className="flex-shrink-0 self-center">
+                        {eventChild ? (
                           <ChildAvatar
-                            child={selectedChild}
+                            child={eventChild}
                             width={48}
                             height={48}
                           />
-                        </div>
-                      )}
+                        ) : (
+                          <AllChildrenAvatar width={48} height={48} />
+                        )}
+                      </div>
 
                       <div className="flex-1 min-w-0">
                         <h3 className="text-base font-semibold text-[#111827] leading-tight">

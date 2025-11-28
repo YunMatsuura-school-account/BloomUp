@@ -8,7 +8,7 @@ import Loader from "./Loader";
 import { useChild } from "../contexts/ChildContext";
 
 const Dashboard = () => {
-  const { selectedChild, user, loading } = useChild();
+  const { selectedChild, user, loading, children } = useChild();
   const [calendarEvents, setCalendarEvents] = useState([]);
 
   // Fetch both vaccination recommendations AND calendar events
@@ -26,9 +26,11 @@ const Dashboard = () => {
           localStorage.getItem("authToken") ||
           localStorage.getItem("accessToken");
 
-        // Fetch vaccination recommendations (if child is selected)
+        // Fetch vaccination recommendations
         let vaccinationEvents = [];
+
         if (selectedChild?._id) {
+          // Single child selected
           try {
             const vaccUrl = `${base}/api/users/${user.id}/children/${
               selectedChild._id
@@ -42,32 +44,72 @@ const Dashboard = () => {
               const vaccData = await vaccRes.json();
               const today = new Date();
               today.setHours(0, 0, 0, 0);
-              // Use child's background color for vaccination events
               const childColor = selectedChild?.backgroundColor || "#006F69";
               vaccinationEvents = (vaccData?.recommendations || [])
                 .filter((r) => {
                   if (!r?.recommendedDate) return false;
                   const vaccDate = new Date(r.recommendedDate);
                   vaccDate.setHours(0, 0, 0, 0);
-                  // Only show future vaccinations
                   return vaccDate >= today;
                 })
                 .map((r) => ({
                   title: `${r.name} vaccination`,
                   date: r.recommendedDate,
                   type: "vaccination",
-                  color: childColor, // Use child's background color
+                  color: childColor,
                 }));
             }
           } catch (e) {
             console.error("Error fetching vaccinations:", e);
+          }
+        } else if (!selectedChild && children.length > 0) {
+          // "All" children selected - fetch vaccinations for all children
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          for (const child of children) {
+            try {
+              const vaccUrl = `${base}/api/users/${user.id}/children/${
+                child._id
+              }/vaccinations/recommendations${
+                child.dateOfBirth
+                  ? `?birthDate=${encodeURIComponent(child.dateOfBirth)}`
+                  : ""
+              }`;
+              const vaccRes = await fetch(vaccUrl);
+              if (vaccRes.ok) {
+                const vaccData = await vaccRes.json();
+                const childColor = child.backgroundColor || "#006F69";
+                const childVaccinations = (vaccData?.recommendations || [])
+                  .filter((r) => {
+                    if (!r?.recommendedDate) return false;
+                    const vaccDate = new Date(r.recommendedDate);
+                    vaccDate.setHours(0, 0, 0, 0);
+                    return vaccDate >= today;
+                  })
+                  .map((r) => ({
+                    title: `${child.name}: ${r.name}`,
+                    date: r.recommendedDate,
+                    type: "vaccination",
+                    color: childColor,
+                  }));
+                vaccinationEvents = [
+                  ...vaccinationEvents,
+                  ...childVaccinations,
+                ];
+              }
+            } catch (e) {
+              console.error(
+                `Error fetching vaccinations for ${child.name}:`,
+                e
+              );
+            }
           }
         }
 
         // Fetch calendar events (all event types: custom events, appointments, etc.)
         let calendarEventList = [];
         try {
-          // Calculate date range: 2 months back to 10 years ahead to include all vaccination dates
           const now = new Date();
           const startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
           const endDate = new Date(
@@ -79,6 +121,7 @@ const Dashboard = () => {
           const params = new URLSearchParams();
           params.set("start", startDate.toISOString());
           params.set("end", endDate.toISOString());
+          // Only filter by child if a specific child is selected
           if (selectedChild?._id) {
             params.set("child", selectedChild._id);
           }
@@ -91,17 +134,29 @@ const Dashboard = () => {
 
           if (calendarRes.ok) {
             const calendarData = await calendarRes.json();
-            // Use child's background color for events, fallback to event color or default
-            const childColor = selectedChild?.backgroundColor;
-            calendarEventList = (calendarData.events || []).map((ev) => ({
-              title: ev.title || "Event",
-              date: ev.startDate, // ScheduleCalendar expects 'date' field
-              type: ev.category || "event",
-              color: childColor || ev.color || "#F3BE08", // Use child's color first
-              _id: ev._id,
-              endDate: ev.endDate,
-              notes: ev.notes,
-            }));
+            calendarEventList = (calendarData.events || []).map((ev) => {
+              // Find the child for this event to get their color
+              const eventChild = ev.child
+                ? children.find(
+                    (c) => c._id === ev.child || c._id === ev.child._id
+                  )
+                : null;
+              const eventColor =
+                selectedChild?.backgroundColor ||
+                eventChild?.backgroundColor ||
+                ev.color ||
+                "#F3BE08";
+
+              return {
+                title: ev.title || "Event",
+                date: ev.startDate,
+                type: ev.category || "event",
+                color: eventColor,
+                _id: ev._id,
+                endDate: ev.endDate,
+                notes: ev.notes,
+              };
+            });
           }
         } catch (e) {
           console.error("Error fetching calendar events:", e);
@@ -117,7 +172,7 @@ const Dashboard = () => {
     };
 
     fetchAllEvents();
-  }, [selectedChild, user?.id]);
+  }, [selectedChild, user?.id, children]);
 
   if (loading) {
     return <Loader />;
