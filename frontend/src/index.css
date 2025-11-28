@@ -56,74 +56,6 @@
     min-height: 500px;
   }
 
-  /* Custom Week View Styling */
-  .fc-timeGridWeek-view .fc-timegrid-axis,
-  .fc-timeGridWeek-view .fc-timegrid-slot {
-    @apply border-r border-neutral-200;
-  }
-
-  .fc-timeGridWeek-view .fc-timegrid-divider {
-    @apply border-neutral-200;
-  }
-
-  .fc-timeGridWeek-view .fc-timegrid-slot-label {
-    @apply text-stone-300 text-xs font-medium font-['Poppins'] leading-[10px];
-  }
-
-  .fc-timeGridWeek-view .fc-timegrid-now-indicator-line {
-    @apply border-stone-300 opacity-80;
-  }
-
-  .fc-timeGridWeek-view .fc-col-header-cell {
-    @apply bg-[#238D88] text-white text-lg font-normal font-['DM_Sans'] leading-6 tracking-tight;
-  }
-
-  .fc-timeGridWeek-view .fc-timegrid-event {
-    @apply rounded-[3px] border-none shadow-none;
-  }
-
-  .fc-timeGridWeek-view .fc-event-time {
-    @apply text-[10px] font-semibold font-['DM_Sans'] text-white;
-  }
-
-  .fc-timeGridWeek-view .fc-event-title {
-    @apply text-[10px] font-semibold font-['DM_Sans'] text-white;
-  }
-
-  /* Custom Day View Styling */
-  .fc-timeGridDay-view .fc-timegrid-axis,
-  .fc-timeGridDay-view .fc-timegrid-slot {
-    @apply border-r border-neutral-200;
-  }
-
-  .fc-timeGridDay-view .fc-timegrid-divider {
-    @apply border-neutral-200;
-  }
-
-  .fc-timeGridDay-view .fc-timegrid-slot-label {
-    @apply text-stone-300 text-xs font-medium font-['Poppins'] leading-[10px];
-  }
-
-  .fc-timeGridDay-view .fc-timegrid-now-indicator-line {
-    @apply border-stone-300 opacity-80;
-  }
-
-  .fc-timeGridDay-view .fc-col-header-cell {
-    @apply bg-[#238D88] text-white text-lg font-normal font-['DM_Sans'] leading-6 tracking-tight;
-  }
-
-  .fc-timeGridDay-view .fc-timegrid-event {
-    @apply rounded-[3px] border-none shadow-none;
-  }
-
-  .fc-timeGridDay-view .fc-event-time {
-    @apply text-[10px] font-semibold font-['DM_Sans'] text-white;
-  }
-
-  .fc-timeGridDay-view .fc-event-title {
-    @apply text-[10px] font-semibold font-['DM_Sans'] text-white;
-  }
-
   /* Today highlight */
   .fc-day-today {
     @apply bg-[#238D88]/10;
@@ -160,15 +92,16 @@
   @apply p-1;
 }
 
-/* Ensure calendar takes full space when "All" is selected */
+/* FIXED: Ensure calendar takes full space without blank space at bottom */
 .fc .fc-view-harness {
   min-height: 500px;
+  flex: 1 1 auto;
 }
 
 .fc .fc-view-harness-active>.fc-view {
   flex: 1 1 auto;
+  min-height: 500px;
 }
-
 
 /* Time Picker Styles */
 .time-picker-column {
@@ -184,3 +117,222 @@
 .restock-date-modal {
   min-height: 450px;
 }
+
+/* ============================================= */
+/* FULLCALENDAR GREEN HEADERS STYLING - ENHANCED */
+/* ============================================= */
+
+.fc-col-header {
+  background: #238D88 !important;
+  color: white !important;
+}
+
+/* Apply green background to ALL calendar headers */
+.calendar-green-headers .fc-col-header {
+  background: #238D88 !important;
+  border: none !important;
+}
+
+.calendar-green-headers .fc-col-header-cell {
+  background: #238D88 !important;
+  color: white !important;
+  border: none !important;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 8px 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.calendar-green-headers .fc-col-header-cell:last-child {
+  border-right: none !important;
+}
+
+.calendar-green-headers .fc-col-header-cell-cushion {
+  color: white !important;
+  text-decoration: none !important;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  padding: 4px 0 !important;
+}
+
+/* Ensure consistent styling across all views */
+.calendar-green-headers .fc-scrollgrid {
+  border: none !important;
+}
+
+.calendar-green-headers .fc-scrollgrid-section-header {
+  background: #238D88 !important;
+  border: none !important;
+}
+
+.calendar-green-headers .fc-scrollgrid thead {
+  background: #238D88 !important;
+  border: none !important;
+}
+
+.calendar-green-headers .fc-daygrid-day-frame {
+  border: 1px solid rgba(218, 220, 224, 0.6) !important;
+}
+
+.calendar-green-headers .fc-day-today {
+  background: rgba(35, 141, 136, 0.1) !important;
+}
+
+.calendar-green-headers .fc-event {
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 2px 4px !important;
+  margin: 1px 2px !important;
+}
+
+.calendar-green-headers .fc-event-title {
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  color: white !important;
+  font-size: 11px !important;
+}
+
+/* Week and Day view specific styling */
+.calendar-green-headers .fc-timegrid-slot,
+.calendar-green-headers .fc-timegrid-slot-lane {
+  height: 40px !important;
+  border-bottom: 1px solid rgba(218, 220, 224, 0.6) !important;
+}
+
+/* Ensure timegrid views also have green headers */
+.calendar-green-headers .fc-timegrid-axis,
+.calendar-green-headers .fc-timegrid-axis-frame {
+  background: #238D88 !important;
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.calendar-green-headers .fc-timegrid-slot-label-frame {
+  color: white !important;
+}
+
+/* Force white text in all header contexts */
+.calendar-green-headers .fc-col-header-cell *,
+.calendar-green-headers .fc-timegrid-axis *,
+.calendar-green-headers .fc-col-header-cell-cushion,
+.calendar-green-headers .fc-timegrid-slot-label-cushion {
+  color: white !important;
+}
+
+/* Fix for timegrid week view headers */
+.calendar-green-headers .fc-timegrid .fc-col-header-cell {
+  background: #238D88 !important;
+}
+
+.calendar-green-headers .fc-timegrid .fc-col-header-cell-cushion {
+  color: white !important;
+}
+
+/* FIXED: Mobile-specific fixes for upcoming events section */
+@media (max-width: 1279px) {
+  /* Remove extra blank space in upcoming events on mobile */
+  .xl\:col-span-1 {
+    min-height: fit-content !important;
+    height: auto !important;
+  }
+
+  .xl\:col-span-1 .h-full {
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  /* Ensure upcoming events container doesn't have fixed height on mobile */
+  .xl\:col-span-1 .h-\[600px\] {
+    height: auto !important;
+    max-height: none !important; /* Remove max-height restriction */
+    min-height: auto !important;
+  }
+
+  /* Hide scrollbar completely on mobile and show all events */
+  .xl\:col-span-1 .overflow-y-auto {
+    overflow-y: visible !important; /* Changed from hidden to visible */
+    height: auto !important;
+  }
+
+  /* Ensure events container expands to fit content */
+  .xl\:col-span-1 .flex-1 {
+    flex: 0 1 auto !important;
+  }
+
+  /* Fix calendar height on mobile */
+  .fc .fc-view-harness {
+    min-height: 400px !important;
+  }
+}
+
+/* Additional mobile scrollbar hiding for all screen sizes below xl */
+@media (max-width: 1279px) {
+  .no-scrollbar {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none !important;
+  }
+}
+
+/* FIXED: Calendar height adjustments for different views */
+.calendar-green-headers .fc-daygrid-body,
+.calendar-green-headers .fc-timegrid-body {
+  min-height: 400px;
+}
+
+/* Ensure calendar container fills available space */
+.fc .fc-view-harness {
+  flex: 1 1 auto;
+}
+
+.fc .fc-view {
+  min-height: 500px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1280px) {
+  .calendar-green-headers .fc-col-header-cell {
+    font-size: 10px !important;
+    padding: 6px 0 !important;
+  }
+  
+  .fc .fc-view-harness {
+    min-height: 450px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-green-headers .fc-col-header-cell {
+    font-size: 9px !important;
+    padding: 4px 0 !important;
+  }
+
+  .calendar-green-headers .fc-event-title {
+    font-size: 9px !important;
+  }
+
+  .fc .fc-view-harness {
+    min-height: 400px !important;
+  }
+
+  /* Mobile: Completely remove scrollbar and extra space from upcoming events */
+  .xl\:col-span-1 .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    overflow: visible !important;
+  }
+
+  .xl\:col-span-1 .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+
+
+
+

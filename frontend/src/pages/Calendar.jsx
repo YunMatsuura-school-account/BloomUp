@@ -1157,7 +1157,7 @@
 // new code
 
 //frontend/src/pages/Calendar.jsx
-//frontend/src/pages/Calendar.jsx
+// frontend/src/pages/Calendar.jsx
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -1171,7 +1171,6 @@ import ReminderModal from "../components/ReminderModal";
 import CustomReminderModal from "../components/CustomReminderModal";
 import { useChild } from "../contexts/ChildContext";
 import ChildAvatar from "../components/ChildAvatar";
-
 
 // Icons (keep your existing icon components)
 function BellIcon({ className = "w-5 h-5" }) {
@@ -1272,7 +1271,6 @@ function FilterIcon({ className = "w-5 h-5" }) {
 }
 
 // View Filter Popup Component
-// View Filter Popup Component - SIMPLIFIED without complex icons
 function ViewFilterPopup({ isOpen, onClose, currentView, onViewChange, anchorEl }) {
   const popupRef = useRef(null);
 
@@ -1342,7 +1340,7 @@ function ViewFilterPopup({ isOpen, onClose, currentView, onViewChange, anchorEl 
   );
 }
 
-// Vaccination Section Component (keep your existing component)
+// Vaccination Section Component
 function VaccinationSection({ selectedChild, userData }) {
   const [vaccinations, setVaccinations] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1490,7 +1488,7 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showFilterPopup, setShowFilterPopup] = useState(false);
 
-  // Restock State (keep your existing restock state)
+  // Restock State
   const [restockItems, setRestockItems] = useState([]);
   const [loadingRestock, setLoadingRestock] = useState(false);
   const [showRestockDateModal, setShowRestockDateModal] = useState(false);
@@ -1748,7 +1746,7 @@ export default function CalendarPage() {
           body: JSON.stringify({
             productName: selectedRestockItem.productName,
             enabled: true,
-            nextRestockDate: selectedDateTime.toISOString(), // Now includes time
+            nextRestockDate: selectedDateTime.toISOString(),
             alertType: customRestockDays ? "Custom" : alertType,
             customDays: customDaysValue,
           }),
@@ -1786,84 +1784,6 @@ export default function CalendarPage() {
       console.error("Error saving restock reminder:", error);
     }
   };
-
-  // const handleRestockDateSave = async (alertType, selectedDate) => {
-  //   try {
-  //     if (alertType === "Custom") {
-  //       console.log(" Custom button clicked - opening CustomReminderModal");
-  //       setShowRestockDateModal(false);
-  //       setShowRestockCustomModal(true);
-  //       return;
-  //     }
-
-  //     const token = localStorage.getItem("accessToken");
-
-  //     if (!selectedDate) {
-  //       return;
-  //     }
-
-  //     let customDaysValue = null;
-  //     if (customRestockDays) {
-  //       customDaysValue = parseFloat(customRestockDays);
-  //       console.log(" Using custom days:", customDaysValue);
-  //     }
-
-  //     console.log(" Saving restock reminder:", {
-  //       productName: selectedRestockItem.productName,
-  //       date: selectedDate,
-  //       alertType,
-  //       customDays: customDaysValue,
-  //     });
-
-  //     const response = await fetch(
-  //       `${import.meta.env.VITE_BACKEND_URL}/api/budget/restock/toggle`,
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({
-  //           productName: selectedRestockItem.productName,
-  //           enabled: true,
-  //           nextRestockDate: selectedDate.toISOString(),
-  //           alertType: customRestockDays ? "Custom" : alertType,
-  //           customDays: customDaysValue,
-  //         }),
-  //       }
-  //     );
-
-  //     const result = await response.json();
-
-  //     if (response.ok) {
-  //       setRestockItems((prevItems) =>
-  //         prevItems.map((i) =>
-  //           i.productName === selectedRestockItem.productName
-  //             ? {
-  //               ...i,
-  //               reminderEnabled: true,
-  //               nextRestockDate: selectedDate.toISOString(),
-  //             }
-  //             : i
-  //         )
-  //       );
-
-  //       console.log(" Restock reminder saved successfully");
-
-  //       setShowRestockDateModal(false);
-  //       setShowRestockCustomModal(false);
-  //       setSelectedRestockItem(null);
-  //       setCustomRestockDays("");
-
-  //       const api = calendarRef.current?.getApi?.();
-  //       if (api) api.refetchEvents();
-  //     } else {
-  //       console.error("Failed to save reminder:", result);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error saving restock reminder:", error);
-  //   }
-  // };
 
   const handleRestockCustomClick = () => {
     setShowRestockDateModal(false);
@@ -1909,8 +1829,7 @@ export default function CalendarPage() {
     }
   };
 
-  // Calendar functions (keep your existing calendar functions)
-  // Use useCallback to ensure the function updates when selectedChild changes
+  // Calendar functions
   const fetchEventsForRange = useCallback(async (info) => {
     const start = info.start.toISOString();
     const end = info.end.toISOString();
@@ -2104,7 +2023,7 @@ export default function CalendarPage() {
     });
   }
 
-  // Category Icons function (keep your existing function)
+  // Category Icons function
   const getCategoryIcon = (category) => {
     const iconStyle = "w-8 h-8";
     switch (category?.toLowerCase()) {
@@ -2160,7 +2079,7 @@ export default function CalendarPage() {
 
       {/* Calendar Controls Row - UPDATED MOBILE LAYOUT */}
       <div className="mb-6">
-        {/* Desktop Layout - Buttons in single row */}
+        {/* Desktop Layout */}
         <div className="hidden xl:block">
           <div className="w-full flex justify-between items-center gap-4 mb-4">
             {/* View Buttons Container - LEFT SIDE */}
@@ -2225,9 +2144,9 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Mobile Layout - UPDATED: Add Event button above navigation row with exact Figma dimensions */}
+        {/* Mobile Layout */}
         <div className="xl:hidden">
-          {/* First Row: Add Event Button - Right aligned, exact Figma dimensions */}
+          {/* First Row: Add Event Button */}
           <div className="flex justify-end mb-3">
             <button
               onClick={() => setModalOpen(true)}
@@ -2239,89 +2158,30 @@ export default function CalendarPage() {
             </button>
           </div>
 
-          {/* Second Row: Month/Year Navigation + Today Button + Filter */}
-          <div className="flex justify-between items-center">
-            {/* Month/Year Navigation */}
-            <div className="flex items-center gap-2">
+          {/* Second Row: Filter Only */}
+          {/* <div className="flex justify-end items-center"> */}
+          {/* Filter Button for Mobile */}
+          {/* <div className="relative" ref={filterButtonRef}>
               <button
-                onClick={handlePrevMonth}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                onClick={() => setShowFilterPopup(!showFilterPopup)}
+                className="p-2 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors flex items-center justify-center"
+                title="Filter Calendar"
               >
-                <ChevronLeftIcon className="w-4 h-4 text-gray-600" />
-              </button>
+                <FilterIcon className="w-4 h-4 text-gray-700" />
+              </button> */}
 
-              <h2 className="text-base font-semibold text-gray-800 whitespace-nowrap">
-                {getMonthYearString()}
-              </h2>
-
-              <button
-                onClick={handleNextMonth}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-              </button>
+          {/* Filter Popup */}
+          {/* <ViewFilterPopup
+                isOpen={showFilterPopup}
+                onClose={() => setShowFilterPopup(false)}
+                currentView={currentView}
+                onViewChange={handleViewChange}
+                anchorEl={filterButtonRef.current}
+              />
             </div>
+          </div> */}
 
-            {/* Today Button + Filter */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleToday}
-                className="py-1.5 px-3 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200 transition-colors whitespace-nowrap"
-              >
-                Today
-              </button>
 
-              {/* Filter Button for Mobile */}
-              <div className="relative" ref={filterButtonRef}>
-                <button
-                  onClick={() => setShowFilterPopup(!showFilterPopup)}
-                  className="p-2 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors flex items-center justify-center"
-                  title="Filter Calendar"
-                >
-                  <FilterIcon className="w-4 h-4 text-gray-700" />
-                </button>
-
-                {/* Filter Popup */}
-                <ViewFilterPopup
-                  isOpen={showFilterPopup}
-                  onClose={() => setShowFilterPopup(false)}
-                  currentView={currentView}
-                  onViewChange={handleViewChange}
-                  anchorEl={filterButtonRef.current}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Desktop Month/Year Navigation - NON-STICKY */}
-        <div className="hidden xl:flex items-center justify-between bg-white rounded-lg shadow-sm border p-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handlePrevMonth}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <ChevronLeftIcon className="w-5 h-5 text-gray-600" />
-            </button>
-
-            <h2 className="text-xl font-semibold text-gray-800">
-              {getMonthYearString()}
-            </h2>
-
-            <button
-              onClick={handleNextMonth}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <ChevronRightIcon className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-
-          <button
-            onClick={handleToday}
-            className="py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-          >
-            Today
-          </button>
         </div>
       </div>
 
@@ -2329,37 +2189,121 @@ export default function CalendarPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
         {/* Calendar - Takes 2/3 on large screens */}
         <div className="xl:col-span-2">
-          <div className="bg-white rounded-lg shadow-sm border p-4 h-full min-h-[500px]">
-            <FullCalendar
-              ref={calendarRef}
-              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-              initialView="dayGridMonth"
-              headerToolbar={false}
-              selectable
-              select={handleDateSelect}
-              eventClick={handleEventClick}
-              events={fetchEventsForRange}
-              eventDisplay="block"
-              height="auto"
-              eventTimeFormat={{
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-              }}
-              // Custom class for calendar styling
-              className="calendar-full-height"
-              eventContent={(eventInfo) => {
-                return {
-                  html: `<div class="fc-event-title">${eventInfo.event.title}</div>`,
-                };
-              }}
-            />
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.2)] p-0 overflow-hidden flex-1 flex flex-col h-full">
+            {/* Calendar Header - UPDATED: Removed green background from navigation */}
+            <div className="flex justify-between items-center p-2 border-b border-[rgba(218,220,224,0.6)] bg-white">
+              {/* Left: Month & Year Right and left Navigation */}
+              <div className="flex items-center gap-3.5 px-1 lg:px-4">
+                <button
+                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  onClick={handlePrevMonth}
+                  title="Previous Month"
+                >
+                  <svg width="18" height="20" viewBox="0 0 18 20" fill="none">
+                    <path d="M12 2L5 10L12 18" stroke="#000000" strokeWidth="2" />
+                  </svg>
+                </button>
+                <div className="flex gap-2.5 items-center">
+                  <h2 className="text-base font-semibold text-black">
+                    {currentDate.toLocaleDateString("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </h2>
+                </div>
+
+                <button
+                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  onClick={handleNextMonth}
+                  title="Next Month"
+                >
+                  <svg width="18" height="20" viewBox="0 0 18 20" fill="none">
+                    <path d="M6 2L13 10L6 18" stroke="#000000" strokeWidth="2" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Right: Filter Icon for Mobile - UPDATED: Now functional */}
+              <div className="xl:hidden flex items-center">
+                <div className="relative" ref={filterButtonRef}>
+                  <button
+                    onClick={() => setShowFilterPopup(!showFilterPopup)}
+                    className="p-2 hover:bg-gray-100 rounded transition-colors flex items-center justify-center"
+                    title="Filter Calendar"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="21"
+                      height="21"
+                      viewBox="0 0 21 21"
+                      fill="none"
+                      className="w-4 h-4 text-black"
+                    >
+                      <path
+                        d="M3.28125 6.125C3.28125 5.95095 3.35039 5.78403 3.47346 5.66096C3.59653 5.53789 3.76345 5.46875 3.9375 5.46875H17.0625C17.2365 5.46875 17.4035 5.53789 17.5265 5.66096C17.6496 5.78403 17.7188 5.95095 17.7188 6.125C17.7188 6.29905 17.6496 6.46597 17.5265 6.58904C17.4035 6.71211 17.2365 6.78125 17.0625 6.78125H3.9375C3.76345 6.78125 3.59653 6.71211 3.47346 6.58904C3.35039 6.46597 3.28125 6.29905 3.28125 6.125ZM5.46875 10.5C5.46875 10.3259 5.53789 10.159 5.66096 10.036C5.78403 9.91289 5.95095 9.84375 6.125 9.84375H14.875C15.049 9.84375 15.216 9.91289 15.339 10.036C15.4621 10.159 15.5312 10.3259 15.5312 10.5C15.5312 10.674 15.4621 10.841 15.339 10.964C15.216 11.0871 15.049 11.1562 14.875 11.1562H6.125C5.95095 11.1562 5.78403 11.0871 5.66096 10.964C5.53789 10.841 5.46875 10.674 5.46875 10.5ZM8.09375 14.875C8.09375 14.7009 8.16289 14.534 8.28596 14.411C8.40903 14.2879 8.57595 14.2187 8.75 14.2187H12.25C12.424 14.2187 12.591 14.2879 12.714 14.411C12.8371 14.534 12.9062 14.7009 12.9062 14.875C12.9062 15.049 12.8371 15.216 12.714 15.339C12.591 15.4621 12.424 15.5312 12.25 15.5312H8.75C8.57595 15.5312 8.40903 15.4621 8.28596 15.339C8.16289 15.216 8.09375 15.049 8.09375 14.875Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Filter Popup */}
+                  <ViewFilterPopup
+                    isOpen={showFilterPopup}
+                    onClose={() => setShowFilterPopup(false)}
+                    currentView={currentView}
+                    onViewChange={handleViewChange}
+                    anchorEl={filterButtonRef.current}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* FullCalendar - FIXED: Added proper height constraints */}
+            <div className="flex-1 min-h-0">
+              <FullCalendar
+                ref={calendarRef}
+                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                initialView={currentView}
+                headerToolbar={false}
+                selectable
+                select={handleDateSelect}
+                eventClick={handleEventClick}
+                events={fetchEventsForRange}
+                eventDisplay="block"
+                height="100%" // Changed back to 100% for proper filling
+                contentHeight="auto"
+                eventTimeFormat={{
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                }}
+                className="calendar-green-headers"
+                eventContent={(eventInfo) => {
+                  return {
+                    html: `<div class="fc-event-title">${eventInfo.event.title}</div>`,
+                  };
+                }}
+                // View configuration
+                slotMinTime="06:00:00"
+                slotMaxTime="22:00:00"
+                allDaySlot={false}
+                slotDuration="01:00:00"
+                slotLabelInterval="01:00"
+                dayMaxEvents={3}
+                weekNumbers={false}
+                nowIndicator={true}
+                // Handle view changes
+                viewDidMount={(viewInfo) => {
+                  setCurrentView(viewInfo.view.type);
+                }}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Upcoming Events - Takes 1/3 on large screens */}
+        {/* Upcoming Events - Takes 1/3 on large screens - FIXED: Removed extra space on mobile */}
         <div className="xl:col-span-1">
-          <div className>
+          <div className="h-full">
             <UpcomingEvents
               selectedChild={selectedChild}
               onEventClick={handleEventClickFromUpcoming}

@@ -531,6 +531,7 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
   const navigate = useNavigate();
   const { children } = useChild();
   const [events, setEvents] = useState([]);
+  const [vaccinations, setVaccinations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
 
@@ -590,17 +591,74 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
     }
   };
 
+  // Fetch vaccinations if no events
+  const fetchVaccinations = async () => {
+    if (events.length > 0) {
+      setVaccinations([]);
+      return;
+    }
+
+    try {
+      const base = import.meta.env.VITE_BACKEND_URL || "";
+      const token = localStorage.getItem("accessToken");
+
+      if (!selectedChild?._id || !token) {
+        setVaccinations([]);
+        return;
+      }
+
+      const vaccUrl = `${base}/api/users/${selectedChild.userId || 'current'}/children/${selectedChild._id
+        }/vaccinations/recommendations${selectedChild.dateOfBirth
+          ? `?birthDate=${encodeURIComponent(selectedChild.dateOfBirth)}`
+          : ""
+        }`;
+
+      const vaccRes = await fetch(vaccUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (vaccRes.ok) {
+        const vaccData = await vaccRes.json();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const upcomingVaccinations = (vaccData?.recommendations || [])
+          .filter((r) => {
+            if (!r?.recommendedDate) return false;
+            const vaccDate = new Date(r.recommendedDate);
+            vaccDate.setHours(0, 0, 0, 0);
+            return vaccDate >= today;
+          })
+          .sort((a, b) => new Date(a.recommendedDate) - new Date(b.recommendedDate))
+          .slice(0, 5); // Show max 5 vaccinations
+
+        setVaccinations(upcomingVaccinations);
+      }
+    } catch (e) {
+      console.error("Error fetching vaccinations:", e);
+      setVaccinations([]);
+    }
+  };
+
   useEffect(() => {
     fetchUpcomingEvents();
   }, [selectedChild?._id, refreshTrigger]);
 
-  // Get child for event - UPDATED: Handle "All" option
+  useEffect(() => {
+    if (events.length === 0) {
+      fetchVaccinations();
+    } else {
+      setVaccinations([]);
+    }
+  }, [events.length, selectedChild]);
+
+  // Get child for event
   const getChildForEvent = (event) => {
     // If specific child is selected, use that child
     if (selectedChild && selectedChild._id) {
       return selectedChild;
     }
-    
+
     // For "All" option, try to find the first child from the event
     if (event.children && event.children.length > 0) {
       const eventChildId = event.children[0];
@@ -609,7 +667,7 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
         return eventChild;
       }
     }
-    
+
     // If no child found in event, return the first child from children list
     return children.length > 0 ? children[0] : null;
   };
@@ -684,6 +742,17 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
     };
   };
 
+  // Format vaccination date
+  const formatVaccinationDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+  };
+
   return (
     <div className="h-full flex flex-col">
       <h2 className="text-2xl font-semibold text-black ml-1 mb-4">
@@ -691,7 +760,8 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
       </h2>
 
       <div className="flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent scrollbar-none">
+        {/* FIXED: Removed fixed height and scrollbar on mobile */}
+        <div className="xl:h-[600px] lg:h-[500px] md:h-[400px] overflow-y-auto xl:overflow-y-auto lg:overflow-y-auto md:overflow-y-auto overflow-x-hidden pr-1 no-scrollbar">
           {loading && (
             <div className="flex items-center justify-center h-20 p-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#238D88]"></div>
@@ -701,7 +771,7 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
             </div>
           )}
 
-          {!loading && events.length === 0 && (
+          {!loading && events.length === 0 && vaccinations.length === 0 && (
             <div className="h-full flex items-center rounded-[20px] border-2 border-dashed border-[#F3BE08] justify-center p-4">
               <div className="text-center">
                 <CalendarIcon className="w-12 h-12 text-[#232527] mx-auto mb-3" />
@@ -718,6 +788,66 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
                   Add Event&nbsp;+
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Show vaccinations when there are no events */}
+          {!loading && events.length === 0 && vaccinations.length > 0 && (
+            <div className="space-y-4 pb-2">
+              {vaccinations.map((vaccination, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-2xl border border-[#F4F4F5] p-4 transition cursor-pointer hover:shadow-md"
+                >
+                  <div className="flex justify-end mb-3">
+                    <p className="text-sm font-semibold text-[#0F172A] whitespace-nowrap">
+                      <span className="text-[#0F172A]">
+                        {formatVaccinationDate(vaccination.recommendedDate)}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3 items-start">
+                    {selectedChild && (
+                      <div className="flex-shrink-0">
+                        <ChildAvatar
+                          child={selectedChild}
+                          width={48}
+                          height={48}
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-[#111827] leading-tight">
+                        <span className="block">{selectedChild?.name || 'Child'}</span>
+                        <span className="block text-[#238D88]">
+                          {vaccination.name} Vaccination
+                        </span>
+                      </h3>
+
+                      <div className="mt-2">
+                        <p className="text-sm text-[#4B5563] leading-relaxed">
+                          Recommended vaccination dose
+                        </p>
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-xs text-[#238D88] font-medium">
+                            Due: {formatVaccinationDate(vaccination.recommendedDate)}
+                          </span>
+                          <a
+                            href="https://www.google.com/maps/search/child+hospitals+near+me"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs bg-[#238D88] text-white px-3 py-1 rounded hover:bg-[#1a6b67] transition-colors"
+                          >
+                            Book Clinic
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -759,7 +889,7 @@ const UpcomingEvents = ({ selectedChild, onEventClick, onAddEvent, refreshTrigge
                     )}
 
                     <div className="flex gap-3 items-start">
-                      {/* UPDATED: Always show avatar, even for "All" option */}
+                      {/* Always show avatar, even for "All" option */}
                       {eventChild && (
                         <div className="flex-shrink-0">
                           <ChildAvatar
