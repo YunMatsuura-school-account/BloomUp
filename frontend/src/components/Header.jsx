@@ -112,9 +112,27 @@ export default function Header() {
               className="p-1.5 rounded-full hover:bg-gray-200/50 transition-colors relative"
               aria-label="Notifications"
             >
-              <img src={bell_icon} alt="Notifications" className="w-7 h-7" />
-              {hasUnreadNotifications && (
-                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
+              {hasUnreadNotifications ? (
+                <>
+                  {/* Bell with notification circle cutout */}
+                  <svg
+                    className="w-7 h-7"
+                    viewBox="0 0 21 23"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8.58995 20.8379C8.77321 21.1553 9.03679 21.4188 9.35419 21.6021C9.67158 21.7853 10.0316 21.8818 10.3981 21.8818C10.7646 21.8818 11.1246 21.7853 11.442 21.6021C11.7594 21.4188 12.023 21.1553 12.2063 20.8379M12.3984 1.33016C11.4562 1.01266 10.4519 0.924007 9.46865 1.07154C8.48539 1.21908 7.55137 1.59856 6.74384 2.1786C5.9363 2.75865 5.27845 3.5226 4.82467 4.40727C4.37089 5.29195 4.13423 6.27194 4.13426 7.26621C4.13426 11.9631 2.66121 13.4841 1.27376 14.9154C1.1376 15.0651 1.04785 15.2511 1.01544 15.4508C0.983025 15.6505 1.00934 15.8553 1.09118 16.0403C1.17302 16.2254 1.30687 16.3826 1.47643 16.493C1.646 16.6033 1.84398 16.6621 2.0463 16.662H18.7499C18.9523 16.6621 19.1502 16.6033 19.3198 16.493C19.4894 16.3826 19.6232 16.2254 19.7051 16.0403C19.7869 15.8553 19.8132 15.6505 19.7808 15.4508C19.7484 15.2511 19.6586 15.0651 19.5225 14.9154C19.3076 14.6942 19.1038 14.4625 18.9117 14.2212"
+                      stroke="#232527"
+                      strokeWidth="2.00443"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="absolute top-2 right-1.5 w-3 h-3 bg-[#FFB882] border-2 border-black rounded-full animate-pulse"></span>
+                </>
+              ) : (
+                <img src={bell_icon} alt="Notifications" className="w-7 h-7" />
               )}
             </button>
 

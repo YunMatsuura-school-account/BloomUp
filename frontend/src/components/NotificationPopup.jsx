@@ -2,13 +2,13 @@
 // COMPLETE FINAL VERSION - Past events at bottom + Better error messages + Mark as viewed on click
 // frontend/src/components/NotificationPopup.jsx
 // UPDATED VERSION - Click only marks as viewed, no ReminderModal opening
-import React, { useState, useEffect, useRef } from 'react';
-import ReminderModal from './ReminderModal';
-import CustomReminderModal from './CustomReminderModal';
-import ChildAvatar from './ChildAvatar';
+import React, { useState, useEffect, useRef } from "react";
+import ReminderModal from "./ReminderModal";
+import CustomReminderModal from "./CustomReminderModal";
+import ChildAvatar from "./ChildAvatar";
 
 // Helper functions for localStorage
-const VIEWED_ITEMS_KEY = 'bloom_viewed_notifications';
+const VIEWED_ITEMS_KEY = "bloom_viewed_notifications";
 
 const loadViewedItems = () => {
   try {
@@ -18,7 +18,7 @@ const loadViewedItems = () => {
       return new Set(parsed);
     }
   } catch (err) {
-    console.error('Error loading viewed items:', err);
+    console.error("Error loading viewed items:", err);
   }
   return new Set();
 };
@@ -28,15 +28,18 @@ const saveViewedItems = (viewedSet) => {
     const array = Array.from(viewedSet);
     localStorage.setItem(VIEWED_ITEMS_KEY, JSON.stringify(array));
   } catch (err) {
-    console.error('Error saving viewed items:', err);
+    console.error("Error saving viewed items:", err);
   }
 };
 
-
-
-
-const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotificationsViewed }) => {
-  const [activeTab, setActiveTab] = useState('upcoming');
+const NotificationPopup = ({
+  isOpen,
+  onClose,
+  anchorEl,
+  refreshTrigger,
+  onNotificationsViewed,
+}) => {
+  const [activeTab, setActiveTab] = useState("upcoming");
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -45,7 +48,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [showCustomModal, setShowCustomModal] = useState(false);
-  const [customDaysPreview, setCustomDaysPreview] = useState('');
+  const [customDaysPreview, setCustomDaysPreview] = useState("");
   const [viewedItems, setViewedItems] = useState(() => loadViewedItems());
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
   const popupRef = useRef(null);
@@ -56,10 +59,13 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   useEffect(() => {
     const loadChildren = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
-        const userRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const token = localStorage.getItem("accessToken");
+        const userRes = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/auth/me`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (userRes.ok) {
           const userData = await userRes.json();
@@ -68,7 +74,9 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
               userData.children.map(async (childId) => {
                 try {
                   const childRes = await fetch(
-                    `${import.meta.env.VITE_BACKEND_URL}/api/users/${userData.id}/children/${childId}`,
+                    `${import.meta.env.VITE_BACKEND_URL}/api/users/${
+                      userData.id
+                    }/children/${childId}`,
                     { headers: { Authorization: `Bearer ${token}` } }
                   );
                   if (childRes.ok) {
@@ -82,7 +90,9 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
                 }
               })
             );
-            const validChildren = detailedChildren.filter(child => child !== null);
+            const validChildren = detailedChildren.filter(
+              (child) => child !== null
+            );
             setChildrenList(validChildren);
           }
         }
@@ -96,31 +106,36 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
     }
   }, [isOpen]);
 
-
-
-
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (event.target.closest('.reminder-modal') || event.target.closest('.custom-reminder-modal')) {
+      if (
+        event.target.closest(".reminder-modal") ||
+        event.target.closest(".custom-reminder-modal")
+      ) {
         return;
       }
 
-      if (popupRef.current && !popupRef.current.contains(event.target) &&
-        anchorEl && !anchorEl.contains(event.target)) {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(event.target) &&
+        anchorEl &&
+        !anchorEl.contains(event.target)
+      ) {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [isOpen, onClose, anchorEl]);
 
   // Initial data fetch on component mount
   useEffect(() => {
     if (!hasInitialLoad) {
-      console.log(' Initial data fetch on mount...');
+      console.log(" Initial data fetch on mount...");
       fetchUpcomingEvents();
       fetchReminders();
       setHasInitialLoad(true);
@@ -130,7 +145,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   // Fetch when popup opens
   useEffect(() => {
     if (isOpen) {
-      console.log(' Popup opened, refreshing data...');
+      console.log(" Popup opened, refreshing data...");
       fetchUpcomingEvents();
       fetchReminders();
     }
@@ -139,7 +154,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   // Check and notify parent whenever data changes
   useEffect(() => {
     const hasGreenItems = checkHasUnreadItems();
-    console.log('Has green items:', hasGreenItems);
+    console.log("Has green items:", hasGreenItems);
 
     if (onNotificationsViewed) {
       onNotificationsViewed(hasGreenItems);
@@ -151,12 +166,12 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   }, [viewedItems]);
 
   const checkHasUnreadItems = () => {
-    const hasUnreadEvents = upcomingEvents.some(event =>
-      !viewedItems.has(`event-${event._id}`)
+    const hasUnreadEvents = upcomingEvents.some(
+      (event) => !viewedItems.has(`event-${event._id}`)
     );
 
-    const hasUnreadReminders = reminders.some(reminder =>
-      !viewedItems.has(`reminder-${reminder._id}`)
+    const hasUnreadReminders = reminders.some(
+      (reminder) => !viewedItems.has(`reminder-${reminder._id}`)
     );
 
     return hasUnreadEvents || hasUnreadReminders;
@@ -181,20 +196,24 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   const fetchUpcomingEvents = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
       const now = new Date().toISOString();
       const thirtyDaysLater = new Date();
       thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
       const endDate = thirtyDaysLater.toISOString();
 
-      const url = `${import.meta.env.VITE_BACKEND_URL}/api/calendar?start=${encodeURIComponent(now)}&end=${encodeURIComponent(endDate)}`;
+      const url = `${
+        import.meta.env.VITE_BACKEND_URL
+      }/api/calendar?start=${encodeURIComponent(now)}&end=${encodeURIComponent(
+        endDate
+      )}`;
 
-      console.log('Fetching upcoming events...');
+      console.log("Fetching upcoming events...");
 
       const resp = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
       });
 
@@ -215,8 +234,8 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
 
           // For future events, prioritize those with alerts
           if (!aIsPast && !bIsPast) {
-            const aHasAlert = a.alert && a.alert !== 'At time of event';
-            const bHasAlert = b.alert && b.alert !== 'At time of event';
+            const aHasAlert = a.alert && a.alert !== "At time of event";
+            const bHasAlert = b.alert && b.alert !== "At time of event";
 
             if (aHasAlert && !bHasAlert) return -1;
             if (!aHasAlert && bHasAlert) return 1;
@@ -230,12 +249,12 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
         });
 
         setUpcomingEvents(sortedEvents);
-        console.log(' Loaded', sortedEvents.length, 'events');
+        console.log(" Loaded", sortedEvents.length, "events");
       } else {
-        console.error('Failed to fetch events:', resp.status);
+        console.error("Failed to fetch events:", resp.status);
       }
     } catch (err) {
-      console.error('Error loading upcoming events:', err);
+      console.error("Error loading upcoming events:", err);
     } finally {
       setLoading(false);
     }
@@ -244,59 +263,68 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
   const fetchReminders = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
 
-      console.log('Fetching ALL reminders...');
+      console.log("Fetching ALL reminders...");
 
-      const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reminders`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-      });
+      const resp = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/reminders`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (resp.ok) {
         const data = await resp.json();
         const allReminders = data.reminders || [];
 
-        console.log('Received reminders from API:', allReminders.length);
+        console.log("Received reminders from API:", allReminders.length);
 
         if (allReminders.length > 0) {
-          console.log(' First reminder sample:', {
+          console.log(" First reminder sample:", {
             eventTitle: allReminders[0].eventTitle,
             eventDate: allReminders[0].eventDate,
-            alert: allReminders[0].alert
+            alert: allReminders[0].alert,
           });
         }
 
-        const remindersWithTrigger = allReminders.map(reminder => ({
+        const remindersWithTrigger = allReminders.map((reminder) => ({
           ...reminder,
           triggerTime: calculateReminderTime(reminder),
-          eventDateTime: new Date(reminder.eventDate).getTime()
+          eventDateTime: new Date(reminder.eventDate).getTime(),
         }));
 
         const now = new Date().getTime();
-        console.log('Current timestamp:', now, '(' + new Date(now).toISOString() + ')');
+        console.log(
+          "Current timestamp:",
+          now,
+          "(" + new Date(now).toISOString() + ")"
+        );
 
         //  IMPORTANT: Show ALL reminders including past ones for debugging
-        const validReminders = remindersWithTrigger.filter(reminder => {
+        const validReminders = remindersWithTrigger.filter((reminder) => {
           const isFuture = reminder.eventDateTime >= now;
-          const daysDiff = Math.floor((reminder.eventDateTime - now) / (1000 * 60 * 60 * 24));
-
+          const daysDiff = Math.floor(
+            (reminder.eventDateTime - now) / (1000 * 60 * 60 * 24)
+          );
 
           // For debugging, let's include reminders from the past 7 days too
-          const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+          const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
           const isRecent = reminder.eventDateTime >= sevenDaysAgo;
 
           if (!isFuture && isRecent) {
-
             return true;
           }
 
           return isFuture;
         });
 
-        console.log(`\n Valid reminders after filtering: ${validReminders.length}`);
+        console.log(
+          `\n Valid reminders after filtering: ${validReminders.length}`
+        );
 
         const sortedReminders = validReminders.sort((a, b) => {
           const timeUntilA = Math.abs(a.eventDateTime - now);
@@ -304,22 +332,29 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
           return timeUntilA - timeUntilB;
         });
 
-        console.log(' Setting reminders state with', sortedReminders.length, 'items');
+        console.log(
+          " Setting reminders state with",
+          sortedReminders.length,
+          "items"
+        );
 
         if (sortedReminders.length > 0) {
-
           sortedReminders.forEach((r, idx) => {
-            console.log(`   ${idx + 1}. ${r.eventTitle} - ${new Date(r.eventDate).toISOString()}`);
+            console.log(
+              `   ${idx + 1}. ${r.eventTitle} - ${new Date(
+                r.eventDate
+              ).toISOString()}`
+            );
           });
         }
 
         setReminders(sortedReminders);
-        console.log(' Loaded', sortedReminders.length, 'reminders');
+        console.log(" Loaded", sortedReminders.length, "reminders");
       } else {
-        console.error('Failed to fetch reminders:', resp.status);
+        console.error("Failed to fetch reminders:", resp.status);
       }
     } catch (err) {
-      console.error(' Error loading reminders:', err);
+      console.error(" Error loading reminders:", err);
     } finally {
       setLoading(false);
     }
@@ -333,10 +368,10 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
     }
 
     const alertMap = {
-      'None': 0,
-      '1 day before': 1,
-      '2 Weeks before': 14,
-      '3 Weeks before': 21
+      None: 0,
+      "1 day before": 1,
+      "2 Weeks before": 14,
+      "3 Weeks before": 21,
     };
 
     const days = alertMap[reminder.alert] || 0;
@@ -356,22 +391,22 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
     if (diffMs < 0) {
       // Past events
       if (diffMinutes < 60) {
-        return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+        return `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""} ago`;
       } else if (diffHours < 24) {
-        return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+        return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
       } else {
-        return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+        return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
       }
     } else {
       // Future events
       if (diffMinutes < 1) {
-        return 'starting now';
+        return "starting now";
       } else if (diffMinutes < 60) {
-        return `in ${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''}`;
+        return `in ${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""}`;
       } else if (diffHours < 24) {
-        return `in ${diffHours} hour${diffHours !== 1 ? 's' : ''}`;
+        return `in ${diffHours} hour${diffHours !== 1 ? "s" : ""}`;
       } else {
-        return `in ${diffDays} day${diffDays !== 1 ? 's' : ''}`;
+        return `in ${diffDays} day${diffDays !== 1 ? "s" : ""}`;
       }
     }
   };
@@ -380,10 +415,10 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
     const start = new Date(startDate);
 
     const formatDateTime = (date) => {
-      const month = date.toLocaleString('en-US', { month: 'short' });
-      const day = String(date.getDate()).padStart(2, '0');
+      const month = date.toLocaleString("en-US", { month: "short" });
+      const day = String(date.getDate()).padStart(2, "0");
       const hours = date.getHours();
-      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, "0");
       return `${month} ${day} ${hours}:${minutes}`;
     };
 
@@ -401,24 +436,24 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
 
       if (days < 0.001) {
         const seconds = Math.round(days * 24 * 60 * 60);
-        return `${seconds} second${seconds > 1 ? 's' : ''} before`;
+        return `${seconds} second${seconds > 1 ? "s" : ""} before`;
       }
 
-      if (Math.abs(days - 0.0035) < 0.0001) return '5 minutes before';
-      if (Math.abs(days - 0.0104) < 0.0001) return '15 minutes before';
-      if (Math.abs(days - 0.0417) < 0.001) return '1 hour before';
+      if (Math.abs(days - 0.0035) < 0.0001) return "5 minutes before";
+      if (Math.abs(days - 0.0104) < 0.0001) return "15 minutes before";
+      if (Math.abs(days - 0.0417) < 0.001) return "1 hour before";
 
       if (days < 1) {
         const totalMinutes = Math.round(days * 24 * 60);
         if (totalMinutes < 60) {
-          return `${totalMinutes} minute${totalMinutes > 1 ? 's' : ''} before`;
+          return `${totalMinutes} minute${totalMinutes > 1 ? "s" : ""} before`;
         }
         const hours = Math.round(days * 24);
-        return `${hours} hour${hours > 1 ? 's' : ''} before`;
+        return `${hours} hour${hours > 1 ? "s" : ""} before`;
       }
 
       const displayDays = Math.round(days);
-      return `${displayDays} day${displayDays > 1 ? 's' : ''} before`;
+      return `${displayDays} day${displayDays > 1 ? "s" : ""} before`;
     }
 
     return reminder.alert;
@@ -426,34 +461,37 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
 
   // UPDATED: Click handlers now only mark as viewed
   const handleEventClick = (event) => {
-    console.log(' Event clicked:', event.title, 'ID:', event._id);
-    markItemAsViewed('event', event._id);
+    console.log(" Event clicked:", event.title, "ID:", event._id);
+    markItemAsViewed("event", event._id);
   };
 
   const handleReminderClick = (reminder) => {
-    console.log(' Reminder clicked:', reminder.eventTitle, 'ID:', reminder._id);
-    markItemAsViewed('reminder', reminder._id);
+    console.log(" Reminder clicked:", reminder.eventTitle, "ID:", reminder._id);
+    markItemAsViewed("reminder", reminder._id);
   };
 
   const handleMarkAllAsRead = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const resp = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/reminders/mark-all-read`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-      });
+      const token = localStorage.getItem("accessToken");
+      const resp = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/reminders/mark-all-read`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (resp.ok) {
-        console.log(' Marked all reminders as read');
+        console.log(" Marked all reminders as read");
 
         const newViewedItems = new Set(viewedItems);
-        upcomingEvents.forEach(event => {
+        upcomingEvents.forEach((event) => {
           newViewedItems.add(`event-${event._id}`);
         });
-        reminders.forEach(reminder => {
+        reminders.forEach((reminder) => {
           newViewedItems.add(`reminder-${reminder._id}`);
         });
         setViewedItems(newViewedItems);
@@ -461,12 +499,16 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
         await fetchReminders();
       }
     } catch (err) {
-      console.error('Error marking all as read:', err);
+      console.error("Error marking all as read:", err);
     }
   };
 
-  const displayedEvents = showAllEvents ? upcomingEvents : upcomingEvents.slice(0, 5);
-  const displayedReminders = showAllReminders ? reminders : reminders.slice(0, 5);
+  const displayedEvents = showAllEvents
+    ? upcomingEvents
+    : upcomingEvents.slice(0, 5);
+  const displayedReminders = showAllReminders
+    ? reminders
+    : reminders.slice(0, 5);
 
   if (!isOpen) return null;
 
@@ -474,25 +516,27 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
     <>
       <div
         ref={popupRef}
-        className="absolute top-16 right-6 w-[400px] bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden"
+        className="fixed md:absolute top-16 md:top-16 left-4 right-4 md:left-auto md:right-6 w-auto md:w-[400px] max-w-[calc(100vw-32px)] md:max-w-[400px] bg-white rounded-2xl border border-gray-200 z-50 overflow-hidden"
       >
         {/* Tabs */}
         <div className="flex border-b border-gray-200">
           <button
-            onClick={() => setActiveTab('upcoming')}
-            className={`flex-1 py-4 px-6 text-base font-medium transition-colors ${activeTab === 'upcoming'
-              ? 'text-black border-b-2 border-[#238D88]'
-              : 'text-gray-500 hover:text-gray-700'
-              }`}
+            onClick={() => setActiveTab("upcoming")}
+            className={`flex-1 py-4 px-6 text-base font-medium transition-colors ${
+              activeTab === "upcoming"
+                ? "text-black border-b-2 border-[#238D88]"
+                : "text-black"
+            }`}
           >
             Upcoming Events
           </button>
           <button
-            onClick={() => setActiveTab('reminders')}
-            className={`flex-1 py-4 px-6 text-base font-medium transition-colors ${activeTab === 'reminders'
-              ? 'text-black border-b-2 border-[#238D88]'
-              : 'text-gray-500 hover:text-gray-700'
-              }`}
+            onClick={() => setActiveTab("reminders")}
+            className={`flex-1 py-4 px-6 text-base font-medium transition-colors ${
+              activeTab === "reminders"
+                ? "text-black border-b-2 border-[#238D88]"
+                : "text-black"
+            }`}
           >
             Reminders
           </button>
@@ -504,55 +548,78 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
             onClick={handleMarkAllAsRead}
             className="text-sm text-[#238D88] hover:text-[#1a6b67] font-medium flex items-center gap-1"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
             Mark all as read
           </button>
         </div>
 
         {/* Content */}
-        <div className="max-h-[500px] overflow-y-auto">
+        <div className="max-h-[60vh] md:max-h-[500px] overflow-y-auto">
           {loading ? (
-            <div className="p-6 text-center text-gray-500">Loading...</div>
-          ) : activeTab === 'upcoming' ? (
+            <div className="p-6 text-center text-black">Loading...</div>
+          ) : activeTab === "upcoming" ? (
             <div className="p-4">
               {displayedEvents.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-black">
                   No upcoming events
                 </div>
               ) : (
                 <div className="space-y-3">
-
                   {displayedEvents.map((event) => {
-                    const isNew = isNewItem('event', event._id);
+                    const isNew = isNewItem("event", event._id);
                     const isPast = isEventPassed(event.startDate);
 
                     // Get the first child from the event (if any)
-                    const eventChildId = event.children && event.children.length > 0 ? event.children[0] : null;
-                    const eventChild = childrenList.find(child => child._id === eventChildId);
+                    const eventChildId =
+                      event.children && event.children.length > 0
+                        ? event.children[0]
+                        : null;
+                    const eventChild = childrenList.find(
+                      (child) => child._id === eventChildId
+                    );
 
                     return (
                       <div
                         key={event._id}
                         onClick={() => handleEventClick(event)}
-                        className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${isNew
-                          ? 'bg-[#E8F5F4] hover:bg-[#D4EDEB]'
-                          : 'hover:bg-gray-50'
-                          } ${isPast ? 'opacity-60' : ''}`}
+                        className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                          isNew
+                            ? "bg-[#E8F5F4] hover:bg-[#D4EDEB]"
+                            : "hover:bg-gray-50"
+                        }`}
                       >
                         {/* UPDATED: Show child avatar if available, otherwise fallback to colored circle */}
                         {eventChild ? (
                           <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                            <ChildAvatar child={eventChild} width={40} height={40} />
+                            <ChildAvatar
+                              child={eventChild}
+                              width={40}
+                              height={40}
+                            />
                           </div>
                         ) : (
                           <div
                             className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: event.color || '#F3BE08' }}
+                            style={{
+                              backgroundColor: event.color || "#F3BE08",
+                            }}
                           >
                             <span className="text-white font-medium text-sm">
-                              {(event.type || event.title || 'E').charAt(0).toUpperCase()}
+                              {(event.type || event.title || "E")
+                                .charAt(0)
+                                .toUpperCase()}
                             </span>
                           </div>
                         )}
@@ -560,10 +627,17 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-black text-sm mb-1">
                             {event.title}
-                            {isPast && <span className="ml-2 text-xs text-gray-500">(Past)</span>}
+                            {isPast && (
+                              <span className="ml-2 text-xs text-black">
+                                (Past)
+                              </span>
+                            )}
                           </h4>
-                          <p className="text-xs text-gray-600">
-                            {formatEventDateTime(event.startDate, event.endDate)}
+                          <p className="text-xs text-black">
+                            {formatEventDateTime(
+                              event.startDate,
+                              event.endDate
+                            )}
                           </p>
                         </div>
                       </div>
@@ -577,40 +651,47 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
                   onClick={() => setShowAllEvents(!showAllEvents)}
                   className="w-full mt-4 py-3 bg-[#238D88] text-white rounded-lg font-medium hover:bg-[#1a6b67] transition-colors"
                 >
-                  {showAllEvents ? 'Show Less' : 'Show all'}
+                  {showAllEvents ? "Show Less" : "Show all"}
                 </button>
               )}
             </div>
           ) : (
             <div className="p-4">
               {reminders.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-black">
                   <div className="text-4xl mb-2">🔔</div>
                   <div className="font-medium">No reminders set</div>
-                  <div className="text-xs mt-1">Click on an event to set a reminder</div>
+                  <div className="text-xs mt-1">
+                    Click on an event to set a reminder
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {displayedReminders.map((reminder) => {
-                    const relatedEvent = upcomingEvents.find(e => e._id === reminder.eventId);
-                    const eventColor = relatedEvent?.color || '#F3BE08';
-                    const isNew = isNewItem('reminder', reminder._id);
+                    const relatedEvent = upcomingEvents.find(
+                      (e) => e._id === reminder.eventId
+                    );
+                    const eventColor = relatedEvent?.color || "#F3BE08";
+                    const isNew = isNewItem("reminder", reminder._id);
 
                     return (
                       <div
                         key={reminder._id}
                         onClick={() => handleReminderClick(reminder)}
-                        className={`flex items-start gap-3 p-3 rounded-lg transition-colors cursor-pointer ${isNew
-                          ? 'bg-[#E8F5F4] hover:bg-[#D4EDEB]'
-                          : 'hover:bg-gray-50'
-                          }`}
+                        className={`flex items-start gap-3 p-3 rounded-lg transition-colors cursor-pointer ${
+                          isNew
+                            ? "bg-[#E8F5F4] hover:bg-[#D4EDEB]"
+                            : "hover:bg-gray-50"
+                        }`}
                       >
                         <div
                           className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                           style={{ backgroundColor: eventColor }}
                         >
                           <span className="text-white font-medium text-sm">
-                            {(reminder.eventTitle || 'R').charAt(0).toUpperCase()}
+                            {(reminder.eventTitle || "R")
+                              .charAt(0)
+                              .toUpperCase()}
                           </span>
                         </div>
 
@@ -618,7 +699,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
                           <h4 className="font-semibold text-black text-sm mb-1">
                             {reminder.eventTitle}
                           </h4>
-                          <p className="text-xs text-gray-600 font-medium">
+                          <p className="text-xs text-black font-medium">
                             {formatRelativeTime(reminder.eventDate)}
                           </p>
                         </div>
@@ -633,7 +714,7 @@ const NotificationPopup = ({ isOpen, onClose, anchorEl, refreshTrigger, onNotifi
                   onClick={() => setShowAllReminders(!showAllReminders)}
                   className="w-full mt-4 py-3 bg-[#238D88] text-white rounded-lg font-medium hover:bg-[#1a6b67] transition-colors"
                 >
-                  {showAllReminders ? 'Show Less' : 'Show all'}
+                  {showAllReminders ? "Show Less" : "Show all"}
                 </button>
               )}
             </div>
