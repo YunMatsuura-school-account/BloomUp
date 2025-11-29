@@ -132,6 +132,28 @@
   background: #238D88 !important;
   border: none !important;
 }
+.fc .fc-col-header-cell {
+  border: none !important;
+}
+.fc .fc-daygrid-day-top {
+    display: flex;
+    padding-left:1rem;
+    flex-direction: row;
+}
+
+
+
+/* Remove border from the axis cell */
+.fc-timegrid-axis {
+  border: none !important;
+}
+
+.fc-timeGridWeek-view .fc-scrollgrid td,
+.fc-timeGridDay-view .fc-scrollgrid td,
+.fc-timeGridWeek-view .fc-scrollgrid th,
+.fc-timeGridDay-view .fc-scrollgrid th {
+    border: none !important;
+}
 
 .calendar-green-headers .fc-col-header-cell {
   background: #238D88 !important;
@@ -230,6 +252,7 @@
   color: white !important;
 }
 
+
 /* FIXED: Mobile-specific fixes for upcoming events section */
 @media (max-width: 1279px) {
   /* Remove extra blank space in upcoming events on mobile */
@@ -237,6 +260,9 @@
     min-height: fit-content !important;
     height: auto !important;
   }
+ .fc-theme-standard th {
+    border: none !important;
+}
 
   .xl\:col-span-1 .h-full {
     height: auto !important;

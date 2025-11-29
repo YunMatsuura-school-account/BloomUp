@@ -276,7 +276,7 @@ const ScheduleCalendar = ({ events = [], initialDate }) => {
           {daysOfWeek.map((day) => (
             <div
               key={day}
-              className="flex justify-center items-center p-2.5 h-6"
+              className="flex justify-center items-center p-2.5 h-6 "
             >
               <span className="text-xs font-medium text-white">{day}</span>
             </div>
