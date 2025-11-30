@@ -826,13 +826,13 @@ export default function AddEventModal({ isOpen, onClose, onSaved, initialData = 
             <div className="self-stretch flex flex-col justify-start items-start gap-3">
               {/* Header */}
               <div className="self-stretch justify-between items-center inline-flex">
-                <div className="text-black text-[22px] font-dm-sans font-semibold">
+                <div className="text-black text-[15px] font-dm-sans font-semibold">
                   Category Name
                 </div>
                 {!showAddCategory && (
                   <button
                     onClick={handleAddCategoryClick}
-                    className="w-40 h-8 px-4 bg-[#F3BE08] rounded-[5px] justify-center items-center gap-2.5 inline-flex"
+                    className="w-25 h-8 px-4 bg-[#F3BE08] rounded-[5px] justify-center items-center gap-2.5 inline-flex"
                   >
                     <div className="text-black text-[14px] font-dm-sans font-normal">
                       Add Category +

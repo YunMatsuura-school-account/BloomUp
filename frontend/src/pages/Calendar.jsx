@@ -2023,6 +2023,32 @@ export default function CalendarPage() {
     });
   }
 
+  function handleToday() {
+    const api = calendarRef.current.getApi();
+    api.today();
+    updateCurrentDate(api);
+
+    // Focus on today's date with highlight animation
+    setTimeout(() => {
+      const todayElement = document.querySelector('.fc-day-today');
+      if (todayElement) {
+        todayElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'center'
+        });
+
+        // Add visual highlight animation
+        todayElement.classList.add('ring-2', 'ring-[#238D88]', 'ring-opacity-50', 'today-highlight');
+        setTimeout(() => {
+          todayElement.classList.remove('ring-2', 'ring-[#238D88]', 'ring-opacity-50', 'today-highlight');
+        }, 3000); // Highlight for 3 seconds
+      }
+    }, 100);
+  }
+
+
+
   // Category Icons function
   const getCategoryIcon = (category) => {
     const iconStyle = "w-8 h-8";
@@ -2076,47 +2102,6 @@ export default function CalendarPage() {
           </span>
         </div>
       </div>
-      <style>
-{`
-  /* Day & Week View Styles */
-  .fc-timeGridDay-view .fc-timegrid-slot,
-  .fc-timeGridWeek-view .fc-timegrid-slot {
-    border-bottom: none !important;
-  }
-    
-  .fc-timeGridDay-view .fc-timegrid-slot-lane,
-  .fc-timeGridWeek-view .fc-timegrid-slot-lane {
-    position: relative;
-  }
-  .fc-timeGridDay-view .fc-timegrid-slot-lane::before,
-  .fc-timeGridWeek-view .fc-timegrid-slot-lane::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    right: 0;
-    height: 1px;
-    background-color: #e0e0e0;
-    z-index: 1;
-  }
-  .fc-timeGridDay-view .fc-timegrid-slot-label,
-  .fc-timeGridWeek-view .fc-timegrid-slot-label {
-    background-color: white;
-    z-index: 2;
-    position: relative;
-    padding-right: 8px;
-  }
-  .fc-timeGridDay-view .fc-timegrid-slots table,
-  .fc-timeGridWeek-view .fc-timegrid-slots table {
-    border-bottom: none !important;
-  }
-  .fc-timeGridDay-view .fc-timegrid-slot-label-frame,
-  .fc-timeGridWeek-view .fc-timegrid-slot-label-frame {
-    background-color: white;
-    padding: 0 4px;
-  }
-`}
-</style>
 
       {/* Calendar Controls Row - UPDATED MOBILE LAYOUT */}
       <div className="mb-6">
@@ -2146,7 +2131,7 @@ export default function CalendarPage() {
                 <div className={`flex-1 ${currentView === "timeGridWeek" ? "bg-[#238D88]" : ""}`}>
                   <button
                     onClick={() => handleViewChange("timeGridWeek")}
-                    className={`w-full h-10 flex justify-center items-center text-sm font-dm-sans leading-5 p-3 transition-colors ${currentView === "timeGridWeek"
+                    className={`w-full h-10 flex justify-center items-center text-sm font-dm-sans leading-5 transition-colors ${currentView === "timeGridWeek"
                       ? "text-white font-extrabold"
                       : "text-black font-medium hover:bg-gray-50"
                       }`}
@@ -2162,7 +2147,7 @@ export default function CalendarPage() {
                 <div className={`flex-1 ${currentView === "timeGridDay" ? "bg-[#238D88]" : ""}`}>
                   <button
                     onClick={() => handleViewChange("timeGridDay")}
-                    className={`w-full h-10 flex justify-center items-center text-sm font-dm-sans leading-5  p-2 transition-colors ${currentView === "timeGridDay"
+                    className={`w-full h-10 flex justify-center items-center text-sm font-dm-sans leading-5 transition-colors ${currentView === "timeGridDay"
                       ? "text-white font-extrabold"
                       : "text-black font-medium hover:bg-gray-50"
                       }`}
@@ -2264,6 +2249,30 @@ export default function CalendarPage() {
                 </button>
               </div>
 
+
+              {/* Today Button - Desktop Only */}
+              <div className="hidden xl:block">
+                <button
+                  className="p-2 hover:bg-gray-100 rounded transition-colors ml-2"
+                  onClick={handleToday}
+                  title="Go to Today"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="21"
+                    height="21"
+                    viewBox="0 0 21 21"
+                    fill="none"
+                  >
+                    <path
+                      d="M3.28125 6.125C3.28125 5.95095 3.35039 5.78403 3.47346 5.66096C3.59653 5.53789 3.76345 5.46875 3.9375 5.46875H17.0625C17.2365 5.46875 17.4035 5.53789 17.5265 5.66096C17.6496 5.78403 17.7188 5.95095 17.7188 6.125C17.7188 6.29905 17.6496 6.46597 17.5265 6.58904C17.4035 6.71211 17.2365 6.78125 17.0625 6.78125H3.9375C3.76345 6.78125 3.59653 6.71211 3.47346 6.58904C3.35039 6.46597 3.28125 6.29905 3.28125 6.125ZM5.46875 10.5C5.46875 10.3259 5.53789 10.159 5.66096 10.036C5.78403 9.91289 5.95095 9.84375 6.125 9.84375H14.875C15.049 9.84375 15.216 9.91289 15.339 10.036C15.4621 10.159 15.5312 10.3259 15.5312 10.5C15.5312 10.674 15.4621 10.841 15.339 10.964C15.216 11.0871 15.049 11.1562 14.875 11.1562H6.125C5.95095 11.1562 5.78403 11.0871 5.66096 10.964C5.53789 10.841 5.46875 10.674 5.46875 10.5ZM8.09375 14.875C8.09375 14.7009 8.16289 14.534 8.28596 14.411C8.40903 14.2879 8.57595 14.2187 8.75 14.2187H12.25C12.424 14.2187 12.591 14.2879 12.714 14.411C12.8371 14.534 12.9062 14.7009 12.9062 14.875C12.9062 15.049 12.8371 15.216 12.714 15.339C12.591 15.4621 12.424 15.5312 12.25 15.5312H8.75C8.57595 15.5312 8.40903 15.4621 8.28596 15.339C8.16289 15.216 8.09375 15.049 8.09375 14.875Z"
+                      fill="black"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+
               {/* Right: Filter Icon for Mobile - UPDATED: Now functional */}
               <div className="xl:hidden flex items-center">
                 <div className="relative" ref={filterButtonRef}>
@@ -2314,45 +2323,61 @@ export default function CalendarPage() {
                 height="100%" // Changed back to 100% for proper filling
                 contentHeight="auto"
                 eventTimeFormat={{
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-    meridiem: 'short'
-  }}
-  slotLabelFormat={{
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-    meridiem: 'short'
-  }}
- views={{
-    dayGridMonth: {
-      // Leading zeros only in month view
-      dayCellContent: (args) => {
-        const day = args.date.getDate();
-        const formattedDay = day < 10 ? `0${day}` : day;
-        return { html: formattedDay };
-      }
-    },
-    timeGridWeek: {
-      dayHeaderFormat: { 
-        weekday: 'short', 
-        omitCommas: true 
-      }
-      // Week view will use default day formatting (no leading zeros)
-    },
-    timeGridDay: {
-      // Day view will use default day formatting (no leading zeros)
-    }
-  }}
-  
-                
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                }}
+
+                firstDay={1}
+
+                views={{
+                  dayGridMonth: {
+                    // Leading zeros only in month view
+                    dayCellContent: (args) => {
+                      const day = args.date.getDate();
+                      const formattedDay = day < 10 ? `0${day}` : day;
+                      return { html: formattedDay };
+                    }
+                  },
+                  timeGridWeek: {
+                    dayHeaderFormat: {
+                      weekday: 'short',
+                      omitCommas: true
+                    },
+                    // date below day header in week view
+                    dayHeaderContent: (args) => {
+                      const date = args.date;
+                      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                      const dayNumber = date.getDate();
+                      const month = date.toLocaleDateString('en-US', { month: 'short' });
+
+                      return {
+                        html: `
+                          <div class="fc-day-header-content">
+                            <div class="fc-day-name">${dayName}</div>
+                            <div class="fc-day-date"> ${dayNumber}</div>
+                          </div>
+                        `
+                      };
+                    }
+                  },
+                  timeGridDay: {
+                    dayHeaderFormat: {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    }
+                  }
+                }}
+
                 className="calendar-green-headers"
                 eventContent={(eventInfo) => {
                   return {
                     html: `<div class="fc-event-title">${eventInfo.event.title}</div>`,
                   };
                 }}
+
                 // View configuration
                 slotMinTime="06:00:00"
                 slotMaxTime="22:00:00"
@@ -2362,6 +2387,7 @@ export default function CalendarPage() {
                 dayMaxEvents={3}
                 weekNumbers={false}
                 nowIndicator={true}
+
                 // Handle view changes
                 viewDidMount={(viewInfo) => {
                   setCurrentView(viewInfo.view.type);
@@ -2371,9 +2397,9 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Upcoming Events - Takes 1/3 on large screens - FIXED: Removed extra space on mobile */}
+        {/* Upcoming Events - Takes 1/3 on large screens - Removed extra space on mobile */}
         <div className="xl:col-span-1">
-          <div className="h-full">
+          <div className="h-full flex flex-col">
             <UpcomingEvents
               selectedChild={selectedChild}
               onEventClick={handleEventClickFromUpcoming}
@@ -2518,6 +2544,6 @@ export default function CalendarPage() {
         showDatePicker={true}
         productName={selectedRestockItem?.productName || ""}
       />
-    </div>
+    </div >
   );
 }

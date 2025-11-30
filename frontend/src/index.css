@@ -4,200 +4,94 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  html,
-  body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    min-height: 100vh;
-    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
-  }
+/* Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-@layer components {
-  .page-surface {
-    background-color: #f5f5f5;
-    @apply min-h-full;
-  }
-
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .date-input-custom::-webkit-calendar-picker-indicator {
-    display: none;
-    -webkit-appearance: none;
-  }
-
-  .date-input-custom::-webkit-inner-spin-button,
-  .date-input-custom::-webkit-clear-button {
-    display: none;
-    -webkit-appearance: none;
-  }
-
-  /* Calendar Full Height Fix for "All" Option */
-  .calendar-full-height {
-    min-height: 600px;
-  }
-
-  .calendar-full-height .fc-view {
-    min-height: 500px;
-  }
-
-  /* Today highlight */
-  .fc-day-today {
-    @apply bg-[#238D88]/10;
-  }
-
-  /* Event dot indicator */
-  .fc-event-dot {
-    @apply w-2 h-2 rounded-full mr-1;
-  }
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
 }
 
-/* FullCalendar Custom Overrides */
-.fc .fc-toolbar {
-  @apply p-4;
+#root {
+  width: 100%;
+  height: 100%;
 }
 
-.fc .fc-col-header-cell-cushion {
-  @apply text-inherit no-underline;
-}
-
-.fc .fc-timegrid-slot {
-  @apply h-16;
-}
-
-.fc .fc-timegrid-now-indicator-line {
-  @apply h-px;
-}
-
-.fc .fc-event {
-  @apply border-none;
-}
-
-.fc .fc-event .fc-event-main {
-  @apply p-1;
-}
-
-/* FIXED: Ensure calendar takes full space without blank space at bottom */
-.fc .fc-view-harness {
-  min-height: 500px;
-  flex: 1 1 auto;
-}
-
-.fc .fc-view-harness-active>.fc-view {
-  flex: 1 1 auto;
-  min-height: 500px;
-}
-
-/* Time Picker Styles */
-.time-picker-column {
-  scrollbar-width: none;
+/* Utility Classes */
+.no-scrollbar {
   -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-.time-picker-column::-webkit-scrollbar {
+.no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
-/* Restock reminder modal adjustments */
-.restock-date-modal {
-  min-height: 450px;
+.date-input-custom::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
 }
 
-/* ============================================= */
-/* FULLCALENDAR GREEN HEADERS STYLING - ENHANCED */
-/* ============================================= */
+.date-input-custom::-webkit-inner-spin-button,
+.date-input-custom::-webkit-clear-button {
+  display: none;
+  -webkit-appearance: none;
+}
 
+/* Calendar Base Styles */
+.fc-day-today {
+  @apply bg-[#238D88]/10;
+}
+
+.fc-event-dot {
+  @apply w-2 h-2 rounded-full mr-1;
+}
+
+/* Calendar Green Headers */
 .fc-col-header {
   background: #238D88 !important;
   color: white !important;
 }
 
-/* Apply green background to ALL calendar headers */
-.calendar-green-headers .fc-col-header {
-  background: #238D88 !important;
-  border: none !important;
-}
-.fc .fc-col-header-cell {
-  border: none !important;
-}
-.fc .fc-daygrid-day-top {
-    display: flex;
-    padding-left:1rem;
-    flex-direction: row;
-}
-
-
-
-/* Remove border from the axis cell */
-.fc-timegrid-axis {
-  border: none !important;
-}
-
-.fc-timeGridWeek-view .fc-scrollgrid td,
-.fc-timeGridDay-view .fc-scrollgrid td,
-.fc-timeGridWeek-view .fc-scrollgrid th,
-.fc-timeGridDay-view .fc-scrollgrid th {
-    border: none !important;
-}
-
-.calendar-green-headers .fc-col-header-cell {
+.calendar-green-headers .fc-col-header,
+.calendar-green-headers .fc-col-header-cell,
+.calendar-green-headers .fc-scrollgrid-section-header,
+.calendar-green-headers .fc-scrollgrid thead,
+.calendar-green-headers .fc-timegrid-axis,
+.calendar-green-headers .fc-timegrid-axis-frame {
   background: #238D88 !important;
   color: white !important;
   border: none !important;
+}
+
+.calendar-green-headers .fc-col-header-cell {
+  border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
   font-weight: 600;
   font-size: 12px;
   padding: 8px 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
 .calendar-green-headers .fc-col-header-cell:last-child {
   border-right: none !important;
 }
 
-.calendar-green-headers .fc-col-header-cell-cushion {
+.calendar-green-headers .fc-col-header-cell-cushion,
+.calendar-green-headers .fc-timegrid-slot-label-frame,
+.calendar-green-headers .fc-timegrid-axis * {
   color: white !important;
   text-decoration: none !important;
-  font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
-  padding: 4px 0 !important;
-}
-
-/* Ensure consistent styling across all views */
-.calendar-green-headers .fc-scrollgrid {
-  border: none !important;
-}
-
-.calendar-green-headers .fc-scrollgrid-section-header {
-  background: #238D88 !important;
-  border: none !important;
-}
-
-.calendar-green-headers .fc-scrollgrid thead {
-  background: #238D88 !important;
-  border: none !important;
 }
 
 .calendar-green-headers .fc-daygrid-day-frame {
   border: 1px solid rgba(218, 220, 224, 0.6) !important;
-}
-
-.calendar-green-headers .fc-day-today {
-  background: rgba(35, 141, 136, 0.1) !important;
 }
 
 .calendar-green-headers .fc-event {
@@ -216,103 +110,9 @@
   font-size: 11px !important;
 }
 
-/* Week and Day view specific styling */
-.calendar-green-headers .fc-timegrid-slot,
-.calendar-green-headers .fc-timegrid-slot-lane {
-  height: 40px !important;
-  border-bottom: 1px solid rgba(218, 220, 224, 0.6) !important;
-}
-
-/* Ensure timegrid views also have green headers */
-.calendar-green-headers .fc-timegrid-axis,
-.calendar-green-headers .fc-timegrid-axis-frame {
-  background: #238D88 !important;
-  color: white !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-}
-
-.calendar-green-headers .fc-timegrid-slot-label-frame {
-  color: white !important;
-}
-
-/* Force white text in all header contexts */
-.calendar-green-headers .fc-col-header-cell *,
-.calendar-green-headers .fc-timegrid-axis *,
-.calendar-green-headers .fc-col-header-cell-cushion,
-.calendar-green-headers .fc-timegrid-slot-label-cushion {
-  color: white !important;
-}
-
-/* Fix for timegrid week view headers */
-.calendar-green-headers .fc-timegrid .fc-col-header-cell {
-  background: #238D88 !important;
-}
-
-.calendar-green-headers .fc-timegrid .fc-col-header-cell-cushion {
-  color: white !important;
-}
-
-
-/* FIXED: Mobile-specific fixes for upcoming events section */
-@media (max-width: 1279px) {
-  /* Remove extra blank space in upcoming events on mobile */
-  .xl\:col-span-1 {
-    min-height: fit-content !important;
-    height: auto !important;
-  }
- .fc-theme-standard th {
-    border: none !important;
-}
-
-  .xl\:col-span-1 .h-full {
-    height: auto !important;
-    min-height: auto !important;
-  }
-
-  /* Ensure upcoming events container doesn't have fixed height on mobile */
-  .xl\:col-span-1 .h-\[600px\] {
-    height: auto !important;
-    max-height: none !important; /* Remove max-height restriction */
-    min-height: auto !important;
-  }
-
-  /* Hide scrollbar completely on mobile and show all events */
-  .xl\:col-span-1 .overflow-y-auto {
-    overflow-y: visible !important; /* Changed from hidden to visible */
-    height: auto !important;
-  }
-
-  /* Ensure events container expands to fit content */
-  .xl\:col-span-1 .flex-1 {
-    flex: 0 1 auto !important;
-  }
-
-  /* Fix calendar height on mobile */
-  .fc .fc-view-harness {
-    min-height: 400px !important;
-  }
-}
-
-/* Additional mobile scrollbar hiding for all screen sizes below xl */
-@media (max-width: 1279px) {
-  .no-scrollbar {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
-  }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none !important;
-  }
-}
-
-/* FIXED: Calendar height adjustments for different views */
-.calendar-green-headers .fc-daygrid-body,
-.calendar-green-headers .fc-timegrid-body {
-  min-height: 400px;
-}
-
-/* Ensure calendar container fills available space */
+/* Calendar Height Management */
 .fc .fc-view-harness {
+  min-height: 500px;
   flex: 1 1 auto;
 }
 
@@ -320,15 +120,54 @@
   min-height: 500px;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1280px) {
+/* Upcoming Events Responsive Layout */
+.xl\:col-span-1 .h-\[600px\] {
+  height: 600px;
+}
+
+.xl\:col-span-1 .overflow-y-auto {
+  max-height: 500px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 transparent;
+}
+
+.xl\:col-span-1 .overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.xl\:col-span-1 .overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.xl\:col-span-1 .overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #cbd5e0;
+  border-radius: 3px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 1279px) {
+
+  .xl\:col-span-1 .h-full,
+  .xl\:col-span-1 .flex-1,
+  .xl\:col-span-1 .h-\[600px\] {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+  }
+
+  .xl\:col-span-1 .overflow-y-auto {
+    overflow-y: visible !important;
+    max-height: none !important;
+  }
+
+  .fc .fc-view-harness {
+    min-height: 400px !important;
+  }
+
   .calendar-green-headers .fc-col-header-cell {
     font-size: 10px !important;
     padding: 6px 0 !important;
-  }
-  
-  .fc .fc-view-harness {
-    min-height: 450px !important;
   }
 }
 
@@ -345,20 +184,176 @@
   .fc .fc-view-harness {
     min-height: 400px !important;
   }
+}
 
-  /* Mobile: Completely remove scrollbar and extra space from upcoming events */
-  .xl\:col-span-1 .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-    overflow: visible !important;
-  }
+/* Time Picker */
+.time-picker-column {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 
-  .xl\:col-span-1 .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
+.time-picker-column::-webkit-scrollbar {
+  display: none;
+}
+
+/* Week View Date Headers */
+.fc-timeGridWeek-view .fc-day-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.fc-timeGridWeek-view .fc-day-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+/* Day View Today Styling */
+.fc-timeGridDay-view .fc-col-header-cell.fc-day-today .fc-day-date {
+  background-color: #F3BE08 !important;
+  color: white !important;
+}
+
+.fc-timeGridDay-view .fc-col-header-cell-cushion {
+  padding: 8px 4px !important;
 }
 
 
 
 
+
+/* new Code */
+/* Calendar Height and Time Slot Optimization */
+.fc .fc-timegrid-body {
+  height: auto !important;
+}
+
+.fc .fc-timegrid-slots {
+  min-height: 0 !important;
+}
+
+/* Week View - Dynamic Height */
+.fc-timeGridWeek-view .fc-timegrid-slots table {
+  height: auto !important;
+}
+
+.fc-timeGridWeek-view .fc-timegrid-axis {
+  height: auto !important;
+}
+
+/* Day View - Dynamic Height */
+.fc-timeGridDay-view .fc-timegrid-slots table {
+  height: auto !important;
+}
+
+.fc-timeGridDay-view .fc-timegrid-axis {
+  height: auto !important;
+}
+
+/* Increase Time Slot Height for Better Spacing */
+.fc .fc-timegrid-slot {
+  height: 20px !important;
+  /* Increased from 40px */
+  min-height: 20px !important;
+}
+
+.fc .fc-timegrid-slot-lane {
+  height: 30px !important;
+}
+
+/* Ensure Calendar Container Fills Available Space */
+.calendar-container .fc .fc-view-harness {
+  flex: 1 1 auto;
+  min-height: 600px !important;
+  /* Increased minimum height */
+}
+
+.calendar-container .fc .fc-view {
+  min-height: 600px !important;
+  height: 100% !important;
+}
+
+/* Remove Extra Padding and Margins */
+.fc .fc-timegrid-col-frame {
+  min-height: 0 !important;
+}
+
+.fc .fc-timegrid-event-harness {
+  margin: 1px 2px !important;
+}
+
+/* Optimize Scroll Behavior */
+.fc .fc-timegrid-body .fc-scroller {
+  overflow-y: auto !important;
+  height: auto !important;
+}
+
+
+/* Ensure No Blank Space at Bottom */
+.fc .fc-timegrid-body .fc-scroller-liquid-absolute {
+  position: relative !important;
+  height: auto !important;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 1279px) {
+  .fc .fc-timegrid-slot {
+    height: 45px !important;
+    min-height: 45px !important;
+  }
+
+  .calendar-container .fc .fc-view-harness {
+    min-height: 550px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .fc .fc-timegrid-slot {
+    height: 40px !important;
+    min-height: 40px !important;
+  }
+
+  .calendar-container .fc .fc-view-harness {
+    min-height: 500px !important;
+  }
+}
+
+/* Fix for Time Grid Views to Remove Blank Space */
+.fc-timeGridWeek-view .fc-timegrid-body,
+.fc-timeGridDay-view .fc-timegrid-body {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.fc-timeGridWeek-view .fc-scroller-liquid-absolute,
+.fc-timeGridDay-view .fc-scroller-liquid-absolute {
+  height: auto !important;
+  position: relative !important;
+}
+
+/* Ensure Events Fill Available Space */
+.fc .fc-timegrid-event {
+  font-size: 12px !important;
+  min-height: 48px !important;
+  /* Match increased slot height */
+  display: flex !important;
+  align-items: center !important;
+}
+
+.fc .fc-timegrid-event .fc-event-main {
+  padding: 4px 6px !important;
+  width: 100% !important;
+}
+
+.fc .fc-timegrid-event .fc-event-title {
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+}
 
