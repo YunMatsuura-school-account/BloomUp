@@ -2102,6 +2102,47 @@ export default function CalendarPage() {
           </span>
         </div>
       </div>
+       <style>
+{`
+  /* Day & Week View Styles */
+  .fc-timeGridDay-view .fc-timegrid-slot,
+  .fc-timeGridWeek-view .fc-timegrid-slot {
+    border-bottom: none !important;
+  }
+    
+  .fc-timeGridDay-view .fc-timegrid-slot-lane,
+  .fc-timeGridWeek-view .fc-timegrid-slot-lane {
+    position: relative;
+  }
+  .fc-timeGridDay-view .fc-timegrid-slot-lane::before,
+  .fc-timeGridWeek-view .fc-timegrid-slot-lane::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 76%;
+    right: 0;
+    height: 1px;
+    background-color: #e0e0e0;
+    z-index: 1;
+  }
+  .fc-timeGridDay-view .fc-timegrid-slot-label,
+  .fc-timeGridWeek-view .fc-timegrid-slot-label {
+    background-color: white;
+    z-index: 2;
+    position: relative;
+    padding-right: 8px;
+  }
+  .fc-timeGridDay-view .fc-timegrid-slots table,
+  .fc-timeGridWeek-view .fc-timegrid-slots table {
+    border-bottom: none !important;
+  }
+  .fc-timeGridDay-view .fc-timegrid-slot-label-frame,
+  .fc-timeGridWeek-view .fc-timegrid-slot-label-frame {
+    background-color: white;
+    padding: 0 4px;
+  }
+`}
+</style>
 
       {/* Calendar Controls Row - UPDATED MOBILE LAYOUT */}
       <div className="mb-6">
@@ -2323,54 +2364,40 @@ export default function CalendarPage() {
                 height="100%" // Changed back to 100% for proper filling
                 contentHeight="auto"
                 eventTimeFormat={{
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                }}
+                   hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    meridiem: 'short'
+  }}
+  slotLabelFormat={{
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    meridiem: 'short'
+  }}
 
                 firstDay={1}
 
                 views={{
-                  dayGridMonth: {
-                    // Leading zeros only in month view
-                    dayCellContent: (args) => {
-                      const day = args.date.getDate();
-                      const formattedDay = day < 10 ? `0${day}` : day;
-                      return { html: formattedDay };
-                    }
-                  },
-                  timeGridWeek: {
-                    dayHeaderFormat: {
-                      weekday: 'short',
-                      omitCommas: true
-                    },
-                    // date below day header in week view
-                    dayHeaderContent: (args) => {
-                      const date = args.date;
-                      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-                      const dayNumber = date.getDate();
-                      const month = date.toLocaleDateString('en-US', { month: 'short' });
-
-                      return {
-                        html: `
-                          <div class="fc-day-header-content">
-                            <div class="fc-day-name">${dayName}</div>
-                            <div class="fc-day-date"> ${dayNumber}</div>
-                          </div>
-                        `
-                      };
-                    }
-                  },
-                  timeGridDay: {
-                    dayHeaderFormat: {
-                      weekday: 'long',
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric'
-                    }
-                  }
-                }}
-
+    dayGridMonth: {
+      // Leading zeros only in month view
+      dayCellContent: (args) => {
+        const day = args.date.getDate();
+        const formattedDay = day < 10 ? `0${day}` : day;
+        return { html: formattedDay };
+      }
+    },
+    timeGridWeek: {
+      dayHeaderFormat: { 
+        weekday: 'short', 
+        omitCommas: true 
+      }
+      // Week view will use default day formatting (no leading zeros)
+    },
+    timeGridDay: {
+      // Day view will use default day formatting (no leading zeros)
+    }
+  }}
                 className="calendar-green-headers"
                 eventContent={(eventInfo) => {
                   return {
