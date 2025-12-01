@@ -137,6 +137,14 @@ frontend/
 
 ### Key Components
 
+#### LandingPage (`src/pages/LandingPage.jsx`)
+- **Main entry point** - First page users see when visiting the site
+- Marketing page with sections: Hero, Features, Pricing, Team, Project Assets, Contact
+- Navigation links to signup page via "Sign Up" button in header
+- Pricing cards with "Get started" buttons linking to `/signup`
+- Mobile responsive with hamburger menu
+- Styled via `src/styles/LandingPage.css`
+
 #### AuthGuard (`src/components/AuthGuard.jsx`)
 - Checks authentication status on route access
 - Fetches `/api/auth/me` to validate token
@@ -172,7 +180,7 @@ frontend/
 
 ### Routing Structure
 ```
-/ → Signup
+/ → LandingPage (Main entry point - first page users see)
 /login → Login
 /signup → Signup
 /family-setup → FamilySetup (protected)
@@ -183,6 +191,8 @@ frontend/
 /articles → Articles
 /calendar → Calendar
 ```
+
+**Note:** The Landing Page is now the main entry point. Users click "Sign Up" in the header or "Get started" on pricing cards to navigate to the signup page.
 
 ---
 
