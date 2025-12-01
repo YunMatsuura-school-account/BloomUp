@@ -226,8 +226,8 @@ html {
   position: relative;
   padding-top: 0;
   min-height: 700px;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 60%), 
-              url(../assets/HeroBGImage.svg);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 60%),
+    url(../assets/HeroBGImage.svg);
   background-size: cover;
   background-position: center;
   overflow: hidden;
@@ -285,6 +285,27 @@ html {
 
 .lp-btn-proposal:hover {
   background: #1a6d6a;
+  transform: translateY(-2px);
+}
+
+.lp-btn-get-started {
+  background: var(--accent-yellow);
+  color: var(--text-dark);
+  padding: 0.875rem 2.5rem;
+  border: none;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 1rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lp-btn-get-started:hover {
+  background: var(--accent-orange);
   transform: translateY(-2px);
 }
 
@@ -1086,8 +1107,8 @@ html {
 
   .lp-hero-section {
     min-height: 600px;
-    background: linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 60%), 
-                url(../assets/coverMobile.svg);
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 60%),
+      url(../assets/coverMobile.svg);
     background-size: cover;
     background-position: center center;
   }
@@ -1110,6 +1131,11 @@ html {
   }
 
   .lp-btn-proposal {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .lp-btn-get-started {
     padding: 0.75rem 1.5rem;
     font-size: 0.9rem;
   }

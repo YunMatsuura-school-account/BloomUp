@@ -81,11 +81,10 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Landing Page */}
-        <Route path="/landing" element={<LandingPage />} />
+        {/* Landing Page - First page users see */}
+        <Route path="/" element={<LandingPage />} />
 
         {/* Public auth pages */}
-        <Route path="/" element={<Signup />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
 
