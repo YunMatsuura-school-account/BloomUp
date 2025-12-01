@@ -6,6 +6,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { useEffect } from "react";
+import LandingPage from "./pages/LandingPage";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import DashboardLayout from "./layout/DashboardLayout";
@@ -80,6 +81,9 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Landing Page */}
+        <Route path="/landing" element={<LandingPage />} />
+
         {/* Public auth pages */}
         <Route path="/" element={<Signup />} />
         <Route path="/signup" element={<Signup />} />
