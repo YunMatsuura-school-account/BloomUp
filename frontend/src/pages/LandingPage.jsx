@@ -270,7 +270,9 @@ const LandingPage = () => {
           </div>
         </div>
         <div className="lp-hero-curve">
+          {/* Desktop curve - original */}
           <svg
+            className="lp-hero-curve-desktop"
             viewBox="0 0 1440 180"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -280,6 +282,37 @@ const LandingPage = () => {
               d="M0,0 L0,60 Q400,180 800,80 Q1200,0 1440,40 L1440,180 L0,180 Z"
               fill="#C8E2E1"
             />
+          </svg>
+          {/* Mobile curve */}
+          <svg
+            className="lp-hero-curve-mobile"
+            viewBox="0 0 393 300"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M180 280C100 295 40 270 0 250V0H393V260C340 245 280 265 180 280Z"
+              fill="#C8E2E1"
+            />
+            <path
+              d="M180 280C100 295 40 270 0 250V0H393V260C340 245 280 265 180 280Z"
+              fill="url(#paint0_linear_hero_mobile)"
+            />
+            <defs>
+              <linearGradient
+                id="paint0_linear_hero_mobile"
+                x1="382.85"
+                y1="150"
+                x2="19.0816"
+                y2="150"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop stopOpacity="0" />
+                <stop offset="0.586538" stopOpacity="0.4" />
+                <stop offset="1" stopOpacity="0.5" />
+              </linearGradient>
+            </defs>
           </svg>
         </div>
       </section>
@@ -370,7 +403,7 @@ const LandingPage = () => {
           </div>
         </div>
 
-        {/* Articles & Resources Feature - Background #C8E2E1 */}
+        {/* Articles & Resources Feature - Simple background */}
         <div className="lp-feature-section lp-feature-bg-1">
           <div className="lp-feature-container">
             <div className="lp-feature-content">
@@ -415,22 +448,63 @@ const LandingPage = () => {
 
       {/* Pricing Section */}
       <section id="pricing" className="lp-pricing-section">
-        {/* Top Curve - same wave pattern as features, but in teal */}
-        <div className="lp-pricing-curve-top">
+        {/* Background curve - Desktop version */}
+        <div className="lp-pricing-background lp-pricing-bg-desktop">
           <svg
-            viewBox="0 0 1440 180"
+            viewBox="0 0 1437 1205"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             preserveAspectRatio="none"
           >
             <path
-              d="M0,80 Q360,180 720,80 T1440,80 L1440,180 L0,180 Z"
-              fill="#008F88"
+              d="M1442 1055.55C857.6 1326.22 237.167 1168.33 0 1055.55V0H1442V1055.55Z"
+              fill="url(#paint0_linear_pricing_desktop)"
             />
+            <defs>
+              <linearGradient
+                id="paint0_linear_pricing_desktop"
+                x1="655.673"
+                y1="-362.034"
+                x2="655.673"
+                y2="1205"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop stopColor="#17B0A9" />
+                <stop offset="1" stopColor="#E0F1ED" />
+              </linearGradient>
+            </defs>
           </svg>
         </div>
 
-        {/* Pricing Content with gradient background */}
+        {/* Background curve - Mobile version */}
+        <div className="lp-pricing-background lp-pricing-bg-mobile">
+          <svg
+            viewBox="0 0 393 1404"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M393 1362.68C233.729 1436.45 64.637 1393.41 0 1362.68V0H393V1362.68Z"
+              fill="url(#paint0_linear_pricing_mobile)"
+            />
+            <defs>
+              <linearGradient
+                id="paint0_linear_pricing_mobile"
+                x1="178.696"
+                y1="-421.644"
+                x2="178.696"
+                y2="1746.93"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop stopColor="#008F88" />
+                <stop offset="1" stopColor="#9ECDA8" stopOpacity="0.1" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        {/* Pricing Content */}
         <div className="lp-pricing-content">
           {/* Title directly on gradient background */}
           <h2 className="lp-pricing-title">Pricing</h2>
@@ -488,18 +562,6 @@ const LandingPage = () => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Bottom Curve - simple smooth arc down */}
-        <div className="lp-pricing-curve-bottom">
-          <svg
-            viewBox="0 0 1440 360"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            preserveAspectRatio="none"
-          >
-            <path d="M0,0 Q720,360 1440,0 L1440,360 L0,360 Z" fill="#FFFFFF" />
-          </svg>
         </div>
       </section>
 

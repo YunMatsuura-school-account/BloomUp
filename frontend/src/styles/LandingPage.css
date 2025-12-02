@@ -373,6 +373,14 @@ html {
   display: block;
 }
 
+.lp-hero-curve-desktop {
+  display: block;
+}
+
+.lp-hero-curve-mobile {
+  display: none;
+}
+
 /* Features Section */
 .lp-features-wrapper {
   width: 100%;
@@ -396,6 +404,7 @@ html {
 .lp-feature-bg-1 {
   background: #C8E2E1;
 }
+
 
 .lp-feature-bg-2 {
   background: #238D881A;
@@ -511,25 +520,41 @@ html {
   position: relative;
   width: 100%;
   padding: 0;
-  background: #C8E2E1;
+  background: transparent;
+  overflow: visible;
+  margin-top: -1px;
 }
 
-.lp-pricing-curve-top {
-  position: relative;
+.lp-pricing-background {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 180px;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
 }
 
-.lp-pricing-curve-top svg {
+.lp-pricing-background svg {
   width: 100%;
   height: 100%;
   display: block;
 }
 
+/* Desktop background visible by default, mobile hidden */
+.lp-pricing-bg-desktop {
+  display: block;
+}
+
+.lp-pricing-bg-mobile {
+  display: none;
+}
+
 .lp-pricing-content {
-  /* background: linear-gradient(180deg, #008F88 0%, rgba(158, 205, 168, 0.1) 100%); */
-  padding: 2rem 0 5rem 0;
+  padding: 8rem 0 6rem 0;
+  /* Extra top padding to account for overlap */
   position: relative;
+  z-index: 1;
 }
 
 .lp-pricing-title {
@@ -665,18 +690,6 @@ html {
   transform: translateY(-2px);
 }
 
-.lp-pricing-curve-bottom {
-  position: relative;
-  width: 100%;
-  height: 300px;
-  margin-top: -1px;
-}
-
-.lp-pricing-curve-bottom svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
 
 /* Team Section */
 .lp-team-section {
@@ -687,7 +700,7 @@ html {
 .lp-team-container {
   max-width: 1500px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 4px;
 }
 
 .lp-team-section .lp-section-title {
@@ -710,8 +723,11 @@ html {
 }
 
 .lp-team-avatar {
-  width: 235px;
-  height: 214px;
+  /* Use percentage-based width relative to container, with max for large screens */
+  width: 100%;
+  max-width: 235px;
+  aspect-ratio: 235 / 214;
+  height: auto;
   margin: 0 auto 0.5rem;
   overflow: hidden;
   position: relative;
@@ -1110,10 +1126,7 @@ html {
     grid-template-columns: repeat(4, 1fr);
   }
 
-  .lp-team-avatar {
-    width: 200px;
-    height: 180px;
-  }
+  /* Avatar inherits responsive sizing from base styles */
 }
 
 @media (max-width: 1024px) {
@@ -1223,6 +1236,24 @@ html {
     display: flex;
   }
 
+  /* Switch to mobile hero curve */
+  .lp-hero-curve-desktop {
+    display: none;
+  }
+
+  .lp-hero-curve-mobile {
+    display: block;
+  }
+
+  /* Switch to mobile pricing background */
+  .lp-pricing-bg-desktop {
+    display: none;
+  }
+
+  .lp-pricing-bg-mobile {
+    display: block;
+  }
+
   .lp-hero-section {
     min-height: 600px;
     background: linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 60%),
@@ -1296,23 +1327,12 @@ html {
     text-align: left;
   }
 
-  .lp-pricing-curve-top {
-    display: none;
-  }
-
-  .lp-pricing-curve-bottom {
-    height: 120px;
-  }
-
   .lp-team-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
+    gap: 3vw;
   }
 
-  .lp-team-avatar {
-    width: 160px;
-    height: 160px;
-  }
+  /* Avatar uses responsive sizing from base - no fixed pixels */
 
   .lp-footer-top {
     flex-direction: column;
@@ -1348,14 +1368,40 @@ html {
 
   .lp-team-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 2.5vw;
   }
 
-  .lp-team-avatar {
-    width: 140px;
-    height: 140px;
-  }
+  /* Avatar uses responsive sizing from base - no fixed pixels */
 
   .lp-contact-subtitle {
     font-size: 1.02rem;
+  }
+}
+
+/* Extra-small devices (very narrow screens like Galaxy S26 and smaller) */
+@media (max-width: 480px) {
+  .lp-team-grid {
+    /* Always keep 2 columns on small phones */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2vw;
+  }
+
+  .lp-team-avatar {
+    /* Scale with viewport, no fixed pixels */
+    width: 100%;
+    max-width: none;
+  }
+
+  .lp-team-name {
+    font-size: 0.85rem;
+  }
+
+  .lp-team-role {
+    font-size: 0.75rem;
+  }
+
+  .lp-linkedin-text {
+    font-size: 0.7rem;
+    max-width: 80px;
   }
 }
