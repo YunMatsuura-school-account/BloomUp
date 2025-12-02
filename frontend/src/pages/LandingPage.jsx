@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/LandingPage.css";
 import BudgetIcon from "../icons/BudgetIcon";
@@ -6,6 +6,11 @@ import CalendarIcon from "../icons/CalendarIcon";
 import ArticlesIcon from "../icons/ArticlesIcon";
 
 const LandingPage = () => {
+  const [contactStatus, setContactStatus] = useState({
+    type: null, // 'success' or 'error'
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   useEffect(() => {
     const menuToggle = document.querySelector(".lp-mobile-menu-toggle");
     const menuClose = document.querySelector(".lp-mobile-menu-close");
@@ -44,12 +49,93 @@ const LandingPage = () => {
     };
   }, []);
 
-  const handleContactSubmit = (e) => {
+  const handleContactSubmit = async (e) => {
     e.preventDefault();
-    // Clear the form
-    e.target.reset();
-    // Optional: You can add a success message or alert here
-    alert("Thank you for your message! We will get back to you soon.");
+    setIsSubmitting(true);
+    setContactStatus({ type: null, message: "" });
+
+    const formData = new FormData(e.target);
+    const data = {
+      name: formData.get("name"),
+      email: formData.get("email"),
+      message: formData.get("message"),
+    };
+
+    try {
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_BACKEND_URL || "http://localhost:8888"
+        }/api/contact`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get("content-type");
+      let result;
+
+      if (contentType && contentType.includes("application/json")) {
+        result = await response.json();
+      } else {
+        // If not JSON (likely HTML error page), handle 404 or other errors
+        if (response.status === 404) {
+          throw new Error(
+            "Contact form endpoint not found. Please ensure the backend is updated."
+          );
+        }
+        const text = await response.text();
+        throw new Error(
+          `Server error: ${response.status} ${response.statusText}`
+        );
+      }
+
+      if (response.ok && result.success) {
+        setContactStatus({
+          type: "success",
+          message:
+            result.message ||
+            "Thank you for contacting us! We will get back to you soon.",
+        });
+        e.target.reset();
+        // Clear success message after 5 seconds
+        setTimeout(() => {
+          setContactStatus({ type: null, message: "" });
+        }, 5000);
+      } else {
+        setContactStatus({
+          type: "error",
+          message:
+            result.message || "Failed to send message. Please try again later.",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting contact form:", error);
+      let errorMessage =
+        "Network error. Please check your connection and try again.";
+
+      if (
+        error.message.includes("404") ||
+        error.message.includes("not found")
+      ) {
+        errorMessage =
+          "Contact form service is temporarily unavailable. Please try again later or contact us directly at bloomupproject2@gmail.com";
+      } else if (error.message.includes("Network")) {
+        errorMessage =
+          "Network error. Please check your connection and try again.";
+      }
+
+      setContactStatus({
+        type: "error",
+        message: errorMessage,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleProposalDownload = () => {
@@ -177,7 +263,7 @@ const LandingPage = () => {
             preserveAspectRatio="none"
           >
             <path
-              d="M0,0 L0,60 Q360,140 720,60 T1440,60 L1440,180 L0,180 Z"
+              d="M0,0 L0,60 Q400,180 800,80 Q1200,0 1440,40 L1440,180 L0,180 Z"
               fill="#C8E2E1"
             />
           </svg>
@@ -410,24 +496,29 @@ const LandingPage = () => {
               <div className="lp-team-avatar">
                 <img src="/src/assets/JungahBae.svg" alt="Jungah Bae" />
               </div>
-              <h3 className="lp-team-name">
-                Jungah
-                <br />
-                Bae
-              </h3>
+              <a
+                href="https://www.linkedin.com/in/kaeli-bae/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="lp-team-name-link"
+              >
+                <h3 className="lp-team-name">
+                  Jungah
+                  <br />
+                  Bae
+                </h3>
+              </a>
               <p className="lp-team-role">UI/UX Designer</p>
               <a
-                href="http://linkedin.com/in/kaeli-bae"
+                href="https://www.linkedin.com/in/kaeli-bae/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="lp-team-linkedin"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg width="20" height="20" fill="#000000" viewBox="0 0 24 24">
                   <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                 </svg>
+                <span className="lp-linkedin-text">/kaeli-bae</span>
               </a>
             </div>
 
@@ -436,24 +527,29 @@ const LandingPage = () => {
               <div className="lp-team-avatar">
                 <img src="/src/assets/AnaCarrillo.svg" alt="Ana Carrillo" />
               </div>
-              <h3 className="lp-team-name">
-                Ana
-                <br />
-                Carrillo
-              </h3>
+              <a
+                href="https://www.linkedin.com/in/laanacarrilloc/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="lp-team-name-link"
+              >
+                <h3 className="lp-team-name">
+                  Ana
+                  <br />
+                  Carrillo
+                </h3>
+              </a>
               <p className="lp-team-role">UI/UX Designer</p>
               <a
-                href="https://www.linkedin.com/in/laanacarrilloc?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"
+                href="https://www.linkedin.com/in/laanacarrilloc/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="lp-team-linkedin"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg width="20" height="20" fill="#000000" viewBox="0 0 24 24">
                   <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                 </svg>
+                <span className="lp-linkedin-text">/laanacarrilloc</span>
               </a>
             </div>
 
@@ -462,24 +558,31 @@ const LandingPage = () => {
               <div className="lp-team-avatar">
                 <img src="/src/assets/JaskiratSingh.svg" alt="Jaskirat Singh" />
               </div>
-              <h3 className="lp-team-name">
-                Jaskirat
-                <br />
-                Singh
-              </h3>
+              <a
+                href="https://www.linkedin.com/in/jaskirat-singh-990889327/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="lp-team-name-link"
+              >
+                <h3 className="lp-team-name">
+                  Jaskirat
+                  <br />
+                  Singh
+                </h3>
+              </a>
               <p className="lp-team-role">UI/UX Designer</p>
               <a
-                href="https://www.linkedin.com/in/jaskirat-singh-990889327?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"
+                href="https://www.linkedin.com/in/jaskirat-singh-990889327/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="lp-team-linkedin"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg width="20" height="20" fill="#000000" viewBox="0 0 24 24">
                   <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                 </svg>
+                <span className="lp-linkedin-text">
+                  /jaskirat-singh-990889327
+                </span>
               </a>
             </div>
 
@@ -488,24 +591,29 @@ const LandingPage = () => {
               <div className="lp-team-avatar">
                 <img src="/src/assets/SahilKumar.svg" alt="Sahil Kumar" />
               </div>
-              <h3 className="lp-team-name">
-                Sahil
-                <br />
-                Kumar
-              </h3>
+              <a
+                href="https://www.linkedin.com/in/sahil-kumar062001"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="lp-team-name-link"
+              >
+                <h3 className="lp-team-name">
+                  Sahil
+                  <br />
+                  Kumar
+                </h3>
+              </a>
               <p className="lp-team-role">UI/UX Designer</p>
               <a
                 href="https://www.linkedin.com/in/sahil-kumar062001"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="lp-team-linkedin"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg width="20" height="20" fill="#000000" viewBox="0 0 24 24">
                   <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                 </svg>
+                <span className="lp-linkedin-text">/sahil-kumar062001</span>
               </a>
             </div>
 
@@ -517,21 +625,31 @@ const LandingPage = () => {
                   alt="Siddhi Narharshettiwar"
                 />
               </div>
-              <h3 className="lp-team-name">
-                Siddhi
-                <br />
-                Narharshettiwar
-              </h3>
+              <a
+                href="https://www.linkedin.com/in/siddhi-narharshettiwar-5470142a7/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="lp-team-name-link"
+              >
+                <h3 className="lp-team-name">
+                  Siddhi
+                  <br />
+                  Narharshettiwar
+                </h3>
+              </a>
               <p className="lp-team-role">UI/UX Designer</p>
-              <a href="#" className="lp-team-linkedin">
-                <svg
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
+              <a
+                href="https://www.linkedin.com/in/siddhi-narharshettiwar-5470142a7/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="lp-team-linkedin"
+              >
+                <svg width="20" height="20" fill="#000000" viewBox="0 0 24 24">
                   <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                 </svg>
+                <span className="lp-linkedin-text">
+                  /siddhi-narharshettiwar-5470142a7
+                </span>
               </a>
             </div>
 
@@ -540,24 +658,29 @@ const LandingPage = () => {
               <div className="lp-team-avatar">
                 <img src="/src/assets/YunMatsuura.svg" alt="Yun Matsuura" />
               </div>
-              <h3 className="lp-team-name">
-                Yun
-                <br />
-                Matsuura
-              </h3>
+              <a
+                href="https://www.linkedin.com/in/yun-matsuura/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="lp-team-name-link"
+              >
+                <h3 className="lp-team-name">
+                  Yun
+                  <br />
+                  Matsuura
+                </h3>
+              </a>
               <p className="lp-team-role">Full- Stack Developer</p>
               <a
-                href="https://www.linkedin.com/in/yun-matsuura"
+                href="https://www.linkedin.com/in/yun-matsuura/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="lp-team-linkedin"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg width="20" height="20" fill="#000000" viewBox="0 0 24 24">
                   <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                 </svg>
+                <span className="lp-linkedin-text">/yun-matsuura</span>
               </a>
             </div>
 
@@ -566,24 +689,31 @@ const LandingPage = () => {
               <div className="lp-team-avatar">
                 <img src="/src/assets/Tejaswani.svg" alt="Tejaswani Kolasani" />
               </div>
-              <h3 className="lp-team-name">
-                Tejaswani
-                <br />
-                Kolasani
-              </h3>
+              <a
+                href="https://www.linkedin.com/in/kolasani-tejaswani-software-developer/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="lp-team-name-link"
+              >
+                <h3 className="lp-team-name">
+                  Tejaswani
+                  <br />
+                  Kolasani
+                </h3>
+              </a>
               <p className="lp-team-role">Full- Stack Developer</p>
               <a
-                href="www.linkedin.com/in/kolasani-tejaswani-software-developer"
+                href="https://www.linkedin.com/in/kolasani-tejaswani-software-developer/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="lp-team-linkedin"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg width="20" height="20" fill="#000000" viewBox="0 0 24 24">
                   <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                 </svg>
+                <span className="lp-linkedin-text">
+                  /kolasani-tejaswani-software-developer
+                </span>
               </a>
             </div>
 
@@ -592,24 +722,31 @@ const LandingPage = () => {
               <div className="lp-team-avatar">
                 <img src="/src/assets/HarleenKaur.svg" alt="Harleen Kaur" />
               </div>
-              <h3 className="lp-team-name">
-                Harleen
-                <br />
-                Kaur
-              </h3>
+              <a
+                href="https://www.linkedin.com/in/asp-dot-net-software-engineer/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="lp-team-name-link"
+              >
+                <h3 className="lp-team-name">
+                  Harleen
+                  <br />
+                  Kaur
+                </h3>
+              </a>
               <p className="lp-team-role">Full- Stack Developer</p>
               <a
                 href="https://www.linkedin.com/in/asp-dot-net-software-engineer/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="lp-team-linkedin"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg width="20" height="20" fill="#000000" viewBox="0 0 24 24">
                   <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                 </svg>
+                <span className="lp-linkedin-text">
+                  /asp-dot-net-software-engineer
+                </span>
               </a>
             </div>
 
@@ -621,24 +758,31 @@ const LandingPage = () => {
                   alt="Manmeet Singh Virdi"
                 />
               </div>
-              <h3 className="lp-team-name">
-                Manmeet Singh
-                <br />
-                Virdi
-              </h3>
+              <a
+                href="https://www.linkedin.com/in/manmeet-singh-virdi-b9359b334/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="lp-team-name-link"
+              >
+                <h3 className="lp-team-name">
+                  Manmeet Singh
+                  <br />
+                  Virdi
+                </h3>
+              </a>
               <p className="lp-team-role">Full- Stack Developer</p>
               <a
                 href="https://www.linkedin.com/in/manmeet-singh-virdi-b9359b334/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="lp-team-linkedin"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg width="20" height="20" fill="#000000" viewBox="0 0 24 24">
                   <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                 </svg>
+                <span className="lp-linkedin-text">
+                  /manmeet-singh-virdi-b9359b334
+                </span>
               </a>
             </div>
 
@@ -647,24 +791,31 @@ const LandingPage = () => {
               <div className="lp-team-avatar">
                 <img src="/src/assets/Vaibhav.svg" alt="Vaibhav Adesara" />
               </div>
-              <h3 className="lp-team-name">
-                Vaibhav
-                <br />
-                Adesara
-              </h3>
+              <a
+                href="https://www.linkedin.com/in/vaibhav-adesara-b503151b2/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="lp-team-name-link"
+              >
+                <h3 className="lp-team-name">
+                  Vaibhav
+                  <br />
+                  Adesara
+                </h3>
+              </a>
               <p className="lp-team-role">Full- Stack Developer</p>
               <a
-                href="https://www.linkedin.com/in/vaibhav-adesara-b503151b2"
+                href="https://www.linkedin.com/in/vaibhav-adesara-b503151b2/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="lp-team-linkedin"
               >
-                <svg
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg width="20" height="20" fill="#000000" viewBox="0 0 24 24">
                   <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
                 </svg>
+                <span className="lp-linkedin-text">
+                  /vaibhav-adesara-b503151b2
+                </span>
               </a>
             </div>
           </div>
@@ -725,6 +876,17 @@ const LandingPage = () => {
               <h3 className="lp-contact-subtitle">
                 Have Questions? Let's Connect.
               </h3>
+              {contactStatus.type && (
+                <div
+                  className={`lp-contact-message ${
+                    contactStatus.type === "success"
+                      ? "lp-contact-message-success"
+                      : "lp-contact-message-error"
+                  }`}
+                >
+                  {contactStatus.message}
+                </div>
+              )}
               <form className="lp-contact-form" onSubmit={handleContactSubmit}>
                 <div className="lp-form-group">
                   <label htmlFor="name">Name</label>
@@ -756,8 +918,12 @@ const LandingPage = () => {
                     required
                   ></textarea>
                 </div>
-                <button type="submit" className="lp-btn-submit">
-                  Submit
+                <button
+                  type="submit"
+                  className="lp-btn-submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Sending..." : "Submit"}
                 </button>
               </form>
             </div>
