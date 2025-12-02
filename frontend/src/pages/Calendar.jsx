@@ -964,7 +964,6 @@
 //         </div>
 //       </div>
 
-
 // {/* Restock Items Section */}
 // <div className="p-6">
 //   <div className="mb-6 flex items-center justify-between">
@@ -1007,7 +1006,6 @@
 //     </button> */}
 //   </div>
 
-
 //         {loadingRestock ? (
 //           <div className="text-center py-12 text-gray-500">
 //             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#238D88] mx-auto mb-4"></div>
@@ -1016,11 +1014,11 @@
 //         ) : restockItems.length === 0 ? (
 
 //           <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-[#F3BE08]">
-//   <svg 
-//     xmlns="http://www.w3.org/2000/svg" 
-//     width="60" 
-//     height="80" 
-//     viewBox="0 0 100 100" 
+//   <svg
+//     xmlns="http://www.w3.org/2000/svg"
+//     width="60"
+//     height="80"
+//     viewBox="0 0 100 100"
 //     fill="none"
 //     className="mb-4" // Add margin bottom for spacing
 //   >
@@ -1150,8 +1148,6 @@
 //   );
 // }
 
-
-
 //
 
 // new code
@@ -1271,36 +1267,47 @@ function FilterIcon({ className = "w-5 h-5" }) {
 }
 
 // View Filter Popup Component
-function ViewFilterPopup({ isOpen, onClose, currentView, onViewChange, anchorEl }) {
+function ViewFilterPopup({
+  isOpen,
+  onClose,
+  currentView,
+  onViewChange,
+  anchorEl,
+}) {
   const popupRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (popupRef.current && !popupRef.current.contains(event.target) &&
-        anchorEl && !anchorEl.contains(event.target)) {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(event.target) &&
+        anchorEl &&
+        !anchorEl.contains(event.target)
+      ) {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [isOpen, onClose, anchorEl]);
 
   const views = [
     {
-      key: 'dayGridMonth',
-      label: 'Month'
+      key: "dayGridMonth",
+      label: "Month",
     },
     {
-      key: 'timeGridWeek',
-      label: 'Week'
+      key: "timeGridWeek",
+      label: "Week",
     },
     {
-      key: 'timeGridDay',
-      label: 'Day'
-    }
+      key: "timeGridDay",
+      label: "Day",
+    },
   ];
 
   if (!isOpen) return null;
@@ -1319,11 +1326,17 @@ function ViewFilterPopup({ isOpen, onClose, currentView, onViewChange, anchorEl 
                   onViewChange(view.key);
                   onClose();
                 }}
-                className={`w-full text-left p-3 rounded transition-colors ${currentView === view.key ? 'bg-[#238D88] text-white' : 'text-black hover:bg-gray-50'
-                  }`}
+                className={`w-full text-left p-3 rounded transition-colors ${
+                  currentView === view.key
+                    ? "bg-[#238D88] text-white"
+                    : "text-black hover:bg-gray-50"
+                }`}
               >
-                <div className={`text-xs font-semibold items-center font-dm-sans leading-6 tracking-tight ${currentView === view.key ? 'text-white' : 'text-black'
-                  }`}>
+                <div
+                  className={`text-xs font-semibold items-center font-dm-sans leading-6 tracking-tight ${
+                    currentView === view.key ? "text-white" : "text-black"
+                  }`}
+                >
                   {view.label}
                 </div>
               </button>
@@ -1341,13 +1354,13 @@ function ViewFilterPopup({ isOpen, onClose, currentView, onViewChange, anchorEl 
 }
 
 // Vaccination Section Component
-function VaccinationSection({ selectedChild, userData }) {
+function VaccinationSection({ selectedChild, userData, childrenList }) {
   const [vaccinations, setVaccinations] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchVaccinations = async () => {
-      if (!selectedChild?._id || !userData?.id) {
+      if (!userData?.id) {
         setVaccinations([]);
         return;
       }
@@ -1355,17 +1368,25 @@ function VaccinationSection({ selectedChild, userData }) {
       try {
         setLoading(true);
         const base = import.meta.env.VITE_BACKEND_URL || "";
-        const vaccUrl = `${base}/api/users/${userData.id}/children/${selectedChild._id
-          }/vaccinations/recommendations${selectedChild.dateOfBirth
-            ? `?birthDate=${encodeURIComponent(selectedChild.dateOfBirth)}`
-            : ""
-          }`;
-        const vaccRes = await fetch(vaccUrl);
-        if (vaccRes.ok) {
-          const vaccData = await vaccRes.json();
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
+        // Helper to fetch upcoming vaccinations for a single child
+        const fetchForChild = async (child) => {
+          if (!child?._id) return [];
+
+          const vaccUrl = `${base}/api/users/${userData.id}/children/${
+            child._id
+          }/vaccinations/recommendations${
+            child.dateOfBirth
+              ? `?birthDate=${encodeURIComponent(child.dateOfBirth)}`
+              : ""
+          }`;
+
+          const res = await fetch(vaccUrl);
+          if (!res.ok) return [];
+
+          const vaccData = await res.json();
           const upcoming = (vaccData?.recommendations || [])
             .filter((r) => {
               if (!r?.recommendedDate) return false;
@@ -1377,8 +1398,41 @@ function VaccinationSection({ selectedChild, userData }) {
               (a, b) =>
                 new Date(a.recommendedDate) - new Date(b.recommendedDate)
             );
-          setVaccinations(upcoming);
+
+          // Attach child info so we can show which child the vaccination is for
+          return upcoming.map((v) => ({
+            ...v,
+            child,
+          }));
+        };
+
+        let allVaccinations = [];
+
+        // If "All Children" is selected (selectedChild is null), fetch for all children
+        if (
+          !selectedChild &&
+          Array.isArray(childrenList) &&
+          childrenList.length > 0
+        ) {
+          const results = await Promise.all(
+            childrenList.map((child) => fetchForChild(child))
+          );
+          allVaccinations = results.flat();
+        } else if (selectedChild?._id) {
+          // Single child selected
+          allVaccinations = await fetchForChild(selectedChild);
+        } else {
+          allVaccinations = [];
         }
+
+        // Sort all vaccinations by date in ascending order
+        allVaccinations.sort((a, b) => {
+          if (!a.recommendedDate) return 1;
+          if (!b.recommendedDate) return -1;
+          return new Date(a.recommendedDate) - new Date(b.recommendedDate);
+        });
+
+        setVaccinations(allVaccinations);
       } catch (e) {
         console.error("Error fetching vaccinations:", e);
         setVaccinations([]);
@@ -1388,7 +1442,12 @@ function VaccinationSection({ selectedChild, userData }) {
     };
 
     fetchVaccinations();
-  }, [selectedChild?._id, userData?.id, selectedChild?.dateOfBirth]);
+  }, [
+    selectedChild?._id,
+    selectedChild?.dateOfBirth,
+    userData?.id,
+    childrenList,
+  ]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -1401,7 +1460,7 @@ function VaccinationSection({ selectedChild, userData }) {
 
   return (
     <div className="mt-6">
-      <div className="bg-white rounded-2xl border shadow-sm p-6">
+      <div className=" rounded-2xl  p-6">
         <h2 className="text-xl font-bold text-gray-800 mb-6">
           It's Vaccination Time!
         </h2>
@@ -1426,45 +1485,47 @@ function VaccinationSection({ selectedChild, userData }) {
             </a>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {vaccinations.map((vacc, index) => (
-              <div
-                key={index}
-                className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0">
-                    <ChildAvatar
-                      child={selectedChild}
-                      size="md"
-                      className="w-12 h-12"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-semibold text-gray-800 mb-1">
-                      {vacc.name || "Vaccination"}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-3">
-                      {formatDate(vacc.recommendedDate)}
-                    </p>
-                    <a
-                      href="https://www.google.com/maps/search/child+hospitals+near+me"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center rounded-lg bg-[#238D88] text-white font-medium px-4 py-2 text-sm hover:bg-[#1a6d68] transition-colors"
-                    >
-                      Book Clinic
-                    </a>
-                  </div>
-                  <div className="flex-shrink-0">
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#238D88]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#238D88]"></div>
-                    </label>
+          <div className="max-h-80 md:max-h-96 overflow-y-auto no-scrollbar pr-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {vaccinations.map((vacc, index) => (
+                <div
+                  key={index}
+                  className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0">
+                      <ChildAvatar
+                        child={vacc.child || selectedChild}
+                        size="md"
+                        className="w-12 h-12"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-gray-800 mb-1">
+                        {vacc.name || "Vaccination"}
+                      </h3>
+                      {/* Show child name when viewing all children */}
+                      {vacc.child && (
+                        <p className="text-xs font-medium text-gray-500 mb-1">
+                          {vacc.child.name}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-600 mb-3">
+                        {formatDate(vacc.recommendedDate)}
+                      </p>
+                      <a
+                        href="https://www.google.com/maps/search/child+hospitals+near+me"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center rounded-lg bg-[#238D88] text-white font-medium px-4 py-2 text-sm hover:bg-[#1a6d68] transition-colors"
+                      >
+                        Book Clinic
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -1478,7 +1539,7 @@ export default function CalendarPage() {
   const filterButtonRef = useRef(null);
 
   // Calendar & Events State
-  const { selectedChild } = useChild();
+  const { selectedChild, children } = useChild();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [currentView, setCurrentView] = useState("dayGridMonth");
@@ -1549,8 +1610,9 @@ export default function CalendarPage() {
         params.set("child", selectedChild._id);
       }
 
-      const url = `${import.meta.env.VITE_BACKEND_URL
-        }/api/calendar?${params.toString()}`;
+      const url = `${
+        import.meta.env.VITE_BACKEND_URL
+      }/api/calendar?${params.toString()}`;
       const resp = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -1574,45 +1636,14 @@ export default function CalendarPage() {
     loadUpcomingEvents();
   }, [modalOpen, selectedChild]);
 
-  // Load children for event cards
+  // Sync children list with ChildContext (so avatars and data stay consistent)
   useEffect(() => {
-    const loadChildren = async () => {
-      try {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          console.log("No token found");
-          return;
-        }
-
-        const res = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/children`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.children) {
-            setChildrenList(data.children);
-          } else {
-            setChildrenList([]);
-          }
-        } else {
-          console.error("Failed to fetch children:", res.status);
-          setChildrenList([]);
-        }
-      } catch (error) {
-        console.error("Error loading children:", error);
-        setChildrenList([]);
-      }
-    };
-
-    loadChildren();
-  }, []);
+    if (Array.isArray(children)) {
+      setChildrenList(children);
+    } else {
+      setChildrenList([]);
+    }
+  }, [children]);
 
   // Fetch ALL restock items (no category filter)
   useEffect(() => {
@@ -1654,7 +1685,9 @@ export default function CalendarPage() {
       if (!token) return;
 
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/budget/restock-items?refresh=true`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/budget/restock-items?refresh=true`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -1669,7 +1702,7 @@ export default function CalendarPage() {
         setRestockCacheInfo({
           cached: data.cached,
           cacheAge: data.cacheAge,
-          nextRefresh: data.nextRefresh
+          nextRefresh: data.nextRefresh,
         });
       }
     } catch (error) {
@@ -1760,10 +1793,10 @@ export default function CalendarPage() {
           prevItems.map((i) =>
             i.productName === selectedRestockItem.productName
               ? {
-                ...i,
-                reminderEnabled: true,
-                nextRestockDate: selectedDateTime.toISOString(),
-              }
+                  ...i,
+                  reminderEnabled: true,
+                  nextRestockDate: selectedDateTime.toISOString(),
+                }
               : i
           )
         );
@@ -1830,107 +1863,113 @@ export default function CalendarPage() {
   };
 
   // Calendar functions
-  const fetchEventsForRange = useCallback(async (info) => {
-    const start = info.start.toISOString();
-    const end = info.end.toISOString();
+  const fetchEventsForRange = useCallback(
+    async (info) => {
+      const start = info.start.toISOString();
+      const end = info.end.toISOString();
 
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) return [];
+      try {
+        const token = localStorage.getItem("accessToken");
+        if (!token) return [];
 
-      const params = new URLSearchParams();
-      params.set("start", start);
-      params.set("end", end);
-      if (selectedChild?._id) {
-        params.set("child", selectedChild._id);
-      }
+        const params = new URLSearchParams();
+        params.set("start", start);
+        params.set("end", end);
+        if (selectedChild?._id) {
+          params.set("child", selectedChild._id);
+        }
 
-      const url = `${import.meta.env.VITE_BACKEND_URL
+        const url = `${
+          import.meta.env.VITE_BACKEND_URL
         }/api/calendar?${params.toString()}`;
-      const resp = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+        const resp = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-      if (resp.status === 401) {
-        localStorage.removeItem("accessToken");
-        window.location.href = "/login";
+        if (resp.status === 401) {
+          localStorage.removeItem("accessToken");
+          window.location.href = "/login";
+          return [];
+        }
+
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data?.message || "Failed to load events");
+
+        // Use child's background color for events
+        const childColor = selectedChild?.backgroundColor;
+        let fcEvents = (data.events || []).map((ev) => {
+          const eventColor = childColor || ev.color || "#F3BE08";
+          return {
+            id: ev._id,
+            title: ev.title,
+            start: ev.startDate,
+            end: ev.endDate || undefined,
+            backgroundColor: eventColor,
+            borderColor: eventColor,
+            textColor: "#FFFFFF",
+            extendedProps: { raw: ev },
+          };
+        });
+
+        if (selectedChild?._id && userData?.id && selectedChild?.dateOfBirth) {
+          try {
+            const base = import.meta.env.VITE_BACKEND_URL || "";
+            const vaccUrl = `${base}/api/users/${userData.id}/children/${
+              selectedChild._id
+            }/vaccinations/recommendations${
+              selectedChild.dateOfBirth
+                ? `?birthDate=${encodeURIComponent(selectedChild.dateOfBirth)}`
+                : ""
+            }`;
+            const vaccRes = await fetch(vaccUrl);
+            if (vaccRes.ok) {
+              const vaccData = await vaccRes.json();
+              // Use child's background color for vaccination events too
+              const vaccColor = childColor || "#006F69";
+              const vaccinationEvents = (vaccData?.recommendations || [])
+                .filter((r) => {
+                  if (!r?.recommendedDate) return false;
+                  const vaccDate = new Date(r.recommendedDate);
+                  vaccDate.setHours(0, 0, 0, 0);
+                  const startDate = new Date(start);
+                  startDate.setHours(0, 0, 0, 0);
+                  const endDate = new Date(end);
+                  endDate.setHours(23, 59, 59, 999);
+                  return vaccDate >= startDate && vaccDate <= endDate;
+                })
+                .map((r) => ({
+                  id: `vacc-${r.name}-${r.recommendedDate}`,
+                  title: `${r.name} vaccination`,
+                  start: r.recommendedDate,
+                  backgroundColor: vaccColor,
+                  borderColor: vaccColor,
+                  extendedProps: {
+                    raw: {
+                      title: `${r.name} vaccination`,
+                      startDate: r.recommendedDate,
+                      type: "vaccination",
+                      color: vaccColor,
+                    },
+                  },
+                }));
+              fcEvents = [...fcEvents, ...vaccinationEvents];
+            }
+          } catch (vaccErr) {
+            console.error("Error fetching vaccination events:", vaccErr);
+          }
+        }
+
+        return fcEvents;
+      } catch (err) {
+        console.error("Error loading events", err);
         return [];
       }
-
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.message || "Failed to load events");
-
-      // Use child's background color for events
-      const childColor = selectedChild?.backgroundColor;
-      let fcEvents = (data.events || []).map((ev) => {
-        const eventColor = childColor || ev.color || '#F3BE08';
-        return {
-          id: ev._id,
-          title: ev.title,
-          start: ev.startDate,
-          end: ev.endDate || undefined,
-          backgroundColor: eventColor,
-          borderColor: eventColor,
-          textColor: '#FFFFFF',
-          extendedProps: { raw: ev },
-        };
-      });
-
-      if (selectedChild?._id && userData?.id && selectedChild?.dateOfBirth) {
-        try {
-          const base = import.meta.env.VITE_BACKEND_URL || "";
-          const vaccUrl = `${base}/api/users/${userData.id}/children/${selectedChild._id
-            }/vaccinations/recommendations${selectedChild.dateOfBirth
-              ? `?birthDate=${encodeURIComponent(selectedChild.dateOfBirth)}`
-              : ""
-            }`;
-          const vaccRes = await fetch(vaccUrl);
-          if (vaccRes.ok) {
-            const vaccData = await vaccRes.json();
-            // Use child's background color for vaccination events too
-            const vaccColor = childColor || "#006F69";
-            const vaccinationEvents = (vaccData?.recommendations || [])
-              .filter((r) => {
-                if (!r?.recommendedDate) return false;
-                const vaccDate = new Date(r.recommendedDate);
-                vaccDate.setHours(0, 0, 0, 0);
-                const startDate = new Date(start);
-                startDate.setHours(0, 0, 0, 0);
-                const endDate = new Date(end);
-                endDate.setHours(23, 59, 59, 999);
-                return vaccDate >= startDate && vaccDate <= endDate;
-              })
-              .map((r) => ({
-                id: `vacc-${r.name}-${r.recommendedDate}`,
-                title: `${r.name} vaccination`,
-                start: r.recommendedDate,
-                backgroundColor: vaccColor,
-                borderColor: vaccColor,
-                extendedProps: {
-                  raw: {
-                    title: `${r.name} vaccination`,
-                    startDate: r.recommendedDate,
-                    type: "vaccination",
-                    color: vaccColor,
-                  },
-                },
-              }));
-            fcEvents = [...fcEvents, ...vaccinationEvents];
-          }
-        } catch (vaccErr) {
-          console.error("Error fetching vaccination events:", vaccErr);
-        }
-      }
-
-      return fcEvents;
-    } catch (err) {
-      console.error("Error loading events", err);
-      return [];
-    }
-  }, [selectedChild, userData]);
+    },
+    [selectedChild, userData]
+  );
 
   // Handle event click from UpcomingEvents
   const handleEventClickFromUpcoming = (event) => {
@@ -1957,7 +1996,7 @@ export default function CalendarPage() {
     const api = calendarRef.current?.getApi?.();
     if (api) api.refetchEvents();
     loadUpcomingEvents();
-    setRefreshUpcomingEvents(prev => prev + 1);
+    setRefreshUpcomingEvents((prev) => prev + 1);
   }
 
   // Refresh calendar when selected child changes
@@ -1994,18 +2033,26 @@ export default function CalendarPage() {
 
     // Focus on today's date
     setTimeout(() => {
-      const todayElement = document.querySelector('.fc-day-today');
+      const todayElement = document.querySelector(".fc-day-today");
       if (todayElement) {
         todayElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'center'
+          behavior: "smooth",
+          block: "center",
+          inline: "center",
         });
 
         // Add visual highlight
-        todayElement.classList.add('ring-2', 'ring-[#238D88]', 'ring-opacity-50');
+        todayElement.classList.add(
+          "ring-2",
+          "ring-[#238D88]",
+          "ring-opacity-50"
+        );
         setTimeout(() => {
-          todayElement.classList.remove('ring-2', 'ring-[#238D88]', 'ring-opacity-50');
+          todayElement.classList.remove(
+            "ring-2",
+            "ring-[#238D88]",
+            "ring-opacity-50"
+          );
         }, 2000);
       }
     }, 100);
@@ -2030,59 +2077,147 @@ export default function CalendarPage() {
 
     // Focus on today's date with highlight animation
     setTimeout(() => {
-      const todayElement = document.querySelector('.fc-day-today');
+      const todayElement = document.querySelector(".fc-day-today");
       if (todayElement) {
         todayElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'center'
+          behavior: "smooth",
+          block: "center",
+          inline: "center",
         });
 
         // Add visual highlight animation
-        todayElement.classList.add('ring-2', 'ring-[#238D88]', 'ring-opacity-50', 'today-highlight');
+        todayElement.classList.add(
+          "ring-2",
+          "ring-[#238D88]",
+          "ring-opacity-50",
+          "today-highlight"
+        );
         setTimeout(() => {
-          todayElement.classList.remove('ring-2', 'ring-[#238D88]', 'ring-opacity-50', 'today-highlight');
+          todayElement.classList.remove(
+            "ring-2",
+            "ring-[#238D88]",
+            "ring-opacity-50",
+            "today-highlight"
+          );
         }, 3000); // Highlight for 3 seconds
       }
     }, 100);
   }
 
-
-
   // Category Icons function
   const getCategoryIcon = (category) => {
     const iconStyle = "w-8 h-8";
     switch (category?.toLowerCase()) {
-      case 'consumable':
+      case "consumable":
         return (
-          <svg xmlns="http://www.w3.org/2000/svg" width="39" height="35" viewBox="0 0 39 35" fill="none" className={iconStyle}>
-            <ellipse cx="15.7694" cy="31.8241" rx="2.67568" ry="2.6757" fill="#238D88" stroke="#238D88" />
-            <ellipse cx="28.2577" cy="31.8241" rx="2.67568" ry="2.6757" fill="#238D88" stroke="#238D88" />
-            <path d="M1.5 1.5H5.43266L7.44368 10.1693M7.44368 10.1693C7.44368 10.1693 10.3485 23.6548 11.3317 24.618C12.3148 25.5813 13.298 25.5813 13.298 25.5813H30.995C30.995 25.5813 31.9781 25.5813 32.9613 24.618C33.9445 23.6548 36.894 12.0958 36.894 12.0958C36.894 12.0958 37.5278 10.1693 36.894 10.1693C36.2601 10.1693 7.44368 10.1693 7.44368 10.1693Z" stroke="#238D88" strokeWidth="3" strokeLinecap="round" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="39"
+            height="35"
+            viewBox="0 0 39 35"
+            fill="none"
+            className={iconStyle}
+          >
+            <ellipse
+              cx="15.7694"
+              cy="31.8241"
+              rx="2.67568"
+              ry="2.6757"
+              fill="#238D88"
+              stroke="#238D88"
+            />
+            <ellipse
+              cx="28.2577"
+              cy="31.8241"
+              rx="2.67568"
+              ry="2.6757"
+              fill="#238D88"
+              stroke="#238D88"
+            />
+            <path
+              d="M1.5 1.5H5.43266L7.44368 10.1693M7.44368 10.1693C7.44368 10.1693 10.3485 23.6548 11.3317 24.618C12.3148 25.5813 13.298 25.5813 13.298 25.5813H30.995C30.995 25.5813 31.9781 25.5813 32.9613 24.618C33.9445 23.6548 36.894 12.0958 36.894 12.0958C36.894 12.0958 37.5278 10.1693 36.894 10.1693C36.2601 10.1693 7.44368 10.1693 7.44368 10.1693Z"
+              stroke="#238D88"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
           </svg>
         );
-      case 'medical':
+      case "medical":
         return (
-          <svg xmlns="http://www.w3.org/2000/svg" width="37" height="34" viewBox="0 0 37 34" fill="none" className={iconStyle}>
-            <path d="M11.6901 8.27778C11.6901 8.27778 11.7136 7.39372 11.6901 4.88889C11.6667 2.38406 12.5507 1.5 15.079 1.5C17.6073 1.5 21.8568 1.5 21.8568 1.5C24.457 1.5122 25.2457 2.38406 25.2457 4.88889C25.2457 7.39372 25.2457 8.27778 25.2457 8.27778M11.6901 8.27778H6.60678C4.65817 8.27778 3.42122 9.97222 3.21789 11.6667L1.52345 28.6111C1.32011 30.3056 2.43845 32 4.91233 32H32.0234C34.4973 32 35.6157 30.3056 35.4123 28.6111L33.7179 11.6667C33.5146 9.97222 32.1251 8.27778 30.329 8.27778H25.2457M11.6901 8.27778H25.2457" stroke="#238D88" strokeWidth="3" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="37"
+            height="34"
+            viewBox="0 0 37 34"
+            fill="none"
+            className={iconStyle}
+          >
+            <path
+              d="M11.6901 8.27778C11.6901 8.27778 11.7136 7.39372 11.6901 4.88889C11.6667 2.38406 12.5507 1.5 15.079 1.5C17.6073 1.5 21.8568 1.5 21.8568 1.5C24.457 1.5122 25.2457 2.38406 25.2457 4.88889C25.2457 7.39372 25.2457 8.27778 25.2457 8.27778M11.6901 8.27778H6.60678C4.65817 8.27778 3.42122 9.97222 3.21789 11.6667L1.52345 28.6111C1.32011 30.3056 2.43845 32 4.91233 32H32.0234C34.4973 32 35.6157 30.3056 35.4123 28.6111L33.7179 11.6667C33.5146 9.97222 32.1251 8.27778 30.329 8.27778H25.2457M11.6901 8.27778H25.2457"
+              stroke="#238D88"
+              strokeWidth="3"
+            />
           </svg>
         );
-      case 'education':
+      case "education":
         return (
-          <svg xmlns="http://www.w3.org/2000/svg" width="91" height="82" viewBox="0 0 91 82" fill="none" className={iconStyle}>
-            <rect x="3.25" y="3.25" width="84" height="75" rx="10" stroke="#232527" strokeWidth="6.5" strokeLinecap="round" />
-            <line x1="15.5" y1="32" x2="75" y2="32" stroke="#232527" strokeWidth="6.5" strokeLinecap="round" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="91"
+            height="82"
+            viewBox="0 0 91 82"
+            fill="none"
+            className={iconStyle}
+          >
+            <rect
+              x="3.25"
+              y="3.25"
+              width="84"
+              height="75"
+              rx="10"
+              stroke="#232527"
+              strokeWidth="6.5"
+              strokeLinecap="round"
+            />
+            <line
+              x1="15.5"
+              y1="32"
+              x2="75"
+              y2="32"
+              stroke="#232527"
+              strokeWidth="6.5"
+              strokeLinecap="round"
+            />
           </svg>
         );
-      case 'other':
+      case "other":
       default:
         return (
-          <svg xmlns="http://www.w3.org/2000/svg" width="33" height="39" viewBox="0 0 33 39" fill="none" className={iconStyle}>
-            <mask id="path-1-outside-1_4234_11619" maskUnits="userSpaceOnUse" x="-0.994141" y="0" width="34" height="39" fill="black">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="33"
+            height="39"
+            viewBox="0 0 33 39"
+            fill="none"
+            className={iconStyle}
+          >
+            <mask
+              id="path-1-outside-1_4234_11619"
+              maskUnits="userSpaceOnUse"
+              x="-0.994141"
+              y="0"
+              width="34"
+              height="39"
+              fill="black"
+            >
               <rect fill="white" x="-0.994141" width="34" height="39" />
               <path d="M16.1016 3.1123C16.2886 2.96026 16.5577 2.96285 16.7412 3.11914L29.0645 13.6133C29.4182 13.9148 29.2051 14.4931 28.7402 14.4932H27.0986V35.8408H22.0986V31.1074C22.0985 28.8984 20.3077 27.1074 18.0986 27.1074H15.0986C12.8896 27.1074 11.0988 28.8984 11.0986 31.1074V35.8408H5.09863V14.4932H3.50684C3.03614 14.4932 2.82615 13.9024 3.19141 13.6055L16.1016 3.1123Z" />
             </mask>
-            <path d="M16.1016 3.1123L17.9937 5.44032L17.9938 5.4403L16.1016 3.1123ZM16.7412 3.11914L18.6862 0.835097L18.6862 0.835032L16.7412 3.11914ZM29.0645 13.6133L31.0106 11.3302L31.0095 11.3292L29.0645 13.6133ZM28.7402 14.4932V17.4932H28.7403L28.7402 14.4932ZM27.0986 14.4932V11.4932H24.0986V14.4932H27.0986ZM27.0986 35.8408V38.8408H30.0986V35.8408H27.0986ZM22.0986 35.8408H19.0986V38.8408H22.0986V35.8408ZM22.0986 31.1074H25.0986V31.1072L22.0986 31.1074ZM18.0986 27.1074V24.1074V27.1074ZM15.0986 27.1074V24.1074V27.1074ZM11.0986 31.1074L8.09863 31.1072V31.1074H11.0986ZM11.0986 35.8408V38.8408H14.0986V35.8408H11.0986ZM5.09863 35.8408H2.09863V38.8408H5.09863V35.8408ZM5.09863 14.4932H8.09863V11.4932H5.09863V14.4932ZM3.19141 13.6055L1.29923 11.2774L1.29919 11.2775L3.19141 13.6055ZM16.1016 3.1123L17.9938 5.4403C17.0627 6.19707 15.7181 6.18824 14.7963 5.40325L16.7412 3.11914L18.6862 0.835032C17.3972 -0.26253 15.5146 -0.276563 14.2094 0.784313L16.1016 3.1123ZM16.7412 3.11914L14.7962 5.40318L27.1194 15.8973L29.0645 13.6133L31.0095 11.3292L18.6862 0.835097L16.7412 3.11914ZM29.0645 13.6133L27.1183 15.8964C25.3487 14.388 26.4166 11.4932 28.7401 11.4932L28.7402 14.4932L28.7403 17.4932C31.9937 17.4931 33.4876 13.4417 31.0106 11.3302L29.0645 13.6133ZM28.7402 14.4932V11.4932H27.0986V14.4932V17.4932H28.7402V14.4932ZM27.0986 14.4932H24.0986V35.8408H27.0986H30.0986V14.4932H27.0986ZM27.0986 35.8408V32.8408H22.0986V35.8408V38.8408H27.0986V35.8408ZM22.0986 35.8408H25.0986V31.1074H22.0986H19.0986V35.8408H22.0986ZM22.0986 31.1074L25.0986 31.1072C25.0984 27.2417 21.9647 24.1074 18.0986 24.1074V27.1074V30.1074C18.6506 30.1074 19.0986 30.5551 19.0986 31.1076L22.0986 31.1074ZM18.0986 27.1074V24.1074H15.0986V27.1074V30.1074H18.0986V27.1074ZM15.0986 27.1074V24.1074C11.2325 24.1074 8.09891 27.2417 8.09863 31.1072L11.0986 31.1074L14.0986 31.1076C14.0987 30.5551 14.5467 30.1074 15.0986 30.1074V27.1074ZM11.0986 31.1074H8.09863V35.8408H11.0986H14.0986V31.1074H11.0986ZM11.0986 35.8408V32.8408H5.09863V35.8408V38.8408H11.0986V35.8408ZM5.09863 35.8408H8.09863V14.4932H5.09863H2.09863V35.8408H5.09863ZM5.09863 14.4932V11.4932H3.50684V14.4932V17.4932H5.09863V14.4932ZM3.50684 14.4932V11.4932C5.8579 11.4932 6.91179 14.4475 5.08362 15.9335L3.19141 13.6055L1.29919 11.2775C-1.2595 13.3572 0.214373 17.4932 3.50684 17.4932V14.4932ZM3.19141 13.6055L5.08358 15.9335L17.9937 5.44032L16.1016 3.1123L14.2094 0.784286L1.29923 11.2774L3.19141 13.6055Z" fill="#238D88" mask="url(#path-1-outside-1_4234_11619)" />
+            <path
+              d="M16.1016 3.1123L17.9937 5.44032L17.9938 5.4403L16.1016 3.1123ZM16.7412 3.11914L18.6862 0.835097L18.6862 0.835032L16.7412 3.11914ZM29.0645 13.6133L31.0106 11.3302L31.0095 11.3292L29.0645 13.6133ZM28.7402 14.4932V17.4932H28.7403L28.7402 14.4932ZM27.0986 14.4932V11.4932H24.0986V14.4932H27.0986ZM27.0986 35.8408V38.8408H30.0986V35.8408H27.0986ZM22.0986 35.8408H19.0986V38.8408H22.0986V35.8408ZM22.0986 31.1074H25.0986V31.1072L22.0986 31.1074ZM18.0986 27.1074V24.1074V27.1074ZM15.0986 27.1074V24.1074V27.1074ZM11.0986 31.1074L8.09863 31.1072V31.1074H11.0986ZM11.0986 35.8408V38.8408H14.0986V35.8408H11.0986ZM5.09863 35.8408H2.09863V38.8408H5.09863V35.8408ZM5.09863 14.4932H8.09863V11.4932H5.09863V14.4932ZM3.19141 13.6055L1.29923 11.2774L1.29919 11.2775L3.19141 13.6055ZM16.1016 3.1123L17.9938 5.4403C17.0627 6.19707 15.7181 6.18824 14.7963 5.40325L16.7412 3.11914L18.6862 0.835032C17.3972 -0.26253 15.5146 -0.276563 14.2094 0.784313L16.1016 3.1123ZM16.7412 3.11914L14.7962 5.40318L27.1194 15.8973L29.0645 13.6133L31.0095 11.3292L18.6862 0.835097L16.7412 3.11914ZM29.0645 13.6133L27.1183 15.8964C25.3487 14.388 26.4166 11.4932 28.7401 11.4932L28.7402 14.4932L28.7403 17.4932C31.9937 17.4931 33.4876 13.4417 31.0106 11.3302L29.0645 13.6133ZM28.7402 14.4932V11.4932H27.0986V14.4932V17.4932H28.7402V14.4932ZM27.0986 14.4932H24.0986V35.8408H27.0986H30.0986V14.4932H27.0986ZM27.0986 35.8408V32.8408H22.0986V35.8408V38.8408H27.0986V35.8408ZM22.0986 35.8408H25.0986V31.1074H22.0986H19.0986V35.8408H22.0986ZM22.0986 31.1074L25.0986 31.1072C25.0984 27.2417 21.9647 24.1074 18.0986 24.1074V27.1074V30.1074C18.6506 30.1074 19.0986 30.5551 19.0986 31.1076L22.0986 31.1074ZM18.0986 27.1074V24.1074H15.0986V27.1074V30.1074H18.0986V27.1074ZM15.0986 27.1074V24.1074C11.2325 24.1074 8.09891 27.2417 8.09863 31.1072L11.0986 31.1074L14.0986 31.1076C14.0987 30.5551 14.5467 30.1074 15.0986 30.1074V27.1074ZM11.0986 31.1074H8.09863V35.8408H11.0986H14.0986V31.1074H11.0986ZM11.0986 35.8408V32.8408H5.09863V35.8408V38.8408H11.0986V35.8408ZM5.09863 35.8408H8.09863V14.4932H5.09863H2.09863V35.8408H5.09863ZM5.09863 14.4932V11.4932H3.50684V14.4932V17.4932H5.09863V14.4932ZM3.50684 14.4932V11.4932C5.8579 11.4932 6.91179 14.4475 5.08362 15.9335L3.19141 13.6055L1.29919 11.2775C-1.2595 13.3572 0.214373 17.4932 3.50684 17.4932V14.4932ZM3.19141 13.6055L5.08358 15.9335L17.9937 5.44032L16.1016 3.1123L14.2094 0.784286L1.29923 11.2774L3.19141 13.6055Z"
+              fill="#238D88"
+              mask="url(#path-1-outside-1_4234_11619)"
+            />
           </svg>
         );
     }
@@ -2102,8 +2237,8 @@ export default function CalendarPage() {
           </span>
         </div>
       </div>
-       <style>
-{`
+      <style>
+        {`
   /* Day & Week View Styles */
   .fc-timeGridDay-view .fc-timegrid-slot,
   .fc-timeGridWeek-view .fc-timegrid-slot {
@@ -2142,7 +2277,7 @@ export default function CalendarPage() {
     padding: 0 4px;
   }
 `}
-</style>
+      </style>
 
       {/* Calendar Controls Row - UPDATED MOBILE LAYOUT */}
       <div className="mb-6">
@@ -2153,13 +2288,18 @@ export default function CalendarPage() {
             <div className="flex-1 max-w-[860px] bg-white rounded-[5px] overflow-hidden border border-gray-200">
               <div className="flex justify-start items-stretch">
                 {/* Month Button */}
-                <div className={`flex-1 ${currentView === "dayGridMonth" ? "bg-[#238D88]" : ""}`}>
+                <div
+                  className={`flex-1 ${
+                    currentView === "dayGridMonth" ? "bg-[#238D88]" : ""
+                  }`}
+                >
                   <button
                     onClick={() => handleViewChange("dayGridMonth")}
-                    className={`w-full h-10 flex justify-center items-center text-sm font-dm-sans leading-5 transition-colors ${currentView === "dayGridMonth"
-                      ? "text-white font-extrabold"
-                      : "text-black font-medium hover:bg-gray-50"
-                      }`}
+                    className={`w-full h-10 flex justify-center items-center text-sm font-dm-sans leading-5 transition-colors ${
+                      currentView === "dayGridMonth"
+                        ? "text-white font-extrabold"
+                        : "text-black font-medium hover:bg-gray-50"
+                    }`}
                   >
                     Month
                   </button>
@@ -2169,13 +2309,18 @@ export default function CalendarPage() {
                 <div className="w-px bg-gray-300"></div>
 
                 {/* Week Button */}
-                <div className={`flex-1 ${currentView === "timeGridWeek" ? "bg-[#238D88]" : ""}`}>
+                <div
+                  className={`flex-1 ${
+                    currentView === "timeGridWeek" ? "bg-[#238D88]" : ""
+                  }`}
+                >
                   <button
                     onClick={() => handleViewChange("timeGridWeek")}
-                    className={`w-full h-10 flex justify-center items-center text-sm font-dm-sans leading-5 transition-colors ${currentView === "timeGridWeek"
-                      ? "text-white font-extrabold"
-                      : "text-black font-medium hover:bg-gray-50"
-                      }`}
+                    className={`w-full h-10 flex justify-center items-center text-sm font-dm-sans leading-5 transition-colors ${
+                      currentView === "timeGridWeek"
+                        ? "text-white font-extrabold"
+                        : "text-black font-medium hover:bg-gray-50"
+                    }`}
                   >
                     Week
                   </button>
@@ -2185,13 +2330,18 @@ export default function CalendarPage() {
                 <div className="w-px bg-gray-300"></div>
 
                 {/* Day Button */}
-                <div className={`flex-1 ${currentView === "timeGridDay" ? "bg-[#238D88]" : ""}`}>
+                <div
+                  className={`flex-1 ${
+                    currentView === "timeGridDay" ? "bg-[#238D88]" : ""
+                  }`}
+                >
                   <button
                     onClick={() => handleViewChange("timeGridDay")}
-                    className={`w-full h-10 flex justify-center items-center text-sm font-dm-sans leading-5 transition-colors ${currentView === "timeGridDay"
-                      ? "text-white font-extrabold"
-                      : "text-black font-medium hover:bg-gray-50"
-                      }`}
+                    className={`w-full h-10 flex justify-center items-center text-sm font-dm-sans leading-5 transition-colors ${
+                      currentView === "timeGridDay"
+                        ? "text-white font-extrabold"
+                        : "text-black font-medium hover:bg-gray-50"
+                    }`}
                   >
                     Day
                   </button>
@@ -2247,8 +2397,6 @@ export default function CalendarPage() {
               />
             </div>
           </div> */}
-
-
         </div>
       </div>
 
@@ -2267,7 +2415,11 @@ export default function CalendarPage() {
                   title="Previous Month"
                 >
                   <svg width="18" height="20" viewBox="0 0 18 20" fill="none">
-                    <path d="M12 2L5 10L12 18" stroke="#000000" strokeWidth="2" />
+                    <path
+                      d="M12 2L5 10L12 18"
+                      stroke="#000000"
+                      strokeWidth="2"
+                    />
                   </svg>
                 </button>
                 <div className="flex gap-2.5 items-center">
@@ -2285,11 +2437,14 @@ export default function CalendarPage() {
                   title="Next Month"
                 >
                   <svg width="18" height="20" viewBox="0 0 18 20" fill="none">
-                    <path d="M6 2L13 10L6 18" stroke="#000000" strokeWidth="2" />
+                    <path
+                      d="M6 2L13 10L6 18"
+                      stroke="#000000"
+                      strokeWidth="2"
+                    />
                   </svg>
                 </button>
               </div>
-
 
               {/* Today Button - Desktop Only */}
               <div className="hidden xl:block">
@@ -2312,7 +2467,6 @@ export default function CalendarPage() {
                   </svg>
                 </button>
               </div>
-
 
               {/* Right: Filter Icon for Mobile - UPDATED: Now functional */}
               <div className="xl:hidden flex items-center">
@@ -2364,47 +2518,44 @@ export default function CalendarPage() {
                 height="100%" // Changed back to 100% for proper filling
                 contentHeight="auto"
                 eventTimeFormat={{
-                   hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-    meridiem: 'short'
-  }}
-  slotLabelFormat={{
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-    meridiem: 'short'
-  }}
-
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                  meridiem: "short",
+                }}
+                slotLabelFormat={{
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                  meridiem: "short",
+                }}
                 firstDay={1}
-
                 views={{
-    dayGridMonth: {
-      // Leading zeros only in month view
-      dayCellContent: (args) => {
-        const day = args.date.getDate();
-        const formattedDay = day < 10 ? `0${day}` : day;
-        return { html: formattedDay };
-      }
-    },
-    timeGridWeek: {
-      dayHeaderFormat: { 
-        weekday: 'short', 
-        omitCommas: true 
-      }
-      // Week view will use default day formatting (no leading zeros)
-    },
-    timeGridDay: {
-      // Day view will use default day formatting (no leading zeros)
-    }
-  }}
+                  dayGridMonth: {
+                    // Leading zeros only in month view
+                    dayCellContent: (args) => {
+                      const day = args.date.getDate();
+                      const formattedDay = day < 10 ? `0${day}` : day;
+                      return { html: formattedDay };
+                    },
+                  },
+                  timeGridWeek: {
+                    dayHeaderFormat: {
+                      weekday: "short",
+                      omitCommas: true,
+                    },
+                    // Week view will use default day formatting (no leading zeros)
+                  },
+                  timeGridDay: {
+                    // Day view will use default day formatting (no leading zeros)
+                  },
+                }}
                 className="calendar-green-headers"
                 eventContent={(eventInfo) => {
                   return {
                     html: `<div class="fc-event-title">${eventInfo.event.title}</div>`,
                   };
                 }}
-
                 // View configuration
                 slotMinTime="06:00:00"
                 slotMaxTime="22:00:00"
@@ -2414,7 +2565,6 @@ export default function CalendarPage() {
                 dayMaxEvents={3}
                 weekNumbers={false}
                 nowIndicator={true}
-
                 // Handle view changes
                 viewDidMount={(viewInfo) => {
                   setCurrentView(viewInfo.view.type);
@@ -2465,9 +2615,22 @@ export default function CalendarPage() {
               fill="none"
               className="mb-4"
             >
-              <path d="M16 67V89.5C16 89.7761 16.2239 90 16.5 90H82.5C82.7761 90 83 89.7761 83 89.5V67" stroke="#232527" strokeWidth="6.5" strokeLinecap="square" />
-              <path d="M39 90V67" stroke="#232527" strokeWidth="6.5" strokeLinecap="square" />
-              <path d="M95.3962 38.8789L83.6662 12.5777C83.1902 11.5037 82.4563 10.5999 81.5472 9.96786C80.6381 9.33582 79.5897 9.00064 78.52 9H21.48C20.4103 9.00064 19.3619 9.33582 18.4528 9.96786C17.5437 10.5999 16.8098 11.5037 16.3338 12.5777L4.60379 38.8789C4.2033 39.7798 3.99653 40.7733 4.00004 41.7798V51.7072C3.99742 53.2134 4.46533 54.6731 5.32254 55.8329C6.58944 57.461 8.15413 58.7643 9.91027 59.6542C11.6664 60.5441 13.5729 60.9997 15.5 60.99C18.6446 60.9955 21.6933 59.7764 24.125 57.5412C26.5567 59.7777 29.6047 61 32.75 61C35.8953 61 38.9433 59.7777 41.375 57.5412C43.8067 59.7777 46.8547 61 50 61C53.1453 61 56.1933 59.7777 58.625 57.5412C61.0567 59.7777 64.1047 61 67.25 61C70.3953 61 73.4433 59.7777 75.875 57.5412C78.5894 60.0399 82.0623 61.2614 85.5634 60.9488C89.0645 60.6362 92.3212 58.814 94.6487 55.8651C95.5163 54.7098 95.9945 53.2497 96 51.7395V41.7798C96.0035 40.7733 95.7967 39.7798 95.3962 38.8789ZM84.5 54.5436C83.272 54.5404 82.0625 54.2081 80.9723 53.5746C79.882 52.941 78.9427 52.0245 78.2325 50.9014L75.875 47.2915L73.5462 50.9014C72.8225 52.0073 71.8767 52.9066 70.7853 53.5264C69.694 54.1462 68.4878 54.4692 67.2644 54.4692C66.0409 54.4692 64.8347 54.1462 63.7434 53.5264C62.652 52.9066 61.7062 52.0073 60.9825 50.9014L58.625 47.2915L56.2962 50.9014C55.5725 52.0073 54.6267 52.9066 53.5354 53.5264C52.444 54.1462 51.2378 54.4692 50.0144 54.4692C48.791 54.4692 47.5847 54.1462 46.4934 53.5264C45.402 52.9066 44.4562 52.0073 43.7325 50.9014L41.375 47.2915L39.0463 50.9014C38.3226 52.0073 37.3767 52.9066 36.2854 53.5264C35.194 54.1462 33.9878 54.4692 32.7644 54.4692C31.541 54.4692 30.3348 54.1462 29.2434 53.5264C28.152 52.9066 27.2062 52.0073 26.4825 50.9014L24.125 47.2915L21.7675 50.9014C21.0573 52.0245 20.118 52.941 19.0277 53.5746C17.9375 54.2081 16.728 54.5404 15.5 54.5436C14.4165 54.5584 13.3428 54.3129 12.351 53.8237C11.3592 53.3344 10.4723 52.6128 9.75004 51.7072V41.7798L21.48 15.4464H78.52L90.25 41.7476V51.6105C89.532 52.5288 88.648 53.2652 87.6566 53.7709C86.6652 54.2767 85.5891 54.54 84.5 54.5436Z" fill="#232527" />
+              <path
+                d="M16 67V89.5C16 89.7761 16.2239 90 16.5 90H82.5C82.7761 90 83 89.7761 83 89.5V67"
+                stroke="#232527"
+                strokeWidth="6.5"
+                strokeLinecap="square"
+              />
+              <path
+                d="M39 90V67"
+                stroke="#232527"
+                strokeWidth="6.5"
+                strokeLinecap="square"
+              />
+              <path
+                d="M95.3962 38.8789L83.6662 12.5777C83.1902 11.5037 82.4563 10.5999 81.5472 9.96786C80.6381 9.33582 79.5897 9.00064 78.52 9H21.48C20.4103 9.00064 19.3619 9.33582 18.4528 9.96786C17.5437 10.5999 16.8098 11.5037 16.3338 12.5777L4.60379 38.8789C4.2033 39.7798 3.99653 40.7733 4.00004 41.7798V51.7072C3.99742 53.2134 4.46533 54.6731 5.32254 55.8329C6.58944 57.461 8.15413 58.7643 9.91027 59.6542C11.6664 60.5441 13.5729 60.9997 15.5 60.99C18.6446 60.9955 21.6933 59.7764 24.125 57.5412C26.5567 59.7777 29.6047 61 32.75 61C35.8953 61 38.9433 59.7777 41.375 57.5412C43.8067 59.7777 46.8547 61 50 61C53.1453 61 56.1933 59.7777 58.625 57.5412C61.0567 59.7777 64.1047 61 67.25 61C70.3953 61 73.4433 59.7777 75.875 57.5412C78.5894 60.0399 82.0623 61.2614 85.5634 60.9488C89.0645 60.6362 92.3212 58.814 94.6487 55.8651C95.5163 54.7098 95.9945 53.2497 96 51.7395V41.7798C96.0035 40.7733 95.7967 39.7798 95.3962 38.8789ZM84.5 54.5436C83.272 54.5404 82.0625 54.2081 80.9723 53.5746C79.882 52.941 78.9427 52.0245 78.2325 50.9014L75.875 47.2915L73.5462 50.9014C72.8225 52.0073 71.8767 52.9066 70.7853 53.5264C69.694 54.1462 68.4878 54.4692 67.2644 54.4692C66.0409 54.4692 64.8347 54.1462 63.7434 53.5264C62.652 52.9066 61.7062 52.0073 60.9825 50.9014L58.625 47.2915L56.2962 50.9014C55.5725 52.0073 54.6267 52.9066 53.5354 53.5264C52.444 54.1462 51.2378 54.4692 50.0144 54.4692C48.791 54.4692 47.5847 54.1462 46.4934 53.5264C45.402 52.9066 44.4562 52.0073 43.7325 50.9014L41.375 47.2915L39.0463 50.9014C38.3226 52.0073 37.3767 52.9066 36.2854 53.5264C35.194 54.1462 33.9878 54.4692 32.7644 54.4692C31.541 54.4692 30.3348 54.1462 29.2434 53.5264C28.152 52.9066 27.2062 52.0073 26.4825 50.9014L24.125 47.2915L21.7675 50.9014C21.0573 52.0245 20.118 52.941 19.0277 53.5746C17.9375 54.2081 16.728 54.5404 15.5 54.5436C14.4165 54.5584 13.3428 54.3129 12.351 53.8237C11.3592 53.3344 10.4723 52.6128 9.75004 51.7072V41.7798L21.48 15.4464H78.52L90.25 41.7476V51.6105C89.532 52.5288 88.648 53.2652 87.6566 53.7709C86.6652 54.2767 85.5891 54.54 84.5 54.5436Z"
+                fill="#232527"
+              />
             </svg>
             <h2 className="text-[25px] font-semibold mb-3">
               No items to restock yet!
@@ -2499,7 +2662,9 @@ export default function CalendarPage() {
                         </h4>
                         <p className="text-xs text-gray-500">{item.category}</p>
                         <div>
-                          <p className="text-xs text-gray-500">Last purchased: {item.lastPurchasedText}</p>
+                          <p className="text-xs text-gray-500">
+                            Last purchased: {item.lastPurchasedText}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -2521,7 +2686,11 @@ export default function CalendarPage() {
       </div>
 
       {/* Vaccination Section */}
-      <VaccinationSection selectedChild={selectedChild} userData={userData} />
+      <VaccinationSection
+        selectedChild={selectedChild}
+        userData={userData}
+        childrenList={childrenList}
+      />
 
       {/* Add Event Modal */}
       <AddEventModal
@@ -2561,9 +2730,9 @@ export default function CalendarPage() {
         event={
           selectedRestockItem
             ? {
-              title: `Restock: ${selectedRestockItem.productName}`,
-              startDate: selectedRestockItem.nextRestockDate,
-            }
+                title: `Restock: ${selectedRestockItem.productName}`,
+                startDate: selectedRestockItem.nextRestockDate,
+              }
             : null
         }
         customDaysPreview={customRestockDays}
@@ -2571,6 +2740,6 @@ export default function CalendarPage() {
         showDatePicker={true}
         productName={selectedRestockItem?.productName || ""}
       />
-    </div >
+    </div>
   );
 }
