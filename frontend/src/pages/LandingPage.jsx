@@ -5,6 +5,28 @@ import BudgetIcon from "../icons/BudgetIcon";
 import CalendarIcon from "../icons/CalendarIcon";
 import ArticlesIcon from "../icons/ArticlesIcon";
 
+// Landing page assets (handled by Vite in build)
+import TeamProposalPdf from "../assets/WMDD 4980 - Team3.pdf";
+import SmallLogo from "../assets/smallLogo.svg";
+import ArrowBigDownDash from "../assets/arrow-big-down-dash.svg";
+import FeatureBudgetImg from "../assets/FeatureBudgetImg.svg";
+import FeatureCalendarImg from "../assets/FeatureCalendarImg.svg";
+import FeatureArticleImg from "../assets/FeatureArticleImg.svg";
+import JungahBaeImg from "../assets/JungahBae.svg";
+import AnaCarrilloImg from "../assets/AnaCarrillo.svg";
+import JaskiratSinghImg from "../assets/JaskiratSingh.svg";
+import SahilKumarImg from "../assets/SahilKumar.svg";
+import SiddhiImg from "../assets/Siddhi.svg";
+import YunMatsuuraImg from "../assets/YunMatsuura.svg";
+import TejaswaniImg from "../assets/Tejaswani.svg";
+import HarleenKaurImg from "../assets/HarleenKaur.svg";
+import ManmeetSinghImg from "../assets/ManmeetSingh.svg";
+import VaibhavImg from "../assets/Vaibhav.svg";
+import WorkflowIcon from "../assets/workflow.svg";
+import GithubIcon from "../assets/github.svg";
+import ContactUsImg from "../assets/ContactUsImg.svg";
+import BloomUpLogoWhite from "../assets/BloomUpLogoWhite.svg";
+
 const LandingPage = () => {
   const [contactStatus, setContactStatus] = useState({
     type: null, // 'success' or 'error'
@@ -141,7 +163,7 @@ const LandingPage = () => {
   const handleProposalDownload = () => {
     // Create a temporary link element
     const link = document.createElement("a");
-    link.href = "/src/assets/WMDD 4980 - Team3.pdf";
+    link.href = TeamProposalPdf;
     link.download = "WMDD 4980 - Team3.pdf";
     document.body.appendChild(link);
     link.click();
@@ -155,18 +177,10 @@ const LandingPage = () => {
         <div className="lp-header-container">
           <div className="lp-logo">
             <a href="#herp">
-              <img
-                src="/src/icons/BloomUpLogo.svg"
-                alt="BloomUp"
-                className="lp-logo-desktop"
-              />
+              <img src={SmallLogo} alt="BloomUp" className="lp-logo-desktop" />
             </a>
             <a href="#hero">
-              <img
-                src="/src/assets/smallLogo.svg"
-                alt="BloomUp"
-                className="lp-logo-mobile"
-              />
+              <img src={SmallLogo} alt="BloomUp" className="lp-logo-mobile" />
             </a>
           </div>
           <nav className="lp-nav-menu">
@@ -193,7 +207,7 @@ const LandingPage = () => {
           <div className="lp-mobile-menu">
             <div className="lp-mobile-menu-header">
               <img
-                src="/src/assets/smallLogo.svg"
+                src={SmallLogo}
                 alt="BloomUp"
                 className="lp-mobile-menu-logo"
               />
@@ -247,8 +261,8 @@ const LandingPage = () => {
               >
                 Proposal
                 <img
-                  src="/src/assets/arrow-big-down-dash.svg"
-                  alt=""
+                  src={ArrowBigDownDash}
+                  alt="Proposal icon"
                   className="lp-btn-icon"
                 />
               </button>
@@ -307,8 +321,9 @@ const LandingPage = () => {
             </div>
             <div className="lp-feature-mockup">
               <img
-                src="/src/assets/FeatureBudgetImg.svg"
+                src={FeatureBudgetImg}
                 alt="Budget Management Dashboard"
+                className="lp-feature-img"
               />
             </div>
           </div>
@@ -319,8 +334,9 @@ const LandingPage = () => {
           <div className="lp-feature-container lp-feature-reverse">
             <div className="lp-feature-mockup">
               <img
-                src="/src/assets/FeatureCalendarImg.svg"
+                src={FeatureCalendarImg}
                 alt="Smart Calendar Dashboard"
+                className="lp-feature-img"
               />
             </div>
             <div className="lp-feature-content">
@@ -388,8 +404,9 @@ const LandingPage = () => {
             </div>
             <div className="lp-feature-mockup">
               <img
-                src="/src/assets/FeatureArticleImg.svg"
+                src={FeatureArticleImg}
                 alt="Articles & Resources Dashboard"
+                className="lp-feature-img"
               />
             </div>
           </div>
@@ -494,7 +511,7 @@ const LandingPage = () => {
             {/* Team Member 1 */}
             <div className="lp-team-member">
               <div className="lp-team-avatar">
-                <img src="/src/assets/JungahBae.svg" alt="Jungah Bae" />
+                <img src={JungahBaeImg} alt="Jungah Bae" />
               </div>
               <a
                 href="https://www.linkedin.com/in/kaeli-bae/"
@@ -525,7 +542,7 @@ const LandingPage = () => {
             {/* Team Member 2 */}
             <div className="lp-team-member">
               <div className="lp-team-avatar">
-                <img src="/src/assets/AnaCarrillo.svg" alt="Ana Carrillo" />
+                <img src={AnaCarrilloImg} alt="Ana Carrillo" />
               </div>
               <a
                 href="https://www.linkedin.com/in/laanacarrilloc/"
@@ -556,7 +573,7 @@ const LandingPage = () => {
             {/* Team Member 3 */}
             <div className="lp-team-member">
               <div className="lp-team-avatar">
-                <img src="/src/assets/JaskiratSingh.svg" alt="Jaskirat Singh" />
+                <img src={JaskiratSinghImg} alt="Jaskirat Singh" />
               </div>
               <a
                 href="https://www.linkedin.com/in/jaskirat-singh-990889327/"
@@ -589,7 +606,7 @@ const LandingPage = () => {
             {/* Team Member 4 */}
             <div className="lp-team-member">
               <div className="lp-team-avatar">
-                <img src="/src/assets/SahilKumar.svg" alt="Sahil Kumar" />
+                <img src={SahilKumarImg} alt="Sahil Kumar" />
               </div>
               <a
                 href="https://www.linkedin.com/in/sahil-kumar062001"
@@ -620,10 +637,7 @@ const LandingPage = () => {
             {/* Team Member 5 */}
             <div className="lp-team-member">
               <div className="lp-team-avatar">
-                <img
-                  src="/src/assets/Siddhi.svg"
-                  alt="Siddhi Narharshettiwar"
-                />
+                <img src={SiddhiImg} alt="Siddhi Narharshettiwar" />
               </div>
               <a
                 href="https://www.linkedin.com/in/siddhi-narharshettiwar-5470142a7/"
@@ -656,7 +670,7 @@ const LandingPage = () => {
             {/* Team Member 6 */}
             <div className="lp-team-member">
               <div className="lp-team-avatar">
-                <img src="/src/assets/YunMatsuura.svg" alt="Yun Matsuura" />
+                <img src={YunMatsuuraImg} alt="Yun Matsuura" />
               </div>
               <a
                 href="https://www.linkedin.com/in/yun-matsuura/"
@@ -687,7 +701,7 @@ const LandingPage = () => {
             {/* Team Member 7 */}
             <div className="lp-team-member">
               <div className="lp-team-avatar">
-                <img src="/src/assets/Tejaswani.svg" alt="Tejaswani Kolasani" />
+                <img src={TejaswaniImg} alt="Tejaswani Kolasani" />
               </div>
               <a
                 href="https://www.linkedin.com/in/kolasani-tejaswani-software-developer/"
@@ -720,7 +734,7 @@ const LandingPage = () => {
             {/* Team Member 8 */}
             <div className="lp-team-member">
               <div className="lp-team-avatar">
-                <img src="/src/assets/HarleenKaur.svg" alt="Harleen Kaur" />
+                <img src={HarleenKaurImg} alt="Harleen Kaur" />
               </div>
               <a
                 href="https://www.linkedin.com/in/asp-dot-net-software-engineer/"
@@ -753,10 +767,7 @@ const LandingPage = () => {
             {/* Team Member 9 */}
             <div className="lp-team-member">
               <div className="lp-team-avatar">
-                <img
-                  src="/src/assets/ManmeetSingh.svg"
-                  alt="Manmeet Singh Virdi"
-                />
+                <img src={ManmeetSinghImg} alt="Manmeet Singh Virdi" />
               </div>
               <a
                 href="https://www.linkedin.com/in/manmeet-singh-virdi-b9359b334/"
@@ -789,7 +800,7 @@ const LandingPage = () => {
             {/* Team Member 10 */}
             <div className="lp-team-member">
               <div className="lp-team-avatar">
-                <img src="/src/assets/Vaibhav.svg" alt="Vaibhav Adesara" />
+                <img src={VaibhavImg} alt="Vaibhav Adesara" />
               </div>
               <a
                 href="https://www.linkedin.com/in/vaibhav-adesara-b503151b2/"
@@ -840,8 +851,8 @@ const LandingPage = () => {
             >
               Prototype
               <img
-                src="/src/assets/workflow.svg"
-                alt=""
+                src={WorkflowIcon}
+                alt="Workflow"
                 className="lp-project-icon"
               />
             </a>
@@ -850,11 +861,7 @@ const LandingPage = () => {
               className="lp-btn-project-github"
             >
               GitHub
-              <img
-                src="/src/assets/github.svg"
-                alt=""
-                className="lp-project-icon"
-              />
+              <img src={GithubIcon} alt="GitHub" className="lp-project-icon" />
             </a>
           </div>
         </div>
@@ -867,7 +874,7 @@ const LandingPage = () => {
           <div className="lp-contact-content">
             <div className="lp-contact-illustration">
               <img
-                src="/src/assets/ContactUsImg.svg"
+                src={ContactUsImg}
                 alt="Contact Us"
                 className="lp-contact-img"
               />
@@ -936,7 +943,7 @@ const LandingPage = () => {
         <div className="lp-footer-top">
           <div className="lp-footer-logo">
             <a href="#hero">
-              <img src="/src/assets/BloomUpLogoWhite.svg" alt="BloomUp" />
+              <img src={BloomUpLogoWhite} alt="BloomUp" />
             </a>
           </div>
           <nav className="lp-footer-nav">

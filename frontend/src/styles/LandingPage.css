@@ -527,7 +527,7 @@ html {
 }
 
 .lp-pricing-content {
-  background: linear-gradient(180deg, #008F88 0%, rgba(158, 205, 168, 0.1) 100%);
+  /* background: linear-gradient(180deg, #008F88 0%, rgba(158, 205, 168, 0.1) 100%); */
   padding: 2rem 0 5rem 0;
   position: relative;
 }
