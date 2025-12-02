@@ -12,6 +12,7 @@ const calendarRoutes = require("./routes/calendarRoutes");
 const articleRoutes = require("./routes/articleRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const reminderRoutes = require("./routes/reminderRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 
 const childrenRoutes = require("./routes/childrenRoutes");
 
@@ -80,6 +81,9 @@ app.use("/api/articles", articleRoutes);
 
 //For Reminders
 app.use("/api/reminders", reminderRoutes);
+
+// Contact form route
+app.use("/api/contact", contactRoutes);
 
 //
 //app.use("/api/calendar", childrenRoutes);

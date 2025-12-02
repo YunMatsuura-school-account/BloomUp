@@ -97,6 +97,7 @@ Frontend built with React, Vite, React Router, and TailwindCSS for a family fina
   - `/api/articles/*` - Article management
   - `/api/calendar/*` - Calendar events
   - `/api/vaccinations/*` - Vaccination data
+  - `/api/contact` - Contact form submission
 
 ### Authentication
 - **JWT (JSON Web Tokens):** Stored in localStorage as `accessToken`, `token`, or `authToken`
@@ -142,6 +143,11 @@ frontend/
 - Marketing page with sections: Hero, Features, Pricing, Team, Project Assets, Contact
 - Navigation links to signup page via "Sign Up" button in header
 - Pricing cards with "Get started" buttons linking to `/signup`
+- **Contact Form:** Functional contact form that sends emails to `bloomupproject2@gmail.com`
+  - Form validation (name, email, message required)
+  - Success/error feedback messages
+  - Loading state during submission
+  - Auto-reset form on successful submission
 - Mobile responsive with hamburger menu
 - Styled via `src/styles/LandingPage.css`
 

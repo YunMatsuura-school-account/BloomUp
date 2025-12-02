@@ -19,6 +19,7 @@
     "mongodb": "^5.9.2",
     "mongoose": "^7.6.3",
     "multer": "^2.0.2",
+    "nodemailer": "^7.0.11",
     "openai": "^6.5.0"
   },
   "devDependencies": {

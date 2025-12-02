@@ -115,6 +115,9 @@ Frontend
 ### AI Integration
 - **OpenAI** (`^6.5.0`): OpenAI API client for GPT models (used in AI insights)
 
+### Email Service
+- **Nodemailer** (`^7.0.11`): Email sending service for contact form submissions
+
 ### Utilities
 - **CORS** (`^2.8.5`): Cross-Origin Resource Sharing middleware
 - **Dotenv** (`^17.2.3`): Loads environment variables from `.env` files
@@ -165,7 +168,8 @@ backend/
 │   ├── articleController.js     # Article management
 │   ├── calendarController.js    # Calendar events
 │   ├── vaccinationController.js # Vaccination management
-│   └── postController.js        # Post/social features
+│   ├── postController.js        # Post/social features
+│   └── contactController.js     # Contact form email handling
 ├── routes/                      # API route definitions
 │   ├── authRoutes.js
 │   ├── userRoutes.js
@@ -176,7 +180,8 @@ backend/
 │   ├── calendarRoutes.js
 │   ├── vaccinationRoutes.js
 │   ├── postRoutes.js
-│   └── uploadImageRoutes.js    # Image upload endpoints
+│   ├── uploadImageRoutes.js    # Image upload endpoints
+│   └── contactRoutes.js        # Contact form endpoint
 ├── models/                      # Mongoose schemas
 │   ├── User.js
 │   ├── ChildProfile.js
@@ -255,6 +260,12 @@ backend/
 ### Vaccinations (`/api/vaccinations`)
 - `GET /api/users/:userId/children/:childId/vaccinations/recommendations` - Get recommendations
 
+### Contact Form (`/api/contact`)
+- `POST /api/contact` - Send contact form email
+  - Body: `{ name, email, message }`
+  - Sends email to `bloomupproject2@gmail.com`
+  - Requires `EMAIL_USER` and `EMAIL_PASSWORD` environment variables
+
 ---
 
 ## Key Features
@@ -321,6 +332,10 @@ PORT=5000
 
 # CORS Origin (optional)
 CORS_ORIGIN=http://localhost:5173
+
+# Email Service (for contact form)
+EMAIL_USER=bloomupproject2@gmail.com
+EMAIL_PASSWORD=your_gmail_app_password
 ```
 
 ---
@@ -481,6 +496,7 @@ res.status(400).json({ success: false, message: "Error message" });
 - `mongodb` ^5.9.2 - MongoDB driver
 - `mongoose` ^7.6.3 - MongoDB ODM
 - `multer` ^2.0.2 - File upload middleware
+- `nodemailer` ^7.0.11 - Email sending service
 - `openai` ^6.5.0 - OpenAI API client
 
 ### Development Dependencies
