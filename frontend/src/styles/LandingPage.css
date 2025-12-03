@@ -1,4 +1,6 @@
 /* Landing Page Styles */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+
 :root {
   --primary-teal: #238B88;
   --light-teal: #75C9C8;
@@ -27,7 +29,7 @@ html {
 }
 
 .landing-page {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: var(--text-dark);
   overflow-x: hidden;
 }
@@ -513,6 +515,20 @@ html {
   width: 100%;
   height: auto;
   object-fit: contain;
+}
+
+/* Curve divider between Features and Pricing */
+.lp-features-pricing-curve {
+  width: 100%;
+  height: 180px;
+  margin-top: -1px;
+  background: #C8E2E1;
+}
+
+.lp-features-pricing-curve svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* Pricing Section */
@@ -1243,6 +1259,16 @@ html {
 
   .lp-hero-curve-mobile {
     display: block;
+  }
+
+  .lp-hero-curve {
+    height: 170px;
+    bottom: -20px;
+  }
+
+  /* Hide features-pricing curve on mobile */
+  .lp-features-pricing-curve {
+    display: none;
   }
 
   /* Switch to mobile pricing background */

@@ -6,7 +6,10 @@ import CalendarIcon from "../icons/CalendarIcon";
 import ArticlesIcon from "../icons/ArticlesIcon";
 
 // Landing page assets (handled by Vite in build)
-import TeamProposalPdf from "../assets/WMDD 4980 - Team3.pdf";
+// PDF hosted externally due to size (109MB exceeds GitHub's 100MB limit)
+// Upload to Google Drive and replace this URL with the direct download link
+const BloomUpProposalPdf =
+  "https://drive.google.com/uc?export=download&id=YOUR_FILE_ID";
 import SmallLogo from "../assets/smallLogo.svg";
 import ArrowBigDownDash from "../assets/arrow-big-down-dash.svg";
 import FeatureBudgetImg from "../assets/FeatureBudgetImg.svg";
@@ -163,8 +166,8 @@ const LandingPage = () => {
   const handleProposalDownload = () => {
     // Create a temporary link element
     const link = document.createElement("a");
-    link.href = TeamProposalPdf;
-    link.download = "WMDD 4980 - Team3.pdf";
+    link.href = BloomUpProposalPdf;
+    link.download = "BloomUp_proposal.pdf";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -283,20 +286,20 @@ const LandingPage = () => {
               fill="#C8E2E1"
             />
           </svg>
-          {/* Mobile curve */}
+          {/* Mobile curve - smaller, gentler curve */}
           <svg
             className="lp-hero-curve-mobile"
-            viewBox="0 0 393 300"
+            viewBox="0 0 393 100"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             preserveAspectRatio="none"
           >
             <path
-              d="M180 280C100 295 40 270 0 250V0H393V260C340 245 280 265 180 280Z"
+              d="M0,0 L0,25 Q100,50 200,35 Q300,20 393,30 L393,100 L0,100 Z"
               fill="#C8E2E1"
             />
             <path
-              d="M180 280C100 295 40 270 0 250V0H393V260C340 245 280 265 180 280Z"
+              d="M0,0 L0,25 Q100,50 200,35 Q300,20 393,30 L393,100 L0,100 Z"
               fill="url(#paint0_linear_hero_mobile)"
             />
             <defs>
@@ -443,6 +446,34 @@ const LandingPage = () => {
               />
             </div>
           </div>
+        </div>
+
+        {/* Curve divider between Features and Pricing */}
+        <div className="lp-features-pricing-curve">
+          <svg
+            viewBox="0 0 1440 250"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,0 L0,80 Q400,250 800,100 Q1200,-20 1440,60 L1440,250 L0,250 Z"
+              fill="url(#featuresPricingGradient)"
+            />
+            <defs>
+              <linearGradient
+                id="featuresPricingGradient"
+                x1="720"
+                y1="-50"
+                x2="720"
+                y2="250"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop offset="0%" stopColor="#17B0A9" />
+                <stop offset="100%" stopColor="#45BFB9" />
+              </linearGradient>
+            </defs>
+          </svg>
         </div>
       </section>
 

@@ -27,9 +27,6 @@ const defaultCategoryColors = {
 
 // Extended color palette for dynamic categories
 const colorPalette = [
-  "#a8dfe9ff",
-  "#c8dd97ff",
-  "#aa9664ff",
   "#F97316",
   "#EC4899",
   "#8B5CF6",
