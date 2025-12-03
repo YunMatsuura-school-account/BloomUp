@@ -27,3 +27,8 @@ logs
 # OS files
 Thumbs.db
 backend/uploads/
+
+# Large PDF files (upload manually to hosting platform)
+BloomUp_proposal.pdf
+frontend/public/BloomUp_proposal.pdf
+frontend/src/assets/BloomUp_proposal.pdf

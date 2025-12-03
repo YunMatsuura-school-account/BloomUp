@@ -6,10 +6,8 @@ import CalendarIcon from "../icons/CalendarIcon";
 import ArticlesIcon from "../icons/ArticlesIcon";
 
 // Landing page assets (handled by Vite in build)
-// PDF hosted externally due to size (109MB exceeds GitHub's 100MB limit)
-// Upload to Google Drive and replace this URL with the direct download link
-const BloomUpProposalPdf =
-  "https://drive.google.com/uc?export=download&id=YOUR_FILE_ID";
+// PDF served from public folder - just upload/replace the file at public/BloomUp_proposal.pdf
+const BloomUpProposalPdf = "/BloomUp_proposal.pdf";
 import SmallLogo from "../assets/smallLogo.svg";
 import ArrowBigDownDash from "../assets/arrow-big-down-dash.svg";
 import FeatureBudgetImg from "../assets/FeatureBudgetImg.svg";
@@ -164,7 +162,7 @@ const LandingPage = () => {
   };
 
   const handleProposalDownload = () => {
-    // Create a temporary link element
+    // Download PDF from public folder
     const link = document.createElement("a");
     link.href = BloomUpProposalPdf;
     link.download = "BloomUp_proposal.pdf";

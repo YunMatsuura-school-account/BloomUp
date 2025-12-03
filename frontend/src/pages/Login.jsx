@@ -131,7 +131,7 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen w-full bg-white flex flex-col lg:flex-row"
+      className="min-h-screen w-full bg-white flex flex-col lg:flex-row overflow-y-auto"
       style={{ fontFamily: "DM Sans, sans-serif" }}
     >
       {/* Left Side - Gradient Background with Text */}

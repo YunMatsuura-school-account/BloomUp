@@ -96,7 +96,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col lg:flex-row">
+    <div className="min-h-screen w-full bg-white flex flex-col lg:flex-row overflow-y-auto">
       {/* Left Side - Gradient Background with Text (Fixed on large screens) */}
       <div className="hidden lg:flex lg:w-[40%] lg:fixed lg:left-0 lg:top-0 lg:h-screen relative overflow-hidden flex-shrink-0">
         {/* Gradient Background */}
