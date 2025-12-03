@@ -152,7 +152,7 @@ export default function FamilySetup() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col lg:flex-row font-['DM_Sans'] overflow-x-hidden overflow-y-auto">
+    <div className="fixed inset-0 w-full bg-white flex flex-col lg:flex-row font-['DM_Sans'] overflow-hidden">
       {/* Left Side - Gradient Background with Content (Fixed on large screens) */}
       <div className="hidden lg:flex lg:w-[40%] lg:fixed lg:left-0 lg:top-0 lg:h-screen relative overflow-hidden flex-shrink-0">
         <div

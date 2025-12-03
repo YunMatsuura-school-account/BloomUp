@@ -131,7 +131,7 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen w-full bg-white flex flex-col lg:flex-row overflow-y-auto"
+      className="fixed inset-0 w-full bg-white flex flex-col lg:flex-row overflow-hidden"
       style={{ fontFamily: "DM Sans, sans-serif" }}
     >
       {/* Left Side - Gradient Background with Text */}
@@ -178,7 +178,7 @@ export default function Login() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 lg:w-[60%] flex flex-col items-center justify-center px-4 lg:px-12 xl:px-16 py-10">
+      <div className="flex-1 lg:w-[60%] flex flex-col items-center lg:justify-center px-4 lg:px-12 xl:px-16 py-10 overflow-y-auto">
         <div className="w-full flex justify-center mb-8">
           <h1
             className="text-[34px] lg:text-[40px] font-semibold text-center leading-[1.4] text-[#232527]"
