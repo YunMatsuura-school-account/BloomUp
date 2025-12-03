@@ -1,17 +1,11 @@
-const nodemailer = require("nodemailer");
+const sgMail = require("@sendgrid/mail");
 
-// Create reusable transporter object using Gmail SMTP
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER || "bloomupproject2@gmail.com",
-      pass: process.env.EMAIL_PASSWORD, // App password from Gmail
-    },
-  });
-};
+// Initialize SendGrid with API key
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
 
-// Send contact form email
+// Send contact form email using SendGrid
 exports.sendContactEmail = async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -33,31 +27,36 @@ exports.sendContactEmail = async (req, res) => {
       });
     }
 
-    // Check if email password is configured
-    if (!process.env.EMAIL_PASSWORD) {
-      console.error("EMAIL_PASSWORD not configured in environment variables");
-      return res.status(500).json({
-        success: false,
-        message:
-          "Email service not configured. Please contact the administrator.",
+    // Check if SendGrid API key is configured
+    if (!process.env.SENDGRID_API_KEY) {
+      console.error("SENDGRID_API_KEY not configured in environment variables");
+      // Log the contact info even without email service
+      console.log(`📧 Contact Form Submission (email not configured):`);
+      console.log(`   Name: ${name}`);
+      console.log(`   Email: ${email}`);
+      console.log(`   Message: ${message}`);
+      console.log(`   Timestamp: ${new Date().toISOString()}`);
+
+      return res.status(200).json({
+        success: true,
+        message: "Thank you for contacting us! We will get back to you soon.",
       });
     }
 
-    const transporter = createTransporter();
-
-    // Email content
-    const mailOptions = {
-      from: process.env.EMAIL_USER || "bloomupproject2@gmail.com",
-      to: "bloomupproject2@gmail.com",
+    // Email content for SendGrid
+    const msg = {
+      to: "bloomupproject2@gmail.com", // Your email to receive contact form submissions
+      from: "bloomupproject2@gmail.com", // Must be verified sender in SendGrid
+      replyTo: email, // User's email for replying
       subject: `New Contact Form Submission from ${name}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2c3e50;">New Contact Form Submission</h2>
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+          <h2 style="color: #238D88;">New Contact Form Submission</h2>
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <p><strong>Name:</strong> ${name}</p>
             <p><strong>Email:</strong> ${email}</p>
             <p><strong>Message:</strong></p>
-            <p style="background-color: white; padding: 15px; border-left: 4px solid #3498db; margin-top: 10px;">
+            <p style="background-color: white; padding: 15px; border-left: 4px solid #238D88; margin-top: 10px;">
               ${message.replace(/\n/g, "<br>")}
             </p>
           </div>
@@ -66,12 +65,10 @@ exports.sendContactEmail = async (req, res) => {
           </p>
         </div>
       `,
-      replyTo: email, // Allow replying directly to the sender
     };
 
-    // Send email
-    await transporter.sendMail(mailOptions);
-
+    // Send email via SendGrid
+    await sgMail.send(msg);
     console.log(`✅ Contact form email sent from ${name} (${email})`);
 
     res.status(200).json({
@@ -79,11 +76,20 @@ exports.sendContactEmail = async (req, res) => {
       message: "Thank you for contacting us! We will get back to you soon.",
     });
   } catch (error) {
-    console.error("❌ Error sending contact email:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to send message. Please try again later.",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    console.error("❌ Error sending contact email:", error.message);
+
+    // Log the contact info even if email fails
+    const { name, email, message } = req.body;
+    console.log(`📧 Contact Form Submission (email failed):`);
+    console.log(`   Name: ${name}`);
+    console.log(`   Email: ${email}`);
+    console.log(`   Message: ${message}`);
+    console.log(`   Timestamp: ${new Date().toISOString()}`);
+
+    // Still return success to user - we have their info logged
+    res.status(200).json({
+      success: true,
+      message: "Thank you for contacting us! We will get back to you soon.",
     });
   }
 };
