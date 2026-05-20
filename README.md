@@ -26,8 +26,6 @@
 - [Environment Variables](#environment-variables)
 - [API Reference](#api-reference)
 - [Deployment](#deployment)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
 - [Team](#team)
 - [License](#license)
 
@@ -328,7 +326,7 @@ The application has been deployed to two environments during development:
 | Environment | Host | URL | Status |
 |-------------|------|-----|--------|
 | Academic demo | Langara WMDD college servers | [https://bloomup.wmdd.ca/](https://bloomup.wmdd.ca/) | Live (may end after academic term) |
-| Production reference | AWS EC2 (Ubuntu 24.04, `t2.small`) | Static Elastic IP | Reference setup, can be re-spun anytime |
+| AWS deployment | AWS EC2 (Ubuntu 24.04, `t2.small`) | Static Elastic IP | Backup deployment option if college server closes |
 
 ### Deploying to AWS EC2 (recommended for production)
 
@@ -364,31 +362,6 @@ sudo cp -r dist/* /var/www/bloomup/frontend-dist/
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
 ```
-
----
-
-## Roadmap
-
-- [ ] Add unit & integration tests (Jest + React Testing Library)
-- [ ] Migrate from self-signed SSL to Let's Encrypt
-- [ ] Add Docker Compose for local development
-- [ ] Implement push notifications for vaccination reminders
-- [ ] Add multi-language support (i18n)
-- [ ] Build a mobile companion app (React Native)
-
----
-
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-Please make sure your code follows the existing style and passes `npm run lint`.
 
 ---
 
